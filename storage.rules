@@ -1,0 +1,11 @@
+// DEV-ONLY PERMISSIVE RULES — FOR THE FIREBASE EMULATOR SUITE. NOT PRODUCTION.
+// Production Storage rules live outside this repo (see firestore.rules header).
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}

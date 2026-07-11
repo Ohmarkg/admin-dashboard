@@ -1,0 +1,40 @@
+# `docker compose up` = Firebase Emulator Suite + `bun run dev` (REBUILD_CONCEPT §9.1).
+# No real credentials anywhere in this file — emulator-only by design.
+services:
+  emulators:
+    build: .
+    command: firebase emulators:start --project tamushpemobileapp --import ./seed --export-on-exit
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    ports:
+      - "4000:4000" # Emulator UI
+      - "8080:8080" # Firestore
+      - "9099:9099" # Auth
+      - "9199:9199" # Storage
+
+  web:
+    build: .
+    command: sh -c "bun install && bun run dev"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+      - next_cache:/workspace/.next
+    ports:
+      - "3000:3000"
+    environment:
+      # Dummy key — the Auth emulator doesn't validate it. Real keys arrive at cutover only.
+      NEXT_PUBLIC_GOOGLE_API_KEY: dummy-emulator-key
+      NEXT_PUBLIC_USE_FIREBASE_EMULATORS: "true"
+      # Admin SDK (server side of `next dev`) talks to the emulators container.
+      FIRESTORE_EMULATOR_HOST: emulators:8080
+      FIREBASE_AUTH_EMULATOR_HOST: emulators:9099
+      FIREBASE_STORAGE_EMULATOR_HOST: emulators:9199
+    depends_on:
+      - emulators
+
+volumes:
+  node_modules:
+  next_cache:

@@ -1,0 +1,20 @@
+node_modules/*
+.next/
+out/
+
+# emulator state exported by --export-on-exit (regenerate with `bun run seed`)
+seed/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+
+# env — .env.development is committed (emulator-only, no secrets); everything else is not
+.env
+.env.local
+.env*.local
+.env.production
+
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts

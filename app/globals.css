@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Brand theme (DESIGN_BRIEF.md §2) mapped onto shadcn/ui's CSS-variable
+ * convention. Light theme only — this is an internal, always-authenticated
+ * tool (see DESIGN_BRIEF §2 "Theme").
+ *
+ * Raw hex reference (Aggie maroon family + neutral grays):
+ *   primary/maroon  #500000   brand-dark  #3C001C   brand-light #732F2F
+ *   gray-100 #F6F6F6  gray-200 #EAEAEA  gray-300 #D1D1D1  gray-400 #A7A7A7
+ *   gray-500 #707070  gray-600 #626262  gray-700 #535353  gray-800 #3E3E3E
+ *   gray-900 #202020 (ink)    officer-gold #FCE300    focus ring #E7B7B7
+ *   destructive #B91C1C
+ */
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 12.5%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 12.5%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 12.5%;
+
+        /* Aggie Maroon #500000 */
+        --primary: 0 100% 15.7%;
+        --primary-foreground: 0 0% 100%;
+
+        /* Gray-100 surface, ink text */
+        --secondary: 0 0% 96.5%;
+        --secondary-foreground: 0 0% 12.5%;
+
+        /* Gray-100 surface, gray-600 muted text */
+        --muted: 0 0% 96.5%;
+        --muted-foreground: 0 0% 38.4%;
+
+        /* Gray-200 hover/accent surface */
+        --accent: 0 0% 91.8%;
+        --accent-foreground: 0 0% 12.5%;
+
+        /* Deny/destructive #B91C1C */
+        --destructive: 0 73.7% 41.8%;
+        --destructive-foreground: 0 0% 100%;
+
+        /* Gray-300 rules/borders */
+        --border: 0 0% 82%;
+        --input: 0 0% 82%;
+
+        /* Focus ring #E7B7B7 */
+        --ring: 0 50% 81.2%;
+
+        /* Sharp, institutional corners (DESIGN_BRIEF §2 "Signatures to borrow") */
+        --radius: 2px;
+
+        /* Brand accents not covered by the shadcn semantic palette */
+        --brand: 0 100% 15.7%; /* #500000 */
+        --brand-dark: 332 100% 11.8%; /* #3C001C */
+        --brand-light: 0 42% 31.8%; /* #732F2F */
+        --gold: 54 100% 49.4%; /* #FCE300 — officer badges only */
+        --gold-foreground: 0 0% 12.5%; /* always dark ink, never white */
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground font-sans;
+    }
+    ::selection {
+        background: #e7b7b7;
+    }
+}

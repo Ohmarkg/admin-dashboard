@@ -1,0 +1,16 @@
+// ============================================================================
+// DEV-ONLY PERMISSIVE RULES — FOR THE FIREBASE EMULATOR SUITE. NOT PRODUCTION.
+// ============================================================================
+// These rules exist so local development against the emulators is frictionless.
+// They must NEVER be deployed to the real tamushpemobileapp project.
+// Production Firestore rules live outside this repo and are owned by Mark;
+// they are verified at cutover (BUILD_PLAN X4).
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
