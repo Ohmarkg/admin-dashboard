@@ -108,7 +108,7 @@ Canonical at `events/{eventId}/logs/{userId}`; mirrored at `users/{uid}/event-lo
 | `creationTime` | Timestamp | |
 | `verified` | boolean | Officer approval flag |
 | `instagramLogs` | Timestamp[] | Instagram-points logging |
-| `edited` | boolean | ⚠️ **Written by `updatePointsInFirebase` but NOT declared in the `SHPEEventLog` interface.** Type-sync gap — reconcile when porting (add to the type, or drop the write). See [firebaseUtils.ts:151](../app/api/firebaseUtils.ts#L151). |
+| `edited` | boolean | Officer-edited flag, set alongside `verified: true` on points edits. **Declared as `edited?: boolean` in [`SHPEEventLog`](../app/types/events.ts)** (gap closed during the rebuild types port); the matching `MobileApp/src/types/Events.ts` change is carried over by hand in the mobile repo. Original write site: firebaseUtils.ts:151. |
 
 ---
 
@@ -119,13 +119,13 @@ A pending membership verification submission. No dedicated stored-shape interfac
 **Stored fields:** `chapterURL`, `nationalURL`, `chapterExpiration` (Timestamp), `nationalExpiration` (Timestamp), `shirtSize` (string).
 **Derived in `RequestWithDoc` (not stored on this doc):** `uid` (= doc ID), `name` (looked up from `users/{uid}.name`).
 
-> **Request validity rule:** a doc counts as a real request only if **both** `chapterURL` and `nationalURL` are non-empty (see `getMembersToVerify`, [firebaseUtils.ts:102](../app/api/firebaseUtils.ts#L102)).
+> **Request validity rule:** a doc counts as a real request only if **both** `chapterURL` and `nationalURL` are non-empty (see `getMembersToVerify`, firebaseUtils.ts:102).
 
 ## `shirt-sizes/{uid}` — shirt submission
 `{ shirtSize: string, shirtUploadDate: Timestamp, shirtPickedUp: boolean }`. `uid` is the doc ID. Officers toggle `shirtPickedUp`.
 
 ## `committees/{id}` — `Committee`
-`name`, `firebaseDocName` (= doc ID), `color`, `logo` (key into `committeeLogos`), `description`, `head` (`PublicUserInfo`), `leads` (`PublicUserInfo[]`), `memberCount`, `memberApplicationLink`, `leadApplicationLink`. Read-only in this app. `head`/`leads` wiring is partially stubbed in the original — complete during the committees build.
+`name`, `firebaseDocName` (= doc ID), `color`, `logo` (key into `committeeLogos`), `description`, `head` (`PublicUserInfo`), `leads` (`PublicUserInfo[]`), `memberCount`, `memberApplicationLink`, `leadApplicationLink`. Read-only in this app. `head`/`leads` wiring was partially stubbed in the original; the rebuild's `useCommittees()` hook reads both shapes (embedded `PublicUserInfo` and bare-uid fallback with a `users/{uid}` lookup).
 
 ## `resumes/status` & `resumes/data`
 Job status for the resume-zip Cloud Function, consumed via real-time `onSnapshot`:
@@ -136,7 +136,7 @@ Job status for the resume-zip Cloud Function, consumed via real-time `onSnapshot
 
 ## Invariants & business rules
 
-1. **Dual-write (points).** Editing points writes the same record to `events/{eventId}/logs/{userId}` **and** `users/{uid}/event-logs/{eventId}` in a single atomic `writeBatch`. Both get `edited: true, verified: true`; `creationTime`/`signInTime` are backfilled from the event's `startTime` if missing. Canonical impl: [`updatePointsInFirebase`](../app/api/firebaseUtils.ts#L136). In the rebuild this moves into `server/routes/points.ts`.
+1. **Dual-write (points).** Editing points writes the same record to `events/{eventId}/logs/{userId}` **and** `users/{uid}/event-logs/{eventId}` in a single atomic `writeBatch`. Both get `edited: true, verified: true`; `creationTime`/`signInTime` are backfilled from the event's `startTime` if missing. Original impl: `updatePointsInFirebase`; the rebuild's canonical impl is `server/routes/points.ts` (`POST /api/points/edit`, chunked ≤250 edits per atomic batch).
 2. **Membership verified** (`isMemberVerified`, [membership.ts:18](../app/types/membership.ts#L18)): true only when **both** `nationalExpiration` and `chapterExpiration` exist and are ≥ now.
 3. **Approve** sets `users/{uid}` `chapterExpiration`/`nationalExpiration` from the request, deletes `memberSHPE/{uid}`, and calls `sendNotificationMemberSHPE({ uid, type: 'approved' })`. **Deny** clears both expirations (`deleteField`), deletes `memberSHPE/{uid}`, notifies `'denied'`. ⚠️ In the original these are separate un-batched writes; the rebuild should make the user-doc update + request delete atomic in the Hono route.
 4. **Aggregate points** on `users/{uid}` (`points`, `pointsThisMonth`) are derived — never hand-edit them; recalculated by the `updateAllUserPoints` Cloud Function after log edits.
@@ -157,4 +157,4 @@ Job status for the resume-zip Cloud Function, consumed via real-time `onSnapshot
 - [ ] Update the interface in `app/types/*` **and** the matching `MobileApp/src/types/*`.
 - [ ] Update the affected table in this doc.
 - [ ] Update request/response shapes in [API.md](./API.md) if a route exposes the field.
-- [ ] Known open gap: `SHPEEventLog.edited` (see table above).
+- [x] ~~Known open gap: `SHPEEventLog.edited`~~ — closed on the web side (declared in `app/types/events.ts`); mobile-repo mirror (`MobileApp/src/types/Events.ts`) carried over by hand — confirm there on next mobile release.

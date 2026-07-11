@@ -12,9 +12,37 @@ Tasks marked **∥** are safe to run concurrently with anything that doesn't dep
 through Phase 5 runs **only** on the Emulator Suite — no real credentials until Phase 6
 (REBUILD_CONCEPT §9).
 
+## Progress
+
+- **Phase 0 (Scaffolding) — ✅ done.** `docker compose up` boots the emulator suite + `bun run dev`;
+  `bunx tsc --noEmit` is clean.
+- **Phase 1 (Foundation) — ✅ done.** Auth middleware/guard, TanStack Query wiring, design system +
+  shared component inventory all in place.
+- **Phase 2 (Points vertical slice, V1–V6) — ✅ done.** `/api/points/edit` + `/recalculate` dual-write
+  atomically; Points screen live with inline editing, Save, Update Points, Export.
+- **Phase 3 (Fan-out, M/E/C/T/P) — ✅ done.** All five tracks complete: Membership screen (M1–M4),
+  Events calendar + EventModal + bulk-approve (E1–E5), Committees directory (C1–C2), Tools + Shirt
+  Tracker (T1–T4), Excel export (P1). Route self-tests (`scripts/test-*-route.ts`) and a full
+  Playwright click-through against the seeded emulator (sign-in → every screen → approve/deny,
+  event-modal open, shirt toggle) pass with zero console/page errors.
+- **Phase 4 (Dashboard, D1) — ✅ done.** Stat tiles, recent-requests card, points leaderboard, all
+  reusing existing query keys; verified against seeded data.
+- **Phase 5 (Hardening) — ✅ done.** H1: API regression (21 checks — 401/403 gates per route family,
+  error shapes `{ error: { code, message } }` on 404/400, no-GET write-only boundary) + Playwright
+  full-screen regression (login → dashboard → membership approve/deny → EventModal per-row + bulk
+  approve → committees → tools → shirt toggle → points; write side-effects verified in the Firestore
+  emulator; zero console/page errors). H2: docs synced — legacy links repointed at
+  `OLD-tamu-shpe-admin-web/`, `SHPEEventLog.edited` gap closed in DATA_MODEL, API.md batch-failure
+  semantics settled, CLAUDE.md current-state updated.
+- **Phase 6 (Cutover) — not started, deliberately last, owned by Mark.** X1–X5 below. Reminder
+  carried from S4: confirm the `MobileApp/src/types/Events.ts` `edited?: boolean` mirror in the
+  mobile repo.
+
 **Reference sources:**
-- `OLD-tamu-shpe-admin-web/` — the legacy app, kept **only** for referencing old code/behavior when
-  needed. Never copy its architecture (client-side writes); do port its data-shape logic where noted.
+- `OLD-tamu-shpe-admin-web/` — the legacy app; was kept only for referencing old code/behavior during
+  the build and has since been **removed from the repo**. Mentions of its files in task notes below are
+  historical. Its architecture (client-side writes) was never to be copied; its data-shape logic was
+  ported where noted.
 - `prototype/SHPE Admin Portal.dc.html` (+ `support.js`) — working static HTML prototype of the
   portal. **The structure and design reference for all UI tasks** (DESIGN_BRIEF = intent, prototype =
   realization).
@@ -332,8 +360,8 @@ rules and provisioning steps are owned by Mark.)
 
 ## Resolved planning notes
 
-1. **Legacy app links.** `OLD-tamu-shpe-admin-web/` exists only for referencing old code. Stale doc
-   links get repointed in H2 (cosmetic, not blocking).
+1. **Legacy app links.** The legacy app existed only for referencing old code and has been removed;
+   doc references to its files are plain-text citations, not links (done in H2).
 2. **`SHPEEventLog.edited` mobile mirror.** Added here in S4; the `MobileApp/src/types/Events.ts`
    mirror is carried over by Mark in the mobile repo.
 3. **Multi-chunk batch failure semantics** (API.md "still open"): sequential chunks + fail-fast

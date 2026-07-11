@@ -53,7 +53,7 @@ This rebuild keeps the *same Firebase project* (`tamushpemobileapp`) and the *sa
 ### The problem in the original app
 All writes happened client-side under the signed-in user's own Firebase credentials. The **only** thing standing between a browser (or anyone able to present a valid ID token) and arbitrary Firestore mutations is Firestore Security Rules. That means every write path's authorization, validation, and "which documents may this operation touch" lives in Security Rules — which are not in this repo, are hard to review/test, and drift out of sync with app logic over time.
 
-> **Correction to an earlier assumption:** this rebuild was initially motivated by a belief that client-side multi-document writes weren't atomic. They *are*. The original `updatePointsInFirebase` ([`app/api/firebaseUtils.ts`](../app/api/firebaseUtils.ts)) already commits both the event log and the user mirror in a single Firestore `writeBatch().commit()`, which is all-or-nothing regardless of where it runs — a dropped connection cannot leave the two collections half-written. **Atomicity was never the gap.** The gap is *trust*: the batch and its rules are defined client-side. Moving the write server-side doesn't make it more atomic; it makes it enforceable in code we own, under a service account, instead of in Security Rules.
+> **Correction to an earlier assumption:** this rebuild was initially motivated by a belief that client-side multi-document writes weren't atomic. They *are*. The original `updatePointsInFirebase` (`app/api/firebaseUtils.ts`) already commits both the event log and the user mirror in a single Firestore `writeBatch().commit()`, which is all-or-nothing regardless of where it runs — a dropped connection cannot leave the two collections half-written. **Atomicity was never the gap.** The gap is *trust*: the batch and its rules are defined client-side. Moving the write server-side doesn't make it more atomic; it makes it enforceable in code we own, under a service account, instead of in Security Rules.
 
 ### The decision
 **Introduce a real server API layer using Hono, mounted inside a single Next.js Route Handler**, rather than:
@@ -139,7 +139,7 @@ Access is granted by **manually adding the account in Firebase** (setting custom
 
 ### Invoking Cloud Functions from the server
 
-The original calls `updateAllUserPoints`, `sendNotificationMemberSHPE`, and `zipResume` client-side via `httpsCallable` (see [`app/(main)/points/page.tsx`](../app/(main)/points/page.tsx), [`membership/page.tsx`](../app/(main)/membership/page.tsx), [`tools/page.tsx`](../app/(main)/tools/page.tsx)). **The Admin SDK has no `httpsCallable`** — a Hono route cannot invoke a callable function the same way. When these calls move server-side, pick one per function and note it in the route:
+The original calls `updateAllUserPoints`, `sendNotificationMemberSHPE`, and `zipResume` client-side via `httpsCallable` (see the originals: `app/(main)/points/page.tsx`/points/page.tsx), `membership/page.tsx`/membership/page.tsx), `tools/page.tsx`/tools/page.tsx)). **The Admin SDK has no `httpsCallable`** — a Hono route cannot invoke a callable function the same way. When these calls move server-side, pick one per function and note it in the route:
 
 - Call the function's HTTPS endpoint directly with a server-minted OIDC/identity token, **or**
 - Convert it to a Firestore/PubSub-triggered function and let the route's write fire the trigger, **or**
@@ -247,7 +247,7 @@ lib/
 
 **Deliberate separation:** `config/firebaseClient.ts` (public config, safe for client) and `server/firebaseAdmin.ts` (service account, server-only) live in different top-level folders so it's immediately visually obvious which is safe to import from a client component.
 
-> **Note:** the existing file is [`app/config/firebaseConfig.ts`](../app/config/firebaseConfig.ts) — rename it to `firebaseClient.ts` as part of the rebuild (and update the `@/config/firebaseConfig` import in [`app/helpers/auth.ts`](../app/helpers/auth.ts)) so the client/server naming split is unambiguous. If the rename is skipped, use `firebaseConfig.ts` consistently throughout this doc instead.
+> **Note:** done — the rebuild's client config lives at `app/config/firebaseClient.ts` (the original was `app/config/firebaseConfig.ts`), and `app/helpers/auth.ts` imports from `@/config/firebaseClient`.
 
 ---
 
@@ -270,7 +270,7 @@ Collections (unchanged from original — see `PURPOSE_AND_FUNCTIONALITY.md` for 
 
 ### Dual-write pattern — now server-enforced
 
-Points edits write to both the canonical event log (`events/{eventId}/logs/{userId}`) and the user-centric mirror (`users/{uid}/event-logs/{eventId}`). This was **already a single atomic `writeBatch`** in the original ([`updatePointsInFirebase`](../app/api/firebaseUtils.ts)); the rebuild does not change its atomicity. What changes is *where it runs and who's trusted*: the batch moves into a Hono route (`server/routes/points.ts`) executing under the service account, so the set of documents a points edit may touch — and the `verified: true` / `edited: true` flags it sets — are decided by server code, not by whatever the client sends. See Section 3 for why this is a trust fix, not an atomicity fix.
+Points edits write to both the canonical event log (`events/{eventId}/logs/{userId}`) and the user-centric mirror (`users/{uid}/event-logs/{eventId}`). This was **already a single atomic `writeBatch`** in the original (`updatePointsInFirebase`); the rebuild does not change its atomicity. What changes is *where it runs and who's trusted*: the batch moves into a Hono route (`server/routes/points.ts`) executing under the service account, so the set of documents a points edit may touch — and the `verified: true` / `edited: true` flags it sets — are decided by server code, not by whatever the client sends. See Section 3 for why this is a trust fix, not an atomicity fix.
 
 ---
 

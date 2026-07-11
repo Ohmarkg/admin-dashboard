@@ -82,7 +82,7 @@ No routes — committees are **read-only** in this app (client hook, [§ below](
 
 ## Client-side reads (NOT API routes)
 
-For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` using the client Firebase SDK + TanStack Query (`useQuery`), or `onSnapshot` for live data. Maps to the original [`app/api/firebaseUtils.ts`](../app/api/firebaseUtils.ts) helpers.
+For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` using the client Firebase SDK + TanStack Query (`useQuery`), or `onSnapshot` for live data. Maps to the original `app/api/firebaseUtils.ts` helpers.
 
 | Data | Source helper (original) | Query key (suggested) |
 |---|---|---|
@@ -112,4 +112,6 @@ These were open; now settled (rationale in the route notes above):
 
 ## Still open
 
-- **Batch commit failure semantics** for a multi-chunk points save: all-or-nothing across chunks isn't possible with plain batches (each chunk commits independently). Decide whether that's acceptable, or whether a large save should fail fast before any chunk commits. Low priority until save sizes approach the 250-edit cap.
+_(nothing — the last item below was settled during the build)_
+
+- **Batch commit failure semantics** (settled): chunks commit **sequentially and fail fast** — on a chunk error no further chunks are attempted, and the error reports which chunk failed and how many writes had already been applied (`ChunkedBatchError` in `server/lib/db-helpers.ts`: `failedChunkIndex`, `batchesCommitted`, `writesApplied`). Cross-chunk atomicity is deliberately deferred until real save sizes approach the 250-edit (500-write) cap.

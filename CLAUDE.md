@@ -6,7 +6,7 @@ Standing context for AI coding tools. Keep this short and current — it is load
 
 Internal admin portal for the Texas A&M SHPE chapter — a web companion to the chapter mobile app, on the **same Firebase project** (`tamushpemobileapp`). Officers (via one shared `@tamu.edu` account) and developers use it to manage membership verification, attendance points, events, committees, and batch tools. Not public-facing.
 
-**Current state:** rebuild planned but not started. The repo still holds the *original* client-side app. The new stack (Hono, TanStack Query, Firebase Admin SDK, shadcn/ui) is not installed yet — see [docs/REBUILD_CONCEPT.md](docs/REBUILD_CONCEPT.md) §10 step 0.
+**Current state:** rebuild implemented through Phase 5 (hardening) of [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) — all screens, routes, and hooks live against the Firebase Emulator Suite. Only Phase 6 (credential cutover / go-live, owned by Mark) remains; **no real credentials exist anywhere in the repo yet**. The original client-side app has been removed from the repo; legacy file citations in the docs (e.g. `firebaseUtils.ts`) are historical references, not live paths.
 
 ## Doc map
 
@@ -41,7 +41,7 @@ Internal admin portal for the Texas A&M SHPE chapter — a web companion to the 
 
 Next.js 14 (App Router) · React 18 · TypeScript · Tailwind + shadcn/ui · Hono · TanStack Query · Firebase (Auth/Firestore/Storage/Functions) client SDK + Admin SDK · Vercel.
 
-**Package manager: bun.** The rebuild uses `bun` (`bun install`, `bun run dev`, `bunx`) — not yarn or npm. (The original app in `OLD-tamu-shpe-admin-web/` used yarn; do not carry that forward.) There should be a `bun.lock`, not a `yarn.lock`, in the new tree.
+**Package manager: bun.** The rebuild uses `bun` (`bun install`, `bun run dev`, `bunx`) — not yarn or npm. (The original app used yarn; do not carry that forward.) There should be a `bun.lock`, not a `yarn.lock`, in the new tree.
 
 **Local dev/test runs on the Firebase Emulator Suite, in Docker** (`docker compose up` boots emulators + `bun run dev`). **No real credentials until the final cutover step** — no service-account key or production API key is needed or committed; both SDKs init emulator-aware (Admin SDK skips `cert()` when `FIRESTORE_EMULATOR_HOST` is set). See [docs/REBUILD_CONCEPT.md](docs/REBUILD_CONCEPT.md) §9.
 

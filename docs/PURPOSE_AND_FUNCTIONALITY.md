@@ -1,5 +1,7 @@
 # TAMU SHPE Admin Web — Purpose & Functionality Breakdown
 
+> **Note (rebuild, 2026):** this doc describes the portal's functionality as realized in the *original* client-side app, which has been removed from the repo; file citations (e.g. `firebaseUtils.ts`) are historical references to that codebase, not live paths. The rebuilt app (server-side writes via Hono, reads via TanStack Query hooks) lives at the repo root — see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) for its architecture. The *behavior* described here is the contract the rebuild implements, with one addition: the Dashboard is no longer an empty page (it now shows stat tiles, recent requests, and a points leaderboard).
+
 ## What This Repo Is
 
 **`tamu-shpe-admin-web`** (`shpe-app-web` v0.1.0) is the **internal admin portal** for the Texas A&M SHPE (Society of Hispanic Professional Engineers) chapter. It is the web companion to the chapter mobile app and operates on the **same Firebase project** (`tamushpemobileapp`).
@@ -37,9 +39,9 @@ flowchart LR
     Functions --> Storage
 ```
 
-**Key design constraint:** Type definitions in [`app/types/`](../app/types/) and data helpers in [`app/api/firebaseUtils.ts`](../app/api/firebaseUtils.ts) are kept in sync with the mobile app codebase (`MobileApp/src/types/*`, `MobileApp/src/api/firebaseUtils.ts`). Changes here affect both platforms.
+**Key design constraint:** Type definitions in [`app/types/`](../app/types/) and data helpers in `app/api/firebaseUtils.ts` are kept in sync with the mobile app codebase (`MobileApp/src/types/*`, `MobileApp/src/api/firebaseUtils.ts`). Changes here affect both platforms.
 
-**Important architectural note:** Despite living under `app/api/`, [`firebaseUtils.ts`](../app/api/firebaseUtils.ts) is **not** a Next.js HTTP API layer. There are no `route.ts` handlers. All Firestore reads/writes happen **client-side in the browser** via the Firebase JS SDK. Security depends on Firebase Security Rules (not in this repo) and Auth custom claims.
+**Important architectural note:** Despite living under `app/api/`, `firebaseUtils.ts` is **not** a Next.js HTTP API layer. There are no `route.ts` handlers. All Firestore reads/writes happen **client-side in the browser** via the Firebase JS SDK. Security depends on Firebase Security Rules (not in this repo) and Auth custom claims.
 
 ---
 
@@ -52,28 +54,28 @@ flowchart LR
 | Language | TypeScript |
 | Backend | Firebase Auth, Firestore, Storage, Cloud Functions |
 | Utilities | date-fns, ExcelJS + file-saver (Excel export) |
-| Hosting | Vercel (referenced in [`cors.json`](../cors.json)) |
+| Hosting | Vercel (referenced in `cors.json`) |
 | Path alias | `@/*` → `./app/*` |
 
 ---
 
 ## Authentication & Authorization
 
-**Entry point:** [`app/page.tsx`](../app/page.tsx) — login screen branded "TAMU SHPE Admin Site"
+**Entry point:** `app/page.tsx` — login screen branded "TAMU SHPE Admin Site"
 
-**Login flow** ([`app/helpers/auth.ts`](../app/helpers/auth.ts)):
+**Login flow** (`app/helpers/auth.ts`):
 
 1. Google OAuth popup restricted to `@tamu.edu` (`hd: 'tamu.edu'`)
 2. JWT custom claims checked: `admin`, `officer`, `developer`, `lead`, or `representative`
 3. Missing role → sign out + access denied alert
 4. Valid role → redirect to `/dashboard`
 
-**Protected routes:** All pages under [`app/(main)/`](../app/(main)/) use `onAuthStateChanged` and redirect unauthenticated users to `/`.
+**Protected routes:** All pages under `app/(main)/`/) use `onAuthStateChanged` and redirect unauthenticated users to `/`.
 
 **Two role systems exist:**
 
 - **Firebase Auth custom claims** — gate access to the admin site (authoritative)
-- **Firestore `PublicUserInfo.roles`** — UI display only in the mobile app; comments in [`app/types/user.ts`](../app/types/user.ts) explicitly say these do not control Firebase permissions
+- **Firestore `PublicUserInfo.roles`** — UI display only in the mobile app; comments in `app/types/user.ts` explicitly say these do not control Firebase permissions
 
 ---
 
@@ -97,7 +99,7 @@ app/
 └── types/                   # Shared domain models
 ```
 
-**Navigation** ([`app/components/Navbar.tsx`](../app/components/Navbar.tsx)): Dashboard, Events, Points, Committees, Membership, Tools, Sign out — styled in Texas A&M maroon (`#500000`).
+**Navigation** (`app/components/Navbar.tsx`): Dashboard, Events, Points, Committees, Membership, Tools, Sign out — styled in Texas A&M maroon (`#500000`).
 
 ---
 
@@ -158,14 +160,14 @@ erDiagram
 
 ### Dual-write pattern for attendance/points
 
-When officers edit points ([`updatePointsInFirebase`](../app/api/firebaseUtils.ts)), the app batch-writes to **both**:
+When officers edit points (`updatePointsInFirebase`), the app batch-writes to **both**:
 
 - `events/{eventId}/logs/{userId}` (canonical event log)
 - `users/{uid}/event-logs/{eventId}` (user-centric mirror)
 
 Edits set `edited: true` and `verified: true`. Aggregate totals on user docs are recalculated by the Cloud Function `updateAllUserPoints`.
 
-### Event types ([`app/types/events.ts`](../app/types/events.ts))
+### Event types (`app/types/events.ts`)
 
 General Meeting, Committee Meeting, Study Hours, Workshop, Volunteer, Social, Intramural, Custom — each with fields for geofencing, point rules (sign-in, sign-out, per-hour), committee association, visibility flags, and workshop subtypes.
 
@@ -175,7 +177,7 @@ General Meeting, Committee Meeting, Study Hours, Workshop, Volunteer, Social, In
 
 ### 1. Dashboard (`/dashboard`) — Stub
 
-[`app/(main)/dashboard/page.tsx`](../app/(main)/dashboard/page.tsx) only verifies auth and renders an empty page. It is the post-login landing but carries no analytics or summary widgets yet.
+`app/(main)/dashboard/page.tsx`/dashboard/page.tsx) only verifies auth and renders an empty page. It is the post-login landing but carries no analytics or summary widgets yet.
 
 ---
 
@@ -241,7 +243,7 @@ This is one of the most complete and actively used modules.
 2. Delete `memberSHPE/{uid}`
 3. Notify member with `'denied'`
 
-**Document review:** [`MemberCard`](../app/components/MemberCard.tsx) downloads proof files from Firebase Storage URLs stored in the request.
+**Document review:** `MemberCard` downloads proof files from Firebase Storage URLs stored in the request.
 
 Uses 24-hour localStorage cache for requests and members.
 
