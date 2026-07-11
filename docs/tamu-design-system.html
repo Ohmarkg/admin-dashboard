@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texas A&amp;M University — Brand Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Open+Sans:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ========================================================================
+     TEXAS A&M UNIVERSITY — BRAND TOKENS
+     Sourced from the official web brand guide (marcomm.tamu.edu)
+     ======================================================================== */
+  :root{
+    --maroon:      #500000;  /* Aggie Maroon — primary, signature */
+    --maroon-dark: #3c001c;  /* Brand Dark */
+    --maroon-lt:   #732f2f;  /* Brand Light */
+    --white:       #ffffff;
+    --g100:#f6f6f6; --g200:#eaeaea; --g300:#d1d1d1; --g400:#a7a7a7;
+    --g500:#707070; --g600:#626262; --g700:#535353; --g800:#3e3e3e;
+    --g900:#202020; --black:#000000;
+
+    --ink:  var(--g900);
+    --muted:var(--g600);
+    --rule: var(--g300);
+    --paper:var(--white);
+
+    --ff-display: "Oswald", "Arial Narrow", sans-serif;
+    --ff-body:    "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    --ff-util:    "Open Sans", Arial, sans-serif;
+    --ff-serif:   "Crimson Text", Georgia, serif;
+
+    --edge: clamp(1.25rem, 5vw, 6rem);
+    --spine: 4.5rem;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--ff-body); font-weight:400; line-height:1.6;
+    -webkit-font-smoothing:antialiased; font-size:17px;
+  }
+  a{color:var(--maroon); text-underline-offset:3px;}
+  ::selection{background:var(--maroon); color:var(--white);}
+
+  /* Display / label primitives ------------------------------------------- */
+  .oswald{font-family:var(--ff-display); text-transform:uppercase; letter-spacing:.02em; line-height:.98;}
+  .eyebrow{
+    font-family:var(--ff-util); text-transform:uppercase;
+    letter-spacing:.28em; font-size:.72rem; font-weight:700;
+    color:var(--maroon);
+  }
+  .eyebrow.on-maroon{color:rgba(255,255,255,.65);}
+
+  /* ========================================================================
+     TOP BAR
+     ======================================================================== */
+  .topbar{
+    display:flex; align-items:center; gap:1rem;
+    padding:.85rem var(--edge); background:var(--maroon); color:var(--white);
+    font-family:var(--ff-util); font-size:.75rem; letter-spacing:.12em;
+    text-transform:uppercase; border-bottom:3px solid var(--maroon-dark);
+  }
+  .topbar .mark{
+    font-family:var(--ff-display); font-weight:700; font-size:1rem;
+    letter-spacing:.06em; text-transform:uppercase;
+  }
+  .topbar .sep{color:rgba(255,255,255,.4);}
+  .topbar .right{margin-left:auto; color:rgba(255,255,255,.75);}
+
+  /* ========================================================================
+     HERO
+     ======================================================================== */
+  .hero{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(120% 140% at 85% 0%, var(--maroon-lt) 0%, transparent 45%),
+      linear-gradient(160deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    color:var(--white); padding:clamp(3.5rem,9vw,8rem) var(--edge) clamp(3rem,7vw,6rem);
+  }
+  /* The signature: an oversized ghost monogram bleeding off the corner */
+  .hero .ghost{
+    position:absolute; right:-4vw; bottom:-14vh; margin:0;
+    font-family:var(--ff-display); font-weight:700;
+    font-size:clamp(16rem,42vw,44rem); line-height:.7; letter-spacing:-.02em;
+    color:rgba(255,255,255,.045); pointer-events:none; user-select:none;
+  }
+  .hero-inner{position:relative; max-width:56rem;}
+  .hero h1{
+    margin:1.25rem 0 0; font-family:var(--ff-display); font-weight:600;
+    text-transform:uppercase; letter-spacing:.01em; line-height:.94;
+    font-size:clamp(2.6rem,7.5vw,6rem);
+  }
+  .hero h1 em{font-style:normal; color:#e7b7b7;}
+  .hero .lede{
+    max-width:40rem; margin:1.6rem 0 0; font-family:var(--ff-serif);
+    font-size:clamp(1.15rem,2.4vw,1.5rem); line-height:1.5; color:rgba(255,255,255,.9);
+  }
+  .hero .meta{
+    display:flex; flex-wrap:wrap; gap:2.5rem; margin-top:2.75rem;
+    padding-top:1.75rem; border-top:1px solid rgba(255,255,255,.18);
+    font-family:var(--ff-util); font-size:.82rem;
+  }
+  .hero .meta div span{display:block; text-transform:uppercase; letter-spacing:.16em; color:rgba(255,255,255,.55); font-size:.68rem; margin-bottom:.35rem;}
+  .hero .meta div strong{font-family:var(--ff-display); font-weight:500; font-size:1.35rem; letter-spacing:.02em;}
+
+  /* ========================================================================
+     SECTION SHELL  (numbered spine = table-of-contents wayfinding)
+     ======================================================================== */
+  section.block{padding:clamp(3rem,6vw,5.5rem) var(--edge);}
+  section.block + section.block{border-top:1px solid var(--rule);}
+  .alt{background:var(--g100);}
+  .sec-head{display:grid; grid-template-columns:var(--spine) 1fr; gap:1.5rem; align-items:start; margin-bottom:2.5rem;}
+  .sec-head .num{
+    font-family:var(--ff-display); font-weight:700; font-size:1.5rem;
+    color:var(--maroon); border-top:3px solid var(--maroon); padding-top:.4rem;
+  }
+  .sec-head h2{
+    margin:0; font-family:var(--ff-display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.01em; line-height:1; font-size:clamp(1.8rem,4vw,3rem); color:var(--maroon-dark);
+  }
+  .sec-head p{margin:.75rem 0 0; max-width:44rem; color:var(--muted); font-size:1.02rem;}
+  .sec-body{padding-left:0;}
+  @media(min-width:720px){ .sec-body{padding-left:calc(var(--spine) + 1.5rem);} }
+
+  /* ========================================================================
+     COLOR
+     ======================================================================== */
+  .swatches{display:grid; gap:1.25rem;}
+  .row-primary{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+  .chip{
+    border:1px solid var(--rule); border-radius:2px; overflow:hidden; background:var(--white);
+    display:flex; flex-direction:column;
+  }
+  .chip .fill{height:118px; display:flex; align-items:flex-end; padding:.75rem;}
+  .chip .fill .tag{font-family:var(--ff-util); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; font-weight:700;}
+  .chip .info{padding:.8rem .9rem 1rem;}
+  .chip .info .name{font-family:var(--ff-display); text-transform:uppercase; letter-spacing:.03em; font-weight:600; font-size:1.05rem;}
+  .chip .info .hex{font-family:var(--ff-util); font-size:.8rem; color:var(--muted); letter-spacing:.05em; margin-top:.15rem;}
+  .chip .info .use{font-size:.82rem; color:var(--muted); margin-top:.55rem; line-height:1.45;}
+
+  .grayscale{display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:0; margin-top:2rem; border:1px solid var(--rule); border-radius:2px; overflow:hidden;}
+  .gray{padding:.7rem .6rem 1.4rem; min-height:96px; display:flex; flex-direction:column; justify-content:flex-end;}
+  .gray span{font-family:var(--ff-util); font-size:.66rem; letter-spacing:.06em; font-weight:600;}
+  .gray small{font-family:var(--ff-util); font-size:.62rem; opacity:.75; margin-top:.15rem;}
+
+  /* proportion bar (75 / 20 / 5) */
+  .proportion{margin-top:2.5rem;}
+  .proportion .bar{display:flex; height:52px; border-radius:2px; overflow:hidden; border:1px solid var(--rule);}
+  .proportion .bar i{display:flex; align-items:center; padding-left:.8rem; font-family:var(--ff-util); font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff;}
+  .proportion .cap{margin-top:.7rem; font-size:.85rem; color:var(--muted);}
+
+  /* ========================================================================
+     TYPOGRAPHY
+     ======================================================================== */
+  .type-spec{border-top:1px solid var(--rule); padding:1.5rem 0;}
+  .type-spec:first-of-type{border-top:none;}
+  .type-spec .role{display:flex; flex-wrap:wrap; gap:.5rem 1.2rem; align-items:baseline; margin-bottom:.9rem;}
+  .type-spec .role b{font-family:var(--ff-display); font-weight:600; text-transform:uppercase; letter-spacing:.04em; font-size:1.05rem; color:var(--maroon);}
+  .type-spec .role span{font-family:var(--ff-util); font-size:.76rem; letter-spacing:.06em; color:var(--muted);}
+  .specimen{margin:0; color:var(--ink);}
+  .sp-oswald{font-family:var(--ff-display); text-transform:uppercase; font-weight:600; letter-spacing:.01em; font-size:clamp(2rem,6vw,3.6rem); line-height:1;}
+  .sp-work{font-family:var(--ff-body); font-size:1.35rem; line-height:1.5; max-width:40rem; font-weight:400;}
+  .sp-serif{font-family:var(--ff-serif); font-size:1.6rem; line-height:1.45; max-width:40rem; font-style:italic; color:var(--maroon-dark);}
+  .sp-util{font-family:var(--ff-util); font-size:.95rem; letter-spacing:.02em; max-width:40rem; color:var(--g700);}
+  .glyphs{font-family:var(--ff-display); font-weight:400; letter-spacing:.05em; color:var(--g400); margin-top:.5rem; font-size:1.1rem;}
+
+  .scale-list{margin-top:2.5rem; border-top:1px solid var(--rule);}
+  .scale-item{display:grid; grid-template-columns:130px 1fr; gap:1rem; align-items:baseline; padding:.7rem 0; border-bottom:1px solid var(--g200);}
+  .scale-item .lbl{font-family:var(--ff-util); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
+  .scale-item .demo{font-family:var(--ff-display); text-transform:uppercase; font-weight:500; color:var(--maroon-dark); line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* ========================================================================
+     LOGO / WORDMARK
+     ======================================================================== */
+  .logo-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.25rem;}
+  .logo-card{border:1px solid var(--rule); border-radius:2px; overflow:hidden;}
+  .logo-card .stage{height:160px; display:flex; align-items:center; justify-content:center; padding:1.5rem;}
+  .logo-card .stage.on-maroon{background:var(--maroon);}
+  .logo-card .stage.on-paper{background:var(--white);}
+  .logo-card .stage.on-gray{background:var(--g100);}
+  .logo-card .foot{font-family:var(--ff-util); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:.7rem .9rem; border-top:1px solid var(--rule);}
+  .wordmark{font-family:var(--ff-display); font-weight:700; text-transform:uppercase; letter-spacing:.03em; line-height:.9; text-align:center;}
+  .wordmark .tam{font-size:2.6rem; display:block;}
+  .wordmark .full{font-size:.72rem; letter-spacing:.22em; font-weight:500; display:block; margin-top:.5rem;}
+  .monogram{
+    width:96px; height:96px; border:3px solid currentColor; border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--ff-display); font-weight:700; font-size:2.4rem; letter-spacing:.02em;
+  }
+
+  /* ========================================================================
+     COMPONENTS
+     ======================================================================== */
+  .comp-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.75rem;}
+  .panel{border:1px solid var(--rule); border-radius:2px; padding:1.5rem;}
+  .panel > h4{margin:0 0 1.1rem; font-family:var(--ff-util); text-transform:uppercase; letter-spacing:.14em; font-size:.72rem; color:var(--muted); font-weight:700;}
+
+  .btn{
+    font-family:var(--ff-display); text-transform:uppercase; letter-spacing:.08em; font-weight:500;
+    font-size:.92rem; padding:.7rem 1.5rem; border-radius:2px; border:2px solid var(--maroon);
+    background:var(--maroon); color:var(--white); cursor:pointer; text-decoration:none;
+    display:inline-block; transition:background .18s ease, color .18s ease;
+  }
+  .btn:hover{background:var(--maroon-lt); border-color:var(--maroon-lt);}
+  .btn.ghost{background:transparent; color:var(--maroon);}
+  .btn.ghost:hover{background:var(--maroon); color:var(--white);}
+  .btn.on-dark{border-color:var(--white); background:var(--white); color:var(--maroon);}
+  .btn-row{display:flex; flex-wrap:wrap; gap:.8rem; align-items:center;}
+
+  .arrow-link{font-family:var(--ff-display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; color:var(--maroon); text-decoration:none; font-size:.95rem;}
+  .arrow-link::after{content:" \2192"; transition:margin .18s ease;}
+  .arrow-link:hover::after{margin-left:.35rem;}
+
+  .card{border:1px solid var(--rule); border-radius:2px; overflow:hidden; background:var(--white);}
+  .card .band{height:8px; background:var(--maroon);}
+  .card .body{padding:1.25rem 1.35rem 1.5rem;}
+  .card .body .k{font-family:var(--ff-util); text-transform:uppercase; letter-spacing:.14em; font-size:.66rem; font-weight:700; color:var(--muted);}
+  .card .body h5{margin:.5rem 0 .5rem; font-family:var(--ff-display); text-transform:uppercase; font-weight:600; font-size:1.3rem; line-height:1.02; color:var(--maroon-dark);}
+  .card .body p{margin:0 0 1rem; font-size:.92rem; color:var(--g700);}
+
+  .stat{display:flex; flex-direction:column; gap:.15rem;}
+  .stat b{font-family:var(--ff-display); font-weight:700; font-size:2.8rem; color:var(--maroon); line-height:1;}
+  .stat span{font-family:var(--ff-util); font-size:.8rem; letter-spacing:.05em; color:var(--muted); text-transform:uppercase;}
+
+  .tag-pill{display:inline-block; font-family:var(--ff-util); font-size:.68rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:.35rem .7rem; border-radius:2px; margin:0 .4rem .4rem 0;}
+  .pill-maroon{background:var(--maroon); color:#fff;}
+  .pill-outline{border:1px solid var(--maroon); color:var(--maroon);}
+  .pill-gray{background:var(--g200); color:var(--g800);}
+
+  .field label{display:block; font-family:var(--ff-util); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--muted); margin-bottom:.4rem;}
+  .field input{width:100%; padding:.7rem .8rem; border:1px solid var(--g400); border-radius:2px; font-family:var(--ff-body); font-size:1rem;}
+  .field input:focus{outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(80,0,0,.15);}
+
+  /* ========================================================================
+     VOICE
+     ======================================================================== */
+  .voice{display:grid; gap:2rem; grid-template-columns:1fr;}
+  @media(min-width:820px){ .voice{grid-template-columns:1.4fr 1fr;} }
+  .voice blockquote{margin:0; font-family:var(--ff-serif); font-style:italic; font-size:clamp(1.4rem,3vw,2rem); line-height:1.4; color:var(--maroon-dark);}
+  .voice blockquote cite{display:block; margin-top:1rem; font-family:var(--ff-util); font-style:normal; font-size:.78rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);}
+  .voice .principles{list-style:none; margin:0; padding:0;}
+  .voice .principles li{padding:.9rem 0; border-bottom:1px solid var(--rule); display:grid; grid-template-columns:auto 1fr; gap:1rem; align-items:baseline;}
+  .voice .principles li b{font-family:var(--ff-display); text-transform:uppercase; color:var(--maroon); font-weight:600; letter-spacing:.03em;}
+  .voice .principles li span{font-size:.92rem; color:var(--g700);}
+
+  /* ========================================================================
+     FOOTER
+     ======================================================================== */
+  footer{background:var(--maroon-dark); color:rgba(255,255,255,.8); padding:clamp(3rem,6vw,4.5rem) var(--edge) 2.5rem;}
+  footer .fmark{font-family:var(--ff-display); font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:1.6rem; color:#fff;}
+  footer p{max-width:38rem; font-size:.9rem; line-height:1.6;}
+  footer .fnote{margin-top:2rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,.15); font-family:var(--ff-util); font-size:.74rem; letter-spacing:.06em; color:rgba(255,255,255,.55);}
+  footer a{color:#e7b7b7;}
+
+  :focus-visible{outline:3px solid #e7b7b7; outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important; scroll-behavior:auto !important;}}
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="mark">Texas A&amp;M University</span>
+    <span class="sep">/</span>
+    <span>Brand Design System</span>
+    <span class="right">Est. 1876 &middot; Aggieland</span>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <p class="ghost oswald" aria-hidden="true">ATM</p>
+    <div class="hero-inner">
+      <p class="eyebrow on-maroon">The Visual Identity of the Aggie Family</p>
+      <h1>Standing together<br>as a force <em>for good</em></h1>
+      <p class="lede">A single, disciplined system — one signature color, four voices in type, and a clear hierarchy — so that everything we make is unmistakably Texas&nbsp;A&amp;M.</p>
+      <div class="meta">
+        <div><span>Signature Color</span><strong>Aggie Maroon</strong></div>
+        <div><span>Primary Palette</span><strong>Maroon &amp; White</strong></div>
+        <div><span>Type Voices</span><strong>Four Families</strong></div>
+        <div><span>Greeting</span><strong>Howdy</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 01 — COLOR -->
+  <section class="block" id="color">
+    <div class="sec-head">
+      <div class="num">01</div>
+      <div>
+        <h2>Color</h2>
+        <p>Beyond the logo, color is the most recognizable part of our identity. The palette leads with Aggie Maroon and white and grounds everything else in a neutral gray scale.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <p class="eyebrow">Primary &amp; Supporting</p>
+      <div class="swatches row-primary" style="margin-top:1rem;">
+        <div class="chip">
+          <div class="fill" style="background:#500000;"><span class="tag" style="color:#fff;">Primary</span></div>
+          <div class="info"><div class="name">Aggie Maroon</div><div class="hex">HEX #500000 &middot; RGB 80,0,0 &middot; PMS 7421</div><div class="use">The signature. Dominant on every layout — backgrounds, headlines and key elements.</div></div>
+        </div>
+        <div class="chip">
+          <div class="fill" style="background:#ffffff; border-bottom:1px solid var(--rule);"><span class="tag" style="color:var(--muted);">Primary</span></div>
+          <div class="info"><div class="name">White</div><div class="hex">HEX #FFFFFF</div><div class="use">The breathing room. Pairs with maroon to carry roughly three-quarters of any design.</div></div>
+        </div>
+        <div class="chip">
+          <div class="fill" style="background:#3c001c;"><span class="tag" style="color:rgba(255,255,255,.7);">Secondary</span></div>
+          <div class="info"><div class="name">Brand Dark</div><div class="hex">HEX #3C001C</div><div class="use">Depth. For floods of color, footers and grounding compositions.</div></div>
+        </div>
+        <div class="chip">
+          <div class="fill" style="background:#732f2f;"><span class="tag" style="color:rgba(255,255,255,.8);">Secondary</span></div>
+          <div class="info"><div class="name">Brand Light</div><div class="hex">HEX #732F2F</div><div class="use">A warmer maroon for hovers, accents and hierarchy within maroon fields.</div></div>
+        </div>
+      </div>
+
+      <p class="eyebrow" style="margin-top:2.75rem; display:block;">Neutral Gray Scale</p>
+      <div class="grayscale">
+        <div class="gray" style="background:#f6f6f6; color:#202020;"><span>Gray 100</span><small>#F6F6F6</small></div>
+        <div class="gray" style="background:#eaeaea; color:#202020;"><span>Gray 200</span><small>#EAEAEA</small></div>
+        <div class="gray" style="background:#d1d1d1; color:#202020;"><span>Gray 300</span><small>#D1D1D1</small></div>
+        <div class="gray" style="background:#a7a7a7; color:#202020;"><span>Gray 400</span><small>#A7A7A7</small></div>
+        <div class="gray" style="background:#707070; color:#fff;"><span>Gray 500</span><small>#707070</small></div>
+        <div class="gray" style="background:#626262; color:#fff;"><span>Gray 600</span><small>#626262</small></div>
+        <div class="gray" style="background:#535353; color:#fff;"><span>Gray 700</span><small>#535353</small></div>
+        <div class="gray" style="background:#3e3e3e; color:#fff;"><span>Gray 800</span><small>#3E3E3E</small></div>
+        <div class="gray" style="background:#202020; color:#fff;"><span>Gray 900</span><small>#202020</small></div>
+        <div class="gray" style="background:#000000; color:#fff;"><span>Black</span><small>#000000</small></div>
+      </div>
+
+      <div class="proportion">
+        <p class="eyebrow" style="display:block; margin-bottom:.9rem;">The 75 / 20 / 5 Balance</p>
+        <div class="bar">
+          <i style="background:var(--maroon); flex:75;">Primary — 75%</i>
+          <i style="background:var(--g500); flex:20;">Secondary — 20%</i>
+          <i style="background:var(--maroon-lt); flex:5; padding-left:.4rem;"></i>
+        </div>
+        <p class="cap">To introduce the university, lean hard on maroon &amp; white (75%), balance with neutral secondaries (20%), and reserve accents for the final 5%.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — TYPOGRAPHY -->
+  <section class="block alt" id="type">
+    <div class="sec-head">
+      <div class="num">02</div>
+      <div>
+        <h2>Typography</h2>
+        <p>Four Aggie brand fonts, each with a job. Oswald commands attention in all caps; Work Sans and Open Sans carry the reading; Crimson Text adds an editorial, human note.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+
+      <div class="type-spec">
+        <div class="role"><b>Oswald</b><span>Display &amp; Headlines — condensed, uppercase, weights 300–700</span></div>
+        <p class="specimen sp-oswald">Welcome to Aggieland</p>
+        <p class="glyphs">A B C D E F G &nbsp; a b c d e f g &nbsp; 0 1 2 3 4 5 6 7 8 9</p>
+      </div>
+
+      <div class="type-spec">
+        <div class="role"><b>Work Sans</b><span>Body &amp; Interface — the primary reading voice</span></div>
+        <p class="specimen sp-work">At Texas A&amp;M University, we develop leaders of character who take action and create lasting impact — building a brighter, safer world for the people of Texas, the nation and beyond.</p>
+      </div>
+
+      <div class="type-spec">
+        <div class="role"><b>Crimson Text</b><span>Editorial Serif — pull quotes &amp; expressive moments</span></div>
+        <p class="specimen sp-serif">“Here for good.” Since 1876, Aggies have answered the call to lead with character and serve with compassion.</p>
+      </div>
+
+      <div class="type-spec">
+        <div class="role"><b>Open Sans</b><span>Utility — captions, labels, data &amp; fine print</span></div>
+        <p class="specimen sp-util">Eyebrows, metadata, table content and legal footers. A clean, legible workhorse that never competes with the headline. Fallbacks: Arial, Helvetica.</p>
+      </div>
+
+      <div class="scale-list" aria-hidden="true">
+        <div class="scale-item"><span class="lbl">Display / 72</span><span class="demo" style="font-size:3.4rem;">Force for Good</span></div>
+        <div class="scale-item"><span class="lbl">H1 / 48</span><span class="demo" style="font-size:2.4rem;">The 12th Man</span></div>
+        <div class="scale-item"><span class="lbl">H2 / 32</span><span class="demo" style="font-size:1.7rem;">Research That Matters</span></div>
+        <div class="scale-item"><span class="lbl">H3 / 22</span><span class="demo" style="font-size:1.25rem;">Traditions &amp; Community</span></div>
+        <div class="scale-item"><span class="lbl">Eyebrow / 12</span><span class="demo" style="font-size:.8rem; letter-spacing:.2em;">For the Aggie Family</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 — LOGO -->
+  <section class="block" id="logo">
+    <div class="sec-head">
+      <div class="num">03</div>
+      <div>
+        <h2>Logo &amp; Wordmark</h2>
+        <p>The mark is our primary identifier. It appears in Aggie Maroon on light backgrounds and reverses to white on maroon — never recolored, distorted or crowded. <em>(Marks shown are typographic stand-ins.)</em></p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="logo-grid">
+        <div class="logo-card">
+          <div class="stage on-paper">
+            <div class="wordmark" style="color:var(--maroon);"><span class="tam">Texas A&amp;M</span><span class="full">University</span></div>
+          </div>
+          <div class="foot">Primary — maroon on white</div>
+        </div>
+        <div class="logo-card">
+          <div class="stage on-maroon">
+            <div class="wordmark" style="color:#fff;"><span class="tam">Texas A&amp;M</span><span class="full">University</span></div>
+          </div>
+          <div class="foot">Reversed — white on maroon</div>
+        </div>
+        <div class="logo-card">
+          <div class="stage on-paper"><div class="monogram" style="color:var(--maroon);">ATM</div></div>
+          <div class="foot">Monogram lockup</div>
+        </div>
+        <div class="logo-card">
+          <div class="stage on-gray"><div class="monogram" style="color:var(--maroon-dark);">ATM</div></div>
+          <div class="foot">On neutral gray 100</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 — COMPONENTS -->
+  <section class="block alt" id="components">
+    <div class="sec-head">
+      <div class="num">04</div>
+      <div>
+        <h2>Components</h2>
+        <p>Reusable interface parts, each derived from the tokens above — so a button, a card and a stat all read as the same family.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="comp-grid">
+
+        <div class="panel">
+          <h4>Buttons</h4>
+          <div class="btn-row">
+            <a href="#" class="btn">How to Apply</a>
+            <a href="#" class="btn ghost">Visit A&amp;M</a>
+          </div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <a href="#" class="arrow-link">Explore programs</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>Tags &amp; Pills</h4>
+          <div>
+            <span class="tag-pill pill-maroon">Admissions</span>
+            <span class="tag-pill pill-outline">Research</span>
+            <span class="tag-pill pill-gray">Campus Life</span>
+            <span class="tag-pill pill-maroon">Athletics</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>Form Field</h4>
+          <div class="field">
+            <label for="demo-email">Request Information</label>
+            <input id="demo-email" type="email" placeholder="you@aggienetwork.com">
+          </div>
+          <div class="btn-row" style="margin-top:1rem;"><button class="btn">Sign Up</button></div>
+        </div>
+
+        <div class="card">
+          <div class="band"></div>
+          <div class="body">
+            <div class="k">Stories &amp; News</div>
+            <h5>Research That Matters</h5>
+            <p>Solutions from disaster preparedness and agriculture to immersive technology and robotics.</p>
+            <a href="#" class="arrow-link">Read more</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h4>Statistics</h4>
+          <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+            <div class="stat"><b>1876</b><span>Founded</span></div>
+            <div class="stat"><b>#1</b><span>Public in TX</span></div>
+            <div class="stat"><b>17</b><span>Colleges</span></div>
+          </div>
+        </div>
+
+        <div class="panel" style="background:var(--maroon); border-color:var(--maroon);">
+          <h4 style="color:rgba(255,255,255,.6);">Call to Action</h4>
+          <p style="color:#fff; font-family:var(--ff-display); text-transform:uppercase; font-size:1.5rem; line-height:1.05; margin:.2rem 0 1.1rem;">Come stand<br>with us</p>
+          <a href="#" class="btn on-dark">Learn How to Apply</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 — VOICE -->
+  <section class="block" id="voice">
+    <div class="sec-head">
+      <div class="num">05</div>
+      <div>
+        <h2>Voice &amp; Tone</h2>
+        <p>We sound confident, warm and service-minded. Plain verbs, active voice, a little Aggie pride — never corporate, never cold.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="voice">
+        <blockquote>
+          This is what it means to be an Aggie: to stand together as a force for good.
+          <cite>— Brand Narrative</cite>
+        </blockquote>
+        <ul class="principles">
+          <li><b>Proud</b><span>Lead with character and tradition, from the Corps to the 12th&nbsp;Man.</span></li>
+          <li><b>Warm</b><span>Start with “Howdy.” Speak to the Aggie Family like family.</span></li>
+          <li><b>Purposeful</b><span>Tie every message to service — for Texas, the nation and beyond.</span></li>
+          <li><b>Clear</b><span>Active voice, concrete nouns, no filler. Say the thing.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="fmark">Texas A&amp;M University</p>
+    <p>This design system reference reflects the university's public web brand — Aggie Maroon, the Aggie brand fonts, and the voice of a force for good. Built as a demonstration of the tamu.edu visual identity.</p>
+    <p class="btn-row" style="margin-top:1.5rem;">
+      <a href="https://www.tamu.edu/index.html" class="btn on-dark">tamu.edu</a>
+    </p>
+    <p class="fnote">
+      Color values and font families sourced from the official Texas A&amp;M web brand guide.
+      Not an official university publication &middot; logos represented typographically for demonstration.
+    </p>
+  </footer>
+
+</body>
+</html>

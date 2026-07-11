@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Open+Sans:wght@400;500;600;700&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#F6F6F6;font-family:'Work Sans',system-ui,sans-serif;color:#202020;-webkit-font-smoothing:antialiased}
+  a{color:#500000}a:hover{color:#732F2F}
+  ::selection{background:#E7B7B7}
+  input,select,button,textarea{font-family:inherit}
+  .scrl::-webkit-scrollbar{width:10px;height:10px}
+  .scrl::-webkit-scrollbar-thumb{background:#D1D1D1;border-radius:6px;border:2px solid transparent;background-clip:content-box}
+  .scrl::-webkit-scrollbar-thumb:hover{background:#A7A7A7;background-clip:content-box}
+  @keyframes sheetUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes skel{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden">
+
+  <sc-if value="{{ screen_login }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 100% at 50% 0%, #732F2F 0%, #500000 45%, #3C001C 100%);position:relative;overflow:hidden">
+      <div style="position:absolute;right:-90px;bottom:-140px;font-family:Oswald;font-weight:700;font-size:520px;line-height:.7;color:rgba(255,255,255,0.035);user-select:none;pointer-events:none">AM</div>
+      <div style="position:relative;width:420px;max-width:90vw;background:#fff;border-radius:4px;box-shadow:0 24px 60px rgba(60,0,28,0.45);padding:40px 40px 34px;text-align:center;animation:sheetUp .4s ease">
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:22px">
+          <div style="width:40px;height:40px;border-radius:4px;background:#500000;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;color:#fff;font-size:20px">S</div>
+          <div style="width:40px;height:40px;border-radius:50%;border:2px solid #500000;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;color:#500000;font-size:16px">A&amp;M</div>
+        </div>
+        <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#732F2F;margin-bottom:8px">Officer Access</div>
+        <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:#202020;font-size:27px;line-height:1.05;margin:0 0 10px">TAMU SHPE<br>Admin Portal</h1>
+        <p style="font-family:'Crimson Text',Georgia,serif;font-style:italic;font-size:16px;color:#626262;margin:0 0 26px">For authorized officers of the Aggie SHPE family.</p>
+
+        <sc-if value="{{ denied }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:left;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:3px;padding:12px 14px;margin-bottom:18px">
+            <div style="font-weight:600;color:#B91C1C;font-size:14px;margin-bottom:2px">Access denied</div>
+            <div style="font-size:13px;color:#626262;line-height:1.4">Your account isn't authorized for this portal. <a href="#" onClick="{{ tryAnother }}" style="color:#500000;font-weight:600">Try another account</a></div>
+          </div>
+        </sc-if>
+
+        <button onClick="{{ signIn }}" style="width:100%;background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.08em;border:none;border-radius:3px;padding:13px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px" style-hover="background:#732F2F">
+          <span style="width:18px;height:18px;border-radius:50%;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'Open Sans',sans-serif;font-weight:700;color:#500000;font-size:11px">G</span>
+          Sign in with TAMU Google
+        </button>
+        <div style="margin-top:16px;font-size:12px;color:#A7A7A7">Trouble signing in? <a href="#" onClick="{{ showDenied }}" style="color:#707070">Get help</a></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ screen_app }}" hint-placeholder-val="{{ false }}">
+    <!-- NAVBAR -->
+    <header style="flex:none;background:#500000;border-bottom:3px solid #3C001C;height:56px;display:flex;align-items:center;padding:0 22px;gap:26px">
+      <div style="display:flex;align-items:center;gap:10px;flex:none">
+        <div style="width:30px;height:30px;border-radius:3px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;color:#500000;font-size:16px">S</div>
+        <div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#fff;font-size:17px;line-height:1">TAMU SHPE <span style="color:#E7B7B7;font-weight:400">Admin</span></div>
+      </div>
+      <nav style="display:flex;align-items:center;gap:4px;flex:1">
+        <sc-for list="{{ navLinks }}" as="link" hint-placeholder-count="6">
+          <button onClick="{{ link.onClick }}" style="{{ link.style }}">{{ link.label }}</button>
+        </sc-for>
+      </nav>
+      <button onClick="{{ signOut }}" style="flex:none;white-space:nowrap;background:transparent;border:1px solid rgba(255,255,255,0.35);color:#fff;font-family:'Open Sans',sans-serif;font-size:12px;font-weight:600;border-radius:3px;padding:7px 13px;cursor:pointer" style-hover="background:#732F2F;border-color:#732F2F">Sign out</button>
+    </header>
+
+    <main class="scrl" style="flex:1;overflow:auto;background:#F6F6F6">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <sc-if value="{{ screen_dashboard }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1180px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Chapter Operations</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px">
+            <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0">Good morning, Officers</h1>
+            <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070">School year 2025–26 · June–May</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px">
+            <sc-for list="{{ statTiles }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.onClick }}" style="text-align:left;background:#fff;border:1px solid #EAEAEA;border-top:8px solid #500000;border-radius:3px;padding:16px 18px 18px;cursor:pointer;display:flex;flex-direction:column;gap:2px" style-hover="border-color:#D1D1D1;box-shadow:0 4px 14px rgba(60,0,28,0.08)">
+                <span style="font-family:'Open Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#732F2F">{{ t.eyebrow }}</span>
+                <span style="font-family:Oswald;font-weight:600;color:#500000;font-size:46px;line-height:1;margin:2px 0 4px">{{ t.value }}</span>
+                <span style="font-family:'Open Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:#3E3E3E">{{ t.label }}</span>
+                <span style="font-family:'Work Sans',sans-serif;font-size:12px;color:#707070;margin-top:5px">{{ t.trend }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #EAEAEA">
+                <div style="font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:16px">Recent membership requests</div>
+                <button onClick="{{ gotoMembership }}" style="background:transparent;border:none;color:#500000;font-size:12px;font-weight:600;cursor:pointer">Review all →</button>
+              </div>
+              <div>
+                <sc-for list="{{ recentRequests }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F6F6F6">
+                    <div style="width:34px;height:34px;border-radius:50%;background:#732F2F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Open Sans',sans-serif;font-weight:600;font-size:12px;flex:none">{{ r.initials }}</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-weight:600;font-size:14px">{{ r.name }}</div>
+                      <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070">{{ r.major }} · submitted {{ r.when }}</div>
+                    </div>
+                    <button onClick="{{ gotoMembership }}" style="flex:none;background:#F6F6F6;border:1px solid #EAEAEA;border-radius:3px;padding:6px 12px;font-size:12px;font-weight:600;color:#500000;cursor:pointer" style-hover="background:#EAEAEA">Review</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #EAEAEA">
+                <div style="font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:16px">Points leaderboard</div>
+                <button onClick="{{ gotoPoints }}" style="background:transparent;border:none;color:#500000;font-size:12px;font-weight:600;cursor:pointer">View spreadsheet →</button>
+              </div>
+              <div>
+                <sc-for list="{{ leaderboard }}" as="p" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #F6F6F6">
+                    <div style="width:22px;font-family:Oswald;font-weight:600;color:#A7A7A7;font-size:16px;text-align:center;flex:none">{{ p.rank }}</div>
+                    <div style="width:30px;height:30px;border-radius:50%;background:#EAEAEA;color:#3E3E3E;display:flex;align-items:center;justify-content:center;font-family:'Open Sans',sans-serif;font-weight:600;font-size:11px;flex:none">{{ p.initials }}</div>
+                    <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:0">
+                      <span style="font-weight:600;font-size:14px">{{ p.name }}</span>
+                      <sc-if value="{{ p.isOfficer }}" hint-placeholder-val="{{ false }}"><span style="background:#FCE300;color:#202020;font-family:'Open Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px">Officer</span></sc-if>
+                    </div>
+                    <div style="font-family:'Open Sans',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;color:#500000">{{ p.pts }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== EVENTS ===================== -->
+      <sc-if value="{{ screen_events }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1240px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Calendar &amp; Attendance</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px">
+            <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0">Events</h1>
+            <button onClick="{{ openEventModal }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.06em;border:none;border-radius:3px;padding:10px 18px;font-size:14px;cursor:pointer" style-hover="background:#732F2F">+ New event</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start">
+            <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #EAEAEA">
+                <div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:20px">September 2025</div>
+                <div style="display:flex;border:1px solid #D1D1D1;border-radius:3px;overflow:hidden">
+                  <button onClick="{{ setMonthView }}" style="{{ monthTabStyle }}">Month</button>
+                  <button onClick="{{ setWeekView }}" style="{{ weekTabStyle }}">Week</button>
+                </div>
+              </div>
+
+              <sc-if value="{{ calMonth }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #EAEAEA">
+                  <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7">
+                    <div style="padding:8px 10px;font-family:'Open Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#A7A7A7;text-align:left">{{ w }}</div>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ weeks }}" as="week" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr)">
+                    <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+                      <div onClick="{{ d.onClick }}" style="{{ d.style }}">
+                        <div style="font-family:'Open Sans',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;color:#707070;margin-bottom:4px">{{ d.day }}</div>
+                        <sc-for list="{{ d.events }}" as="ev" hint-placeholder-count="1">
+                          <div style="{{ ev.chipStyle }}">{{ ev.label }}</div>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ calWeek }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);min-height:360px">
+                  <sc-for list="{{ weekViewDays }}" as="d" hint-placeholder-count="7">
+                    <div onClick="{{ d.onClick }}" style="{{ d.wstyle }}">
+                      <div style="font-family:'Open Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#A7A7A7">{{ d.dow }}</div>
+                      <div style="font-family:Oswald;font-weight:600;font-size:22px;color:#3E3E3E;margin-bottom:8px">{{ d.day }}</div>
+                      <sc-for list="{{ d.events }}" as="ev" hint-placeholder-count="1">
+                        <div style="{{ ev.chipStyleLg }}">{{ ev.name }}<br><span style="font-weight:400;opacity:.85">{{ ev.time }}</span></div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+
+            <div>
+              <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:10px">Pending approval</div>
+              <sc-for list="{{ pendingEvents }}" as="p" hint-placeholder-count="2">
+                <div style="background:#fff;border:1px solid #EAEAEA;border-left:3px solid #D49627;border-radius:3px;padding:14px 15px;margin-bottom:12px">
+                  <div style="font-weight:600;font-size:14px;margin-bottom:2px">{{ p.name }}</div>
+                  <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:10px">{{ p.date }} · {{ p.count }} logs awaiting approval</div>
+                  <button onClick="{{ p.onReview }}" style="width:100%;background:#F6F6F6;border:1px solid #EAEAEA;border-radius:3px;padding:7px;font-size:12px;font-weight:600;color:#500000;cursor:pointer" style-hover="background:#EAEAEA">Review attendance</button>
+                </div>
+              </sc-for>
+              <div style="background:#F4F1EA00;border:1px dashed #D1D1D1;border-radius:3px;padding:14px;font-family:'Open Sans',sans-serif;font-size:12px;color:#A7A7A7;text-align:center">All caught up beyond these.</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== POINTS ===================== -->
+      <sc-if value="{{ screen_points }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1240px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Points Spreadsheet</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap">
+            <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0">Points</h1>
+            <div style="display:flex;align-items:center;gap:10px">
+              <sc-if value="{{ hasEdits }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'Open Sans',sans-serif;font-size:12px;color:#732F2F;font-weight:600">{{ dirtyLabel }}</span>
+              </sc-if>
+              <button onClick="{{ saveEdits }}" style="{{ saveBtnStyle }}">Save changes</button>
+              <button onClick="{{ updatePoints }}" style="background:#fff;border:1px solid #D1D1D1;border-radius:3px;padding:9px 14px;font-family:'Open Sans',sans-serif;font-size:13px;font-weight:600;color:#3E3E3E;cursor:pointer;display:flex;align-items:center;gap:7px" style-hover="background:#F6F6F6">
+                <sc-if value="{{ updating }}" hint-placeholder-val="{{ false }}"><span style="width:12px;height:12px;border:2px solid #D1D1D1;border-top-color:#500000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span></sc-if>
+                {{ updateLabel }}
+              </button>
+              <button onClick="{{ exportExcel }}" style="background:#fff;border:1px solid #D1D1D1;border-radius:3px;padding:9px 14px;font-family:'Open Sans',sans-serif;font-size:13px;font-weight:600;color:#3E3E3E;cursor:pointer" style-hover="background:#F6F6F6">Export to Excel</button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:16px;flex-wrap:wrap">
+            <div style="display:inline-flex;background:#fff;border:1px solid #D1D1D1;border-radius:3px;overflow:hidden">
+              <button onClick="{{ setTotalView }}" style="{{ totalViewStyle }}">Total Points</button>
+              <button onClick="{{ setMonthlyView }}" style="{{ monthlyViewStyle }}">Monthly Points</button>
+            </div>
+            <sc-if value="{{ isMonthly }}" hint-placeholder-val="{{ false }}">
+              <select onChange="{{ onMonthChange }}" style="background:#fff;border:1px solid #D1D1D1;border-radius:3px;padding:8px 12px;font-family:'Open Sans',sans-serif;font-size:13px;color:#202020;cursor:pointer">
+                <sc-for list="{{ months }}" as="m" hint-placeholder-count="12"><option value="{{ m.value }}" selected="{{ m.selected }}">{{ m.label }}</option></sc-for>
+              </select>
+            </sc-if>
+          </div>
+
+          <!-- TOTAL VIEW -->
+          <sc-if value="{{ isTotal }}" hint-placeholder-val="{{ true }}">
+            <div class="scrl" style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:auto;max-height:60vh">
+              <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+                <thead><tr>
+                  <th style="position:sticky;top:0;left:0;z-index:3;background:#500000;color:#fff;text-align:left;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;width:60px">Rank</th>
+                  <th style="position:sticky;top:0;left:60px;z-index:3;background:#500000;color:#fff;text-align:left;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:200px">Member</th>
+                  <th style="position:sticky;top:0;z-index:2;background:#500000;color:#fff;text-align:left;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Major</th>
+                  <th style="position:sticky;top:0;z-index:2;background:#500000;color:#fff;text-align:right;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;width:120px">Points</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ totalRows }}" as="r" hint-placeholder-count="8">
+                    <tr style="{{ r.rowStyle }}">
+                      <td style="{{ r.rankTd }}">{{ r.rank }}</td>
+                      <td style="{{ r.nameTd }}">
+                        <span style="font-weight:600;font-size:13.5px;color:#202020">{{ r.name }}</span>
+                        <sc-if value="{{ r.isOfficer }}" hint-placeholder-val="{{ false }}"><span style="background:#FCE300;color:#202020;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:8px">Officer</span></sc-if>
+                      </td>
+                      <td style="padding:0 14px;font-size:13px;color:#626262;border-bottom:1px solid #F6F6F6">{{ r.major }}</td>
+                      <td style="{{ r.valTd }}"><input value="{{ r.value }}" onChange="{{ r.onChange }}" inputmode="numeric" style="width:64px;border:none;background:transparent;text-align:right;font-family:'Open Sans',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;color:#500000;padding:9px 6px;border-radius:2px;outline:none" style-focus="background:#fff;box-shadow:0 0 0 3px #E7B7B7"></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <!-- MONTHLY VIEW -->
+          <sc-if value="{{ isMonthly }}" hint-placeholder-val="{{ false }}">
+            <div class="scrl" style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:auto;max-height:60vh">
+              <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+                <thead><tr>
+                  <th style="position:sticky;top:0;left:0;z-index:3;background:#500000;color:#fff;text-align:left;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;min-width:190px">Member</th>
+                  <sc-for list="{{ monthCols }}" as="c" hint-placeholder-count="6">
+                    <th style="position:sticky;top:0;z-index:2;background:#500000;color:#fff;text-align:right;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">{{ c }}</th>
+                  </sc-for>
+                  <th style="position:sticky;top:0;z-index:2;background:#3C001C;color:#fff;text-align:right;padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Total</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ monthlyRows }}" as="r" hint-placeholder-count="8">
+                    <tr style="{{ r.rowStyle }}">
+                      <td style="{{ r.nameTd }}">
+                        <span style="font-weight:600;font-size:13.5px;color:#202020">{{ r.name }}</span>
+                        <sc-if value="{{ r.isOfficer }}" hint-placeholder-val="{{ false }}"><span style="background:#FCE300;color:#202020;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:8px">Officer</span></sc-if>
+                      </td>
+                      <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="6">
+                        <td style="{{ cell.td }}"><input value="{{ cell.value }}" onChange="{{ cell.onChange }}" inputmode="numeric" style="width:48px;border:none;background:transparent;text-align:right;font-family:'Open Sans',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;color:#202020;padding:9px 4px;border-radius:2px;outline:none" style-focus="background:#fff;box-shadow:0 0 0 3px #E7B7B7"></td>
+                      </sc-for>
+                      <td style="text-align:right;padding:9px 14px;font-family:'Open Sans',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;color:#500000;border-bottom:1px solid #EAEAEA;background:#FAFAF7">{{ r.total }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===================== MEMBERSHIP ===================== -->
+      <sc-if value="{{ screen_membership }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1180px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Verification Workflow</div>
+          <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0 0 18px">Membership</h1>
+
+          <div style="display:flex;gap:2px;border-bottom:1px solid #D1D1D1;margin-bottom:22px">
+            <sc-for list="{{ memTabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}<sc-if value="{{ t.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="background:#500000;color:#fff;font-family:'Open Sans',sans-serif;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;margin-left:7px">{{ t.badge }}</span></sc-if></button>
+            </sc-for>
+          </div>
+
+          <!-- REQUESTS -->
+          <sc-if value="{{ tabRequests }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ hasRequests }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
+                <sc-for list="{{ requests }}" as="r" hint-placeholder-count="4">
+                  <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;padding:18px;animation:fadeIn .25s ease">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                      <div style="width:40px;height:40px;border-radius:50%;background:#732F2F;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Open Sans',sans-serif;font-weight:600;font-size:14px;flex:none">{{ r.initials }}</div>
+                      <div style="flex:1">
+                        <div style="font-weight:600;font-size:15px">{{ r.name }}</div>
+                        <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070">{{ r.major }} · submitted {{ r.when }}</div>
+                      </div>
+                      <span style="background:#F6F6F6;border:1px solid #EAEAEA;font-family:'Open Sans',sans-serif;font-size:11px;font-weight:600;color:#3E3E3E;padding:3px 9px;border-radius:2px">Shirt {{ r.size }}</span>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-bottom:12px">
+                      <a href="#" onClick="{{ r.viewDoc }}" style="flex:1;display:flex;align-items:center;gap:7px;background:#FAFAF7;border:1px solid #EAEAEA;border-radius:3px;padding:9px 11px;text-decoration:none;color:#3E3E3E;font-size:12px;font-weight:600">📄 Chapter proof <span style="margin-left:auto;color:#A7A7A7">▸</span></a>
+                      <a href="#" onClick="{{ r.viewDoc }}" style="flex:1;display:flex;align-items:center;gap:7px;background:#FAFAF7;border:1px solid #EAEAEA;border-radius:3px;padding:9px 11px;text-decoration:none;color:#3E3E3E;font-size:12px;font-weight:600">📄 National proof <span style="margin-left:auto;color:#A7A7A7">▸</span></a>
+                    </div>
+                    <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:14px">Chapter exp: <b style="color:#3E3E3E">{{ r.chapExp }}</b> · National exp: <b style="color:#3E3E3E">{{ r.natExp }}</b></div>
+                    <div style="display:flex;gap:10px">
+                      <button onClick="{{ r.approve }}" style="flex:1;background:#500000;color:#fff;border:none;border-radius:3px;padding:9px;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:13px;cursor:pointer" style-hover="background:#732F2F">Approve</button>
+                      <button onClick="{{ r.deny }}" style="flex:1;background:#fff;color:#B91C1C;border:1px solid #FCA5A5;border-radius:3px;padding:9px;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:13px;cursor:pointer" style-hover="background:#FEF2F2">Deny</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noRequests }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;padding:56px;text-align:center">
+                <div style="font-size:34px;margin-bottom:10px">✅</div>
+                <div style="font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.03em;font-size:19px;margin-bottom:6px">No requests to review</div>
+                <div style="font-family:'Crimson Text',serif;font-style:italic;font-size:15px;color:#707070">Nice work — every membership proof has been handled.</div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <!-- OFFICIAL MEMBERS -->
+          <sc-if value="{{ tabOfficial }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+              <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+                <thead><tr>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Member</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Major</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Chapter exp</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Status</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ officialMembers }}" as="m" hint-placeholder-count="5">
+                    <tr style="{{ m.rowStyle }}">
+                      <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;font-weight:600;font-size:13.5px">{{ m.name }}</td>
+                      <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;font-size:13px;color:#626262">{{ m.major }}</td>
+                      <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;font-size:13px;color:#626262;font-variant-numeric:tabular-nums">May 2026</td>
+                      <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6"><span style="{{ m.badgeStyle }}">{{ m.badge }}</span></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <!-- ALL USERS -->
+          <sc-if value="{{ tabAll }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+              <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+                <thead><tr>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Name</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Email</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Major</th>
+                  <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Role</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ allUsers }}" as="u" hint-placeholder-count="8">
+                    <tr style="{{ u.rowStyle }}">
+                      <td style="padding:10px 16px;border-bottom:1px solid #F6F6F6;font-weight:600;font-size:13.5px">{{ u.name }}</td>
+                      <td style="padding:10px 16px;border-bottom:1px solid #F6F6F6;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#707070">{{ u.email }}</td>
+                      <td style="padding:10px 16px;border-bottom:1px solid #F6F6F6;font-size:13px;color:#626262">{{ u.major }}</td>
+                      <td style="padding:10px 16px;border-bottom:1px solid #F6F6F6"><span style="{{ u.badgeStyle }}">{{ u.role }}</span></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===================== COMMITTEES ===================== -->
+      <sc-if value="{{ screen_committees }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1180px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Directory</div>
+          <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0 0 20px">Committees</h1>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+            <sc-for list="{{ committees }}" as="c" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden;display:flex;flex-direction:column">
+                <div style="height:8px;background:{{ c.color }}"></div>
+                <div style="padding:18px">
+                  <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+                    <div style="width:38px;height:38px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;color:#fff;font-size:16px;background:{{ c.color }}">{{ c.mark }}</div>
+                    <div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:17px;line-height:1.05">{{ c.name }}</div>
+                  </div>
+                  <p style="font-family:'Work Sans',sans-serif;font-size:13px;color:#626262;line-height:1.5;margin:0 0 14px;min-height:58px">{{ c.desc }}</p>
+                  <div style="border-top:1px solid #F6F6F6;padding-top:12px;display:flex;flex-direction:column;gap:7px">
+                    <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Open Sans',sans-serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#A7A7A7">Head</span><span style="font-size:13px;font-weight:600">{{ c.head }}</span></div>
+                    <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Open Sans',sans-serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#A7A7A7">Leads</span><span style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">{{ c.leads }}</span></div>
+                    <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Open Sans',sans-serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#A7A7A7">Members</span><span style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">{{ c.members }}</span></div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== TOOLS ===================== -->
+      <sc-if value="{{ screen_tools }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1000px;margin:0 auto;padding:30px 40px 60px">
+          <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#500000;margin-bottom:5px">Operational Utilities</div>
+          <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0 0 20px">Tools</h1>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div style="background:#fff;border:1px solid #EAEAEA;border-top:8px solid #500000;border-radius:3px;padding:22px">
+              <div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:19px;margin-bottom:6px">Resume Download</div>
+              <p style="font-family:'Work Sans',sans-serif;font-size:13px;color:#626262;line-height:1.5;margin:0 0 18px">Bundle every verified member's resume into a single zip for recruiters. Links expire 48 hours after generation.</p>
+              <sc-if value="{{ resumeIdle }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ genResume }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.06em;border:none;border-radius:3px;padding:11px 18px;font-size:14px;cursor:pointer" style-hover="background:#732F2F">Generate resume zip</button>
+              </sc-if>
+              <sc-if value="{{ resumeGenerating }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:11px;background:#FAFAF7;border:1px solid #EAEAEA;border-radius:3px;padding:14px">
+                  <span style="width:16px;height:16px;border:2px solid #D1D1D1;border-top-color:#500000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>
+                  <span style="font-size:13px;font-weight:600;color:#3E3E3E">Generating… bundling 148 resumes</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ resumeReady }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:3px;padding:15px">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="width:8px;height:8px;border-radius:50%;background:#15803D;display:inline-block"></span><span style="font-weight:600;font-size:14px;color:#15803D">Ready to download</span></div>
+                  <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:12px">shpe-resumes-2025.zip · created just now · expires in 48h</div>
+                  <div style="display:flex;gap:10px">
+                    <button onClick="{{ downloadResume }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border:none;border-radius:3px;padding:9px 16px;font-size:13px;cursor:pointer" style-hover="background:#732F2F">Download</button>
+                    <button onClick="{{ expireResume }}" style="background:transparent;border:1px solid #D1D1D1;border-radius:3px;padding:9px 14px;font-size:12px;font-weight:600;color:#707070;cursor:pointer">Simulate expiry</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ resumeExpired }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:3px;padding:15px">
+                  <div style="font-weight:600;font-size:14px;color:#B91C1C;margin-bottom:4px">Link expired</div>
+                  <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:12px">This download is no longer available. Generate a fresh zip.</div>
+                  <button onClick="{{ genResume }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border:none;border-radius:3px;padding:9px 16px;font-size:13px;cursor:pointer" style-hover="background:#732F2F">Regenerate</button>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="background:#fff;border:1px solid #EAEAEA;border-top:8px solid #500000;border-radius:3px;padding:22px">
+              <div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:19px;margin-bottom:6px">Shirt Tracker</div>
+              <p style="font-family:'Work Sans',sans-serif;font-size:13px;color:#626262;line-height:1.5;margin:0 0 18px">Track which members have picked up their chapter shirt. Toggle pickup as members collect at the office.</p>
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+                <div><div style="font-family:Oswald;font-weight:600;color:#500000;font-size:34px;line-height:1">{{ shirtPicked }}</div><div style="font-family:'Open Sans',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#A7A7A7">Picked up</div></div>
+                <div style="width:1px;height:36px;background:#EAEAEA"></div>
+                <div><div style="font-family:Oswald;font-weight:600;color:#A7A7A7;font-size:34px;line-height:1">{{ shirtRemaining }}</div><div style="font-family:'Open Sans',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#A7A7A7">Remaining</div></div>
+              </div>
+              <button onClick="{{ gotoShirt }}" style="background:#fff;border:1px solid #500000;color:#500000;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:11px 18px;font-size:14px;cursor:pointer" style-hover="background:#FAFAF7">Open shirt tracker →</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===================== SHIRT TRACKER ===================== -->
+      <sc-if value="{{ screen_shirt }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1000px;margin:0 auto;padding:30px 40px 60px">
+          <div style="display:flex;align-items:center;gap:8px;font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:6px"><a href="#" onClick="{{ gotoTools }}" style="color:#500000;text-decoration:none">Tools</a><span>/</span><span>Shirt Tracker</span></div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px">
+            <h1 style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:30px;margin:0">Shirt Tracker</h1>
+            <div style="font-family:'Open Sans',sans-serif;font-size:13px;color:#707070"><b style="color:#500000">{{ shirtPicked }}</b> picked up · <b style="color:#3E3E3E">{{ shirtRemaining }}</b> remaining</div>
+          </div>
+          <div style="margin-bottom:14px">
+            <input value="{{ shirtSearch }}" onChange="{{ onShirtSearch }}" placeholder="Search by name or email…" style="width:320px;max-width:100%;background:#fff;border:1px solid #D1D1D1;border-radius:3px;padding:9px 13px;font-size:13px;color:#202020;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7">
+          </div>
+          <div style="background:#fff;border:1px solid #EAEAEA;border-radius:3px;overflow:hidden">
+            <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+              <thead><tr>
+                <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Member</th>
+                <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Email</th>
+                <th style="text-align:left;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Status</th>
+                <th style="text-align:center;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Size</th>
+                <th style="text-align:center;padding:11px 16px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Picked up</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ shirtRows }}" as="s" hint-placeholder-count="8">
+                  <tr style="{{ s.rowStyle }}">
+                    <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;font-weight:600;font-size:13.5px">{{ s.name }}</td>
+                    <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#707070">{{ s.email }}</td>
+                    <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6"><span style="{{ s.badgeStyle }}">{{ s.status }}</span></td>
+                    <td style="padding:11px 16px;border-bottom:1px solid #F6F6F6;text-align:center;font-weight:600;font-size:13px">{{ s.size }}</td>
+                    <td style="padding:9px 16px;border-bottom:1px solid #F6F6F6;text-align:center"><button onClick="{{ s.toggle }}" style="{{ s.checkStyle }}">{{ s.checkMark }}</button></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <sc-if value="{{ noShirtRows }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:40px;text-align:center;font-family:'Open Sans',sans-serif;font-size:13px;color:#A7A7A7">No members match "{{ shirtSearch }}".</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </sc-if>
+
+  <!-- ===================== TOASTS ===================== -->
+  <div style="position:fixed;bottom:22px;right:22px;z-index:1000;display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="{{ t.style }}">
+        <span style="{{ t.dotStyle }}"></span>
+        <span style="font-size:13px;font-weight:600;color:#202020">{{ t.msg }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- ===================== DAY MODAL ===================== -->
+  <sc-if value="{{ dayModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDay }}" style="position:fixed;inset:0;z-index:900;background:rgba(60,0,28,0.42);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease">
+      <div onClick="{{ stop }}" style="width:440px;max-width:90vw;background:#fff;border-radius:4px;box-shadow:0 24px 60px rgba(60,0,28,0.4);overflow:hidden;animation:sheetUp .25s ease">
+        <div style="background:#500000;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:between;justify-content:space-between">
+          <div><div style="font-family:'Open Sans',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E7B7B7">Events on</div><div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:20px">{{ dayModalDate }}</div></div>
+          <button onClick="{{ closeDay }}" style="background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1">×</button>
+        </div>
+        <div style="padding:14px 20px 20px">
+          <sc-for list="{{ dayModalEvents }}" as="ev" hint-placeholder-count="1">
+            <div style="border:1px solid #EAEAEA;border-left:3px solid {{ ev.color }};border-radius:3px;padding:13px 15px;margin-bottom:11px">
+              <div style="font-weight:600;font-size:15px;margin-bottom:3px">{{ ev.name }}</div>
+              <div style="font-family:'Open Sans',sans-serif;font-size:12px;color:#707070;margin-bottom:10px">{{ ev.time }} · {{ ev.room }} · {{ ev.pts }}</div>
+              <button onClick="{{ openEventModal }}" style="background:#F6F6F6;border:1px solid #EAEAEA;border-radius:3px;padding:6px 13px;font-size:12px;font-weight:600;color:#500000;cursor:pointer" style-hover="background:#EAEAEA">Review attendance</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== EVENT MODAL ===================== -->
+  <sc-if value="{{ eventModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeEventModal }}" style="position:fixed;inset:0;z-index:910;background:rgba(60,0,28,0.42);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:36px 20px;overflow:auto;animation:fadeIn .15s ease">
+      <div onClick="{{ stop }}" class="scrl" style="width:760px;max-width:100%;background:#fff;border-radius:4px;box-shadow:0 24px 60px rgba(60,0,28,0.4);overflow:hidden;animation:sheetUp .25s ease">
+        <div style="background:#500000;color:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-family:'Open Sans',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E7B7B7">Edit event</div><div style="font-family:Oswald;font-weight:600;text-transform:uppercase;letter-spacing:.02em;font-size:21px">General Meeting</div></div>
+          <button onClick="{{ closeEventModal }}" style="background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1">×</button>
+        </div>
+        <div style="padding:22px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-bottom:18px">
+            <label style="display:flex;flex-direction:column;gap:5px;grid-column:span 2"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Event name</span><input defaultValue="General Meeting" style="border:1px solid #D1D1D1;border-radius:3px;padding:9px 11px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Event type</span>
+              <select defaultValue="General Meeting" style="border:1px solid #D1D1D1;border-radius:3px;padding:9px 11px;font-size:13px;outline:none;background:#fff" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7">
+                <option>General Meeting</option><option>Committee Meeting</option><option>Study Hours</option><option>Workshop</option><option>Volunteer</option><option>Social</option><option>Intramural</option><option>Custom</option>
+              </select></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Committee</span>
+              <select defaultValue="None" style="border:1px solid #D1D1D1;border-radius:3px;padding:9px 11px;font-size:13px;outline:none;background:#fff" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"><option>None</option><option>Technical Affairs</option><option>Professional Development</option><option>Outreach</option></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Start</span><input type="datetime-local" defaultValue="2025-09-03T18:00" style="border:1px solid #D1D1D1;border-radius:3px;padding:8px 11px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">End</span><input type="datetime-local" defaultValue="2025-09-03T19:00" style="border:1px solid #D1D1D1;border-radius:3px;padding:8px 11px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Location</span><input defaultValue="Zachry 102" style="border:1px solid #D1D1D1;border-radius:3px;padding:9px 11px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+            <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Geofence radius (m)</span><input defaultValue="75" inputmode="numeric" style="border:1px solid #D1D1D1;border-radius:3px;padding:9px 11px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+          </div>
+
+          <div style="background:#FAFAF7;border:1px solid #EAEAEA;border-radius:3px;padding:14px 16px;margin-bottom:18px">
+            <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#500000;margin-bottom:10px">Point rules</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#626262">Sign-in points</span><input defaultValue="1" inputmode="numeric" style="border:1px solid #D1D1D1;border-radius:3px;padding:8px 10px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+              <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#626262">Sign-out points</span><input defaultValue="0" inputmode="numeric" style="border:1px solid #D1D1D1;border-radius:3px;padding:8px 10px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+              <label style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12px;color:#626262">Points / hour</span><input defaultValue="0" inputmode="numeric" style="border:1px solid #D1D1D1;border-radius:3px;padding:8px 10px;font-size:13px;outline:none" style-focus="border-color:#500000;box-shadow:0 0 0 3px #E7B7B7"></label>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#500000">Attendance log</div>
+            <button onClick="{{ bulkApprove }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border:none;border-radius:3px;padding:7px 13px;font-size:12px;cursor:pointer" style-hover="background:#732F2F">Bulk approve unverified</button>
+          </div>
+          <div style="border:1px solid #EAEAEA;border-radius:3px;overflow:hidden;margin-bottom:20px">
+            <table style="border-collapse:collapse;width:100%;font-family:'Open Sans',sans-serif">
+              <thead><tr>
+                <th style="text-align:left;padding:9px 13px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Member</th>
+                <th style="text-align:right;padding:9px 13px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Pts</th>
+                <th style="text-align:left;padding:9px 13px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">In</th>
+                <th style="text-align:left;padding:9px 13px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Out</th>
+                <th style="text-align:right;padding:9px 13px;background:#F6F6F6;border-bottom:1px solid #EAEAEA;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#626262">Status</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ eventLog }}" as="l" hint-placeholder-count="5">
+                  <tr>
+                    <td style="padding:9px 13px;border-bottom:1px solid #F6F6F6;font-weight:600;font-size:13px">{{ l.name }}</td>
+                    <td style="padding:9px 13px;border-bottom:1px solid #F6F6F6;text-align:right;font-variant-numeric:tabular-nums;font-size:13px">{{ l.pts }}</td>
+                    <td style="padding:9px 13px;border-bottom:1px solid #F6F6F6;font-size:12px;color:#707070;font-variant-numeric:tabular-nums">{{ l.inT }}</td>
+                    <td style="padding:9px 13px;border-bottom:1px solid #F6F6F6;font-size:12px;color:#707070;font-variant-numeric:tabular-nums">{{ l.outT }}</td>
+                    <td style="padding:7px 13px;border-bottom:1px solid #F6F6F6;text-align:right">
+                      <sc-if value="{{ l.verified }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(21,128,61,0.12);color:#15803D;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px">Verified</span></sc-if>
+                      <sc-if value="{{ l.unverified }}" hint-placeholder-val="{{ true }}"><button onClick="{{ l.approve }}" style="background:#fff;border:1px solid #500000;color:#500000;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 11px;border-radius:999px;cursor:pointer" style-hover="background:#FAFAF7">Approve</button></sc-if>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:11px">
+            <button onClick="{{ closeEventModal }}" style="background:#fff;border:1px solid #D1D1D1;border-radius:3px;padding:10px 18px;font-size:13px;font-weight:600;color:#3E3E3E;cursor:pointer" style-hover="background:#F6F6F6">Cancel</button>
+            <button onClick="{{ saveEvent }}" style="background:#500000;color:#fff;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.06em;border:none;border-radius:3px;padding:10px 22px;font-size:14px;cursor:pointer" style-hover="background:#732F2F">Save event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  MEMBERS = [
+    { id:'m1', name:'Maria Gonzalez', major:'Mechanical Engineering', role:'Officer' },
+    { id:'m2', name:'Priya Nair', major:'Industrial Engineering', role:'Officer' },
+    { id:'m3', name:'James Le', major:'Computer Science', role:'SHPE Member' },
+    { id:'m4', name:'Carlos Mendez', major:'Civil Engineering', role:'Lead' },
+    { id:'m5', name:'Ana Ruiz', major:'Electrical Engineering', role:'SHPE Member' },
+    { id:'m6', name:'David Kim', major:'Aerospace Engineering', role:'Representative' },
+    { id:'m7', name:'Sofia Torres', major:'Chemical Engineering', role:'Student' },
+    { id:'m8', name:'Liam Nguyen', major:'Petroleum Engineering', role:'Student' },
+  ];
+  EMAILS = { m1:'mgonzalez@tamu.edu', m2:'pnair@tamu.edu', m3:'jle@tamu.edu', m4:'cmendez@tamu.edu', m5:'aruiz@tamu.edu', m6:'dkim@tamu.edu', m7:'storres@tamu.edu', m8:'lnguyen@tamu.edu' };
+  SIZES = { m1:'M', m2:'S', m3:'L', m4:'L', m5:'M', m6:'XL', m7:'S', m8:'M' };
+  MONTH_COLS = [
+    { key:'gm', label:'Gen Mtg' }, { key:'cm', label:'Cmte Mtg' }, { key:'sh', label:'Study Hrs' },
+    { key:'vol', label:'Volunteer' }, { key:'igs', label:'IG Story' }, { key:'igp', label:'IG Post' },
+  ];
+  COMMITTEES = [
+    { id:'c1', name:'Technical Affairs', color:'#2563EB', mark:'T', desc:'Hackathons, technical workshops, and the engineering competition team.', head:'Priya Nair', leads:3, members:24 },
+    { id:'c2', name:'Professional Dev', color:'#500000', mark:'P', desc:'Resume reviews, mock interviews, and the corporate mentorship program.', head:'Maria Gonzalez', leads:2, members:31 },
+    { id:'c3', name:'Outreach', color:'#15803D', mark:'O', desc:'K–12 STEM outreach and Noche de Ciencias community events.', head:'Carlos Mendez', leads:4, members:18 },
+    { id:'c4', name:'Membership', color:'#7C3AED', mark:'M', desc:'Recruitment, onboarding, and member retention initiatives.', head:'Ana Ruiz', leads:2, members:27 },
+    { id:'c5', name:'Fundraising', color:'#D97706', mark:'F', desc:'Sponsorship, merchandise sales, and the annual banquet.', head:'David Kim', leads:2, members:15 },
+    { id:'c6', name:'Social', color:'#0D9488', mark:'S', desc:'Socials, intramurals, and family-night events.', head:'Sofia Torres', leads:3, members:22 },
+  ];
+  EVENTS = {
+    3:[{ name:'General Meeting', time:'6:00–7:00 PM', room:'Zachry 102', color:'#500000', pts:'+1 pt' }],
+    9:[{ name:'Committee Meeting', time:'5:00 PM', room:'ZACH 350', color:'#2563EB', pts:'+1 pt' }],
+    12:[{ name:'Volunteer Event', time:'9:00 AM–12:00 PM', room:'Lincoln Center', color:'#15803D', pts:'+3 pt' }],
+    18:[{ name:'Resume Workshop', time:'6:00 PM', room:'ZACH 244', color:'#7C3AED', pts:'+2 pt' }],
+    24:[{ name:'Study Hours', time:'7:00–9:00 PM', room:'Evans Library', color:'#626262', pts:'+2 pt' }],
+    27:[{ name:'Fall Social', time:'8:00 PM', room:'Century Sq', color:'#0D9488', pts:'+1 pt' }],
+  };
+  MONTHS = ['June','July','August','September','October','November','December','January','February','March','April','May'];
+  _tid = 0;
+
+  state = {
+    screen:'login', denied:false, toasts:[],
+    memTab:'requests',
+    requests:[
+      { id:'r1', name:'Ana Ruiz', major:'Electrical Engineering', when:'3 days ago', size:'M', chapExp:'May 2026', natExp:'Aug 2026' },
+      { id:'r2', name:'David Kim', major:'Aerospace Engineering', when:'yesterday', size:'L', chapExp:'May 2026', natExp:'Dec 2026' },
+      { id:'r3', name:'Sofia Torres', major:'Chemical Engineering', when:'5 days ago', size:'S', chapExp:'May 2026', natExp:'Sep 2026' },
+      { id:'r4', name:'Liam Nguyen', major:'Petroleum Engineering', when:'2 hours ago', size:'XL', chapExp:'May 2026', natExp:'Jun 2026' },
+    ],
+    ptsView:'total', ptsMonth:'September',
+    totals:{ m1:47, m2:44, m3:39, m4:36, m5:31, m6:28, m7:24, m8:19 },
+    monthly:{
+      September:{
+        m1:{gm:1,cm:2,sh:2,vol:3,igs:2,igp:1}, m2:{gm:1,cm:1,sh:3,vol:0,igs:1,igp:2},
+        m3:{gm:1,cm:0,sh:2,vol:3,igs:0,igp:1}, m4:{gm:1,cm:2,sh:0,vol:0,igs:1,igp:0},
+        m5:{gm:0,cm:1,sh:2,vol:3,igs:1,igp:1}, m6:{gm:1,cm:0,sh:0,vol:0,igs:2,igp:0},
+        m7:{gm:1,cm:1,sh:0,vol:0,igs:0,igp:1}, m8:{gm:0,cm:0,sh:2,vol:0,igs:1,igp:0},
+      },
+      October:{
+        m1:{gm:1,cm:1,sh:3,vol:0,igs:1,igp:2}, m2:{gm:1,cm:2,sh:2,vol:3,igs:0,igp:1},
+        m3:{gm:1,cm:0,sh:2,vol:0,igs:2,igp:0}, m4:{gm:0,cm:1,sh:0,vol:3,igs:1,igp:1},
+        m5:{gm:1,cm:0,sh:2,vol:0,igs:0,igp:0}, m6:{gm:1,cm:1,sh:0,vol:0,igs:1,igp:1},
+        m7:{gm:0,cm:0,sh:2,vol:0,igs:1,igp:0}, m8:{gm:1,cm:0,sh:0,vol:0,igs:0,igp:1},
+      },
+    },
+    edits:{}, updating:false,
+    calView:'month', dayModal:null,
+    eventModalOpen:false,
+    eventLog:[
+      { id:'l1', name:'Maria Gonzalez', pts:1, inT:'6:02 PM', outT:'7:01 PM', verified:true },
+      { id:'l2', name:'James Le', pts:1, inT:'6:05 PM', outT:'6:58 PM', verified:false },
+      { id:'l3', name:'Carlos Mendez', pts:1, inT:'6:00 PM', outT:'7:00 PM', verified:false },
+      { id:'l4', name:'Ana Ruiz', pts:1, inT:'6:10 PM', outT:'6:55 PM', verified:false },
+      { id:'l5', name:'David Kim', pts:1, inT:'6:03 PM', outT:'7:02 PM', verified:true },
+    ],
+    resume:'idle',
+    shirtSearch:'',
+    picked:{ m1:true, m3:false, m4:true, m5:false, m6:false, m7:true, m8:false, m2:false },
+  };
+
+  initials(n){ return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+  nav(screen){ this.setState({ screen, dayModal:null, eventModalOpen:false }); }
+  toast(msg, type='success'){
+    const id = ++this._tid;
+    this.setState(s => ({ toasts:[...s.toasts, { id, msg, type }] }));
+    setTimeout(() => this.setState(s => ({ toasts:s.toasts.filter(t => t.id !== id) })), 3200);
+  }
+
+  editKeyTotal(id){ return 'total:'+id; }
+  editKeyMonth(month,id,col){ return 'm:'+month+':'+id+':'+col; }
+  baseMonth(month,id,col){ const md = this.state.monthly[month]; return (md && md[id] && md[id][col] != null) ? md[id][col] : 0; }
+  curTotal(id){ const k = this.editKeyTotal(id); return this.state.edits[k] != null ? this.state.edits[k] : this.state.totals[id]; }
+  curMonth(month,id,col){ const k = this.editKeyMonth(month,id,col); return this.state.edits[k] != null ? this.state.edits[k] : this.baseMonth(month,id,col); }
+  isDirty(k, base){ return this.state.edits[k] != null && String(this.state.edits[k]) !== String(base); }
+  setEdit(k, v){ this.setState(s => ({ edits:{ ...s.edits, [k]:v } })); }
+
+  saveEdits(){
+    const edits = this.state.edits;
+    const keys = Object.keys(edits);
+    if(!keys.length){ this.toast('No changes to save', 'info'); return; }
+    const totals = { ...this.state.totals };
+    const monthly = JSON.parse(JSON.stringify(this.state.monthly));
+    let n = 0;
+    for(const k of keys){
+      const v = parseInt(edits[k], 10); const val = isNaN(v) ? 0 : v;
+      if(k.startsWith('total:')){ const id = k.slice(6); if(String(totals[id]) !== String(val)){ n++; } totals[id] = val; }
+      else if(k.startsWith('m:')){ const [, month, id, col] = k.split(':'); if(!monthly[month]) monthly[month] = {}; if(!monthly[month][id]) monthly[month][id] = {}; if(String(monthly[month][id][col]) !== String(val)){ n++; } monthly[month][id][col] = val; }
+    }
+    this.setState({ totals, monthly, edits:{} });
+    this.toast('Saved ' + n + (n === 1 ? ' change' : ' changes'));
+  }
+  updatePoints(){
+    if(this.state.updating) return;
+    this.setState({ updating:true });
+    setTimeout(() => { this.setState({ updating:false }); this.toast('Points recalculated — totals in sync'); }, 1500);
+  }
+  exportExcel(){ this.toast('Exporting workbook — master + 12 monthly sheets', 'info'); }
+
+  approve(id){ const r = this.state.requests.find(x => x.id === id); this.setState(s => ({ requests:s.requests.filter(x => x.id !== id) })); this.toast(r.name + ' approved as a verified member'); }
+  deny(id){ const r = this.state.requests.find(x => x.id === id); this.setState(s => ({ requests:s.requests.filter(x => x.id !== id) })); this.toast(r.name + '\u2019s request was denied', 'error'); }
+
+  approveLog(id){ this.setState(s => ({ eventLog:s.eventLog.map(l => l.id === id ? { ...l, verified:true } : l) })); this.toast('Attendance approved'); }
+  bulkApprove(){ const n = this.state.eventLog.filter(l => !l.verified).length; if(!n){ this.toast('Nothing left to approve', 'info'); return; } this.setState(s => ({ eventLog:s.eventLog.map(l => ({ ...l, verified:true })) })); this.toast('Approved ' + n + ' attendance logs'); }
+  saveEvent(){ this.setState({ eventModalOpen:false }); this.toast('Event saved'); }
+
+  genResume(){ this.setState({ resume:'generating' }); setTimeout(() => { this.setState({ resume:'ready' }); this.toast('Resume zip is ready to download'); }, 1800); }
+
+  togglePickup(id){ const now = !this.state.picked[id]; this.setState(s => ({ picked:{ ...s.picked, [id]:now } })); const m = this.MEMBERS.find(x => x.id === id); this.toast(m.name + (now ? ' marked picked up' : ' marked not picked up'), now ? 'success' : 'info'); }
+
+  roleBadge(role){
+    const base = 'display:inline-block;font-family:\'Open Sans\',sans-serif;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:2px;';
+    if(role === 'Officer') return base + 'background:#FCE300;color:#202020';
+    if(role === 'Admin' || role === 'Developer') return base + 'background:#3C001C;color:#fff';
+    if(role === 'SHPE Member' || role === 'Verified') return base + 'background:#500000;color:#fff';
+    if(role === 'Lead' || role === 'Representative') return base + 'background:rgba(80,0,0,0.08);color:#500000';
+    return base + 'background:#EAEAEA;color:#626262';
+  }
+  statusBadge(status){
+    const base = 'display:inline-block;font-family:\'Open Sans\',sans-serif;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;';
+    if(status === 'Verified') return base + 'background:rgba(80,0,0,0.08);color:#500000';
+    return base + 'background:rgba(212,150,39,0.15);color:#8a6516';
+  }
+
+  renderVals(){
+    const s = this.state;
+    const nl = ['dashboard','events','points','committees','membership','tools'];
+    const labels = { dashboard:'Dashboard', events:'Events', points:'Points', committees:'Committees', membership:'Membership', tools:'Tools' };
+    const onShirt = s.screen === 'shirt';
+    const navLinks = nl.map(k => {
+      const active = s.screen === k || (k === 'tools' && onShirt);
+      const style = 'padding:8px 13px;border-radius:3px;border:none;cursor:pointer;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:14px;' + (active ? 'background:#732F2F;color:#fff' : 'background:transparent;color:rgba(255,255,255,0.72)');
+      return { key:k, label:labels[k], style, onClick:() => this.nav(k) };
+    });
+
+    const toasts = s.toasts.map(t => {
+      const accent = t.type === 'error' ? '#B91C1C' : t.type === 'info' ? '#500000' : '#15803D';
+      return {
+        id:t.id, msg:t.msg,
+        style:'display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #EAEAEA;border-left:4px solid '+accent+';border-radius:3px;padding:12px 16px;box-shadow:0 10px 30px rgba(60,0,28,0.18);min-width:220px;animation:toastIn .22s ease',
+        dotStyle:'width:8px;height:8px;border-radius:50%;flex:none;background:'+accent,
+      };
+    });
+
+    // Dashboard
+    const statTiles = [
+      { eyebrow:'Membership', label:'Pending Requests', value:String(s.requests.length), trend:'2 submitted today', onClick:() => this.nav('membership') },
+      { eyebrow:'Attendance', label:'Events Needing Approval', value:'4', trend:'11 logs unverified', onClick:() => this.nav('events') },
+      { eyebrow:'Roster', label:'Active Members', value:'212', trend:'+8 this month', onClick:() => this.nav('membership') },
+      { eyebrow:'Points', label:'Last Recalculated', value:'2h', trend:'ago \u00b7 all in sync', onClick:() => this.nav('points') },
+    ];
+    const recentRequests = s.requests.slice(0,4).map(r => ({ name:r.name, major:r.major, when:r.when, initials:this.initials(r.name) }));
+    const ranked = this.MEMBERS.map(m => ({ ...m, pts:this.state.totals[m.id] })).sort((a,b) => b.pts - a.pts);
+    const leaderboard = ranked.slice(0,5).map((m,i) => ({ rank:i+1, name:m.name, pts:m.pts, isOfficer:m.role === 'Officer', initials:this.initials(m.name) }));
+
+    // Events calendar
+    const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const startDow = new Date(2025,8,1).getDay(); // Sep 1 2025 = Monday(1)
+    const dim = 30;
+    const cells = [];
+    for(let i=0;i<startDow;i++) cells.push({ blank:true });
+    for(let d=1;d<=dim;d++) cells.push({ day:d, evs:this.EVENTS[d] || [] });
+    while(cells.length % 7) cells.push({ blank:true });
+    const mkChip = (ev) => ({ label:ev.name, chipStyle:'font-family:\'Open Sans\',sans-serif;font-size:10px;font-weight:600;color:#fff;background:'+ev.color+';border-radius:2px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis', chipStyleLg:'font-family:\'Open Sans\',sans-serif;font-size:11px;font-weight:600;color:#fff;background:'+ev.color+';border-radius:3px;padding:5px 7px;margin-bottom:5px;line-height:1.3', name:ev.name, time:ev.time });
+    const weeks = [];
+    for(let i=0;i<cells.length;i+=7){
+      const row = cells.slice(i,i+7).map(c => {
+        if(c.blank) return { day:'', events:[], style:'min-height:92px;padding:6px;background:#FAFAF7;border-right:1px solid #F6F6F6;border-bottom:1px solid #F6F6F6' };
+        const hasEv = c.evs.length > 0;
+        return {
+          day:String(c.day), events:c.evs.map(mkChip),
+          style:'min-height:92px;padding:6px 6px 4px;border-right:1px solid #F6F6F6;border-bottom:1px solid #F6F6F6;'+(hasEv ? 'cursor:pointer' : ''),
+          onClick:hasEv ? () => this.setState({ dayModal:c.day }) : null,
+        };
+      });
+      weeks.push(row);
+    }
+    // Week view: first week containing Sep 1-6 plus their events
+    const wvBase = [{d:1,dow:'Mon'},{d:2,dow:'Tue'},{d:3,dow:'Wed'},{d:4,dow:'Thu'},{d:5,dow:'Fri'},{d:6,dow:'Sat'},{d:7,dow:'Sun'}];
+    const weekViewDays = wvBase.map(x => {
+      const evs = this.EVENTS[x.d] || [];
+      return { day:String(x.d), dow:x.dow, events:evs.map(mkChip),
+        wstyle:'padding:9px 8px;border-right:1px solid #F6F6F6;'+(evs.length ? 'cursor:pointer' : ''),
+        onClick:evs.length ? () => this.setState({ dayModal:x.d }) : null };
+    });
+    const pendingEvents = [
+      { name:'Volunteer Event', date:'Sep 12', count:8, onReview:() => this.setState({ eventModalOpen:true }) },
+      { name:'General Meeting', date:'Sep 3', count:3, onReview:() => this.setState({ eventModalOpen:true }) },
+    ];
+    const calTabActive = 'padding:6px 14px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:\'Open Sans\',sans-serif;background:#500000;color:#fff';
+    const calTabIdle = 'padding:6px 14px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:\'Open Sans\',sans-serif;background:#fff;color:#626262';
+
+    // Points
+    const isTotal = s.ptsView === 'total';
+    const isMonthly = s.ptsView === 'monthly';
+    const totalRows = ranked.map((m,i) => {
+      const k = this.editKeyTotal(m.id);
+      const dirty = this.isDirty(k, this.state.totals[m.id]);
+      const off = m.role === 'Officer';
+      const rowBg = off ? 'background:rgba(80,0,0,0.045)' : '';
+      const stick = off ? 'rgba(80,0,0,0.045)' : '#fff';
+      return {
+        rank:i+1, name:m.name, major:m.major, isOfficer:off, value:String(this.curTotal(m.id)),
+        rowStyle:rowBg,
+        rankTd:'position:sticky;left:0;z-index:1;background:'+stick+';text-align:left;padding:0 14px;font-family:Oswald;font-weight:600;color:#A7A7A7;font-size:15px;border-bottom:1px solid #F6F6F6',
+        nameTd:'position:sticky;left:60px;z-index:1;background:'+stick+';padding:9px 14px;border-bottom:1px solid #F6F6F6;white-space:nowrap',
+        valTd:'text-align:right;padding:0 8px;border-bottom:1px solid #F6F6F6;'+(dirty ? 'background:rgba(80,0,0,0.08);box-shadow:inset 3px 0 0 #500000' : ''),
+        onChange:(e) => this.setEdit(k, e.target.value),
+      };
+    });
+    const monthCols = this.MONTH_COLS.map(c => c.label);
+    const monthlyRows = ranked.map(m => {
+      const off = m.role === 'Officer';
+      const stick = off ? '#F7EBEB' : '#fff';
+      const cellsArr = this.MONTH_COLS.map(col => {
+        const k = this.editKeyMonth(s.ptsMonth, m.id, col.key);
+        const base = this.baseMonth(s.ptsMonth, m.id, col.key);
+        const dirty = this.isDirty(k, base);
+        return { value:String(this.curMonth(s.ptsMonth, m.id, col.key)), onChange:(e) => this.setEdit(k, e.target.value),
+          td:'text-align:right;padding:0 6px;border-bottom:1px solid #EAEAEA;border-left:1px solid #F6F6F6;'+(dirty ? 'background:rgba(80,0,0,0.08);box-shadow:inset 3px 0 0 #500000' : '') };
+      });
+      const total = this.MONTH_COLS.reduce((sum,col) => sum + (parseInt(this.curMonth(s.ptsMonth, m.id, col.key),10) || 0), 0);
+      return { name:m.name, isOfficer:off, rowStyle:off ? 'background:rgba(80,0,0,0.045)' : '', cells:cellsArr, total:String(total),
+        nameTd:'position:sticky;left:0;z-index:1;background:'+stick+';padding:9px 14px;border-bottom:1px solid #EAEAEA;white-space:nowrap' };
+    });
+    const months = this.MONTHS.map(m => ({ value:m, label:m, selected:m === s.ptsMonth }));
+    const dirtyCount = Object.keys(s.edits).filter(k => { const base = k.startsWith('total:') ? this.state.totals[k.slice(6)] : (() => { const [,mo,id,col] = k.split(':'); return this.baseMonth(mo,id,col); })(); return String(s.edits[k]) !== String(base); }).length;
+    const hasEdits = dirtyCount > 0;
+    const ptsSeg = (active) => 'padding:8px 16px;border:none;cursor:pointer;white-space:nowrap;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:13px;'+(active ? 'background:#500000;color:#fff' : 'background:#fff;color:#626262');
+
+    // Membership
+    const memTabDefs = [
+      { key:'requests', label:'Requests', hasBadge:s.requests.length > 0, badge:String(s.requests.length) },
+      { key:'official', label:'Official Members', hasBadge:false },
+      { key:'all', label:'All Users', hasBadge:false },
+    ];
+    const memTabs = memTabDefs.map(t => ({ ...t, style:'background:transparent;border:none;border-bottom:3px solid '+(s.memTab === t.key ? '#500000' : 'transparent')+';padding:11px 16px 10px;cursor:pointer;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.03em;font-size:15px;margin-bottom:-1px;color:'+(s.memTab === t.key ? '#500000' : '#A7A7A7'), onClick:() => this.setState({ memTab:t.key }) }));
+    const requests = s.requests.map(r => ({ ...r, initials:this.initials(r.name), approve:() => this.approve(r.id), deny:() => this.deny(r.id), viewDoc:(e) => { e.preventDefault(); this.toast('Opening proof document\u2026','info'); } }));
+    const officialMembers = ranked.filter(m => m.role !== 'Student' && m.role !== 'Guest').map(m => ({ name:m.name, major:m.major, badge:m.role === 'Officer' ? 'Officer' : 'Verified', badgeStyle:this.roleBadge(m.role === 'Officer' ? 'Officer' : 'Verified'), rowStyle:m.role === 'Officer' ? 'background:rgba(80,0,0,0.03)' : '' }));
+    const allUsers = this.MEMBERS.map(m => ({ name:m.name, email:this.EMAILS[m.id], major:m.major, role:m.role, badgeStyle:this.roleBadge(m.role), rowStyle:m.role === 'Officer' ? 'background:rgba(80,0,0,0.03)' : '' }));
+
+    // Shirt
+    const q = s.shirtSearch.trim().toLowerCase();
+    const shirtAll = this.MEMBERS.map(m => {
+      const status = (m.role === 'Student' || m.role === 'Guest') ? 'Pending' : 'Verified';
+      const on = !!s.picked[m.id];
+      return { id:m.id, name:m.name, email:this.EMAILS[m.id], status, size:this.SIZES[m.id],
+        badgeStyle:this.statusBadge(status),
+        checkMark:on ? '\u2713' : '',
+        checkStyle:'width:26px;height:26px;border-radius:3px;cursor:pointer;font-size:15px;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;'+(on ? 'background:#500000;color:#fff;border:1px solid #500000' : 'background:#fff;color:transparent;border:1px solid #D1D1D1'),
+        rowStyle:'', toggle:() => this.togglePickup(m.id) };
+    });
+    const shirtRows = shirtAll.filter(r => !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
+    const shirtPicked = shirtAll.filter(r => s.picked[r.id]).length;
+
+    // Day modal
+    const dm = s.dayModal;
+    const dayEvents = dm ? (this.EVENTS[dm] || []) : [];
+
+    // Event log
+    const eventLog = s.eventLog.map(l => ({ ...l, unverified:!l.verified, approve:() => this.approveLog(l.id) }));
+
+    return {
+      screen_login:s.screen === 'login', screen_app:s.screen !== 'login',
+      screen_dashboard:s.screen === 'dashboard', screen_events:s.screen === 'events', screen_points:s.screen === 'points',
+      screen_committees:s.screen === 'committees', screen_membership:s.screen === 'membership', screen_tools:s.screen === 'tools', screen_shirt:onShirt,
+      denied:s.denied,
+      signIn:() => this.nav('dashboard'),
+      showDenied:(e) => { e.preventDefault(); this.setState({ denied:true }); },
+      tryAnother:(e) => { e.preventDefault(); this.setState({ denied:false }); },
+      signOut:() => this.setState({ screen:'login', denied:false }),
+      navLinks, toasts,
+      gotoMembership:() => this.nav('membership'), gotoPoints:() => this.nav('points'), gotoShirt:() => this.nav('shirt'), gotoTools:() => this.nav('tools'),
+      statTiles, recentRequests, leaderboard,
+      // events
+      weekdays, weeks, weekViewDays, pendingEvents,
+      calMonth:s.calView === 'month', calWeek:s.calView === 'week',
+      setMonthView:() => this.setState({ calView:'month' }), setWeekView:() => this.setState({ calView:'week' }),
+      monthTabStyle:s.calView === 'month' ? calTabActive : calTabIdle,
+      weekTabStyle:s.calView === 'week' ? calTabActive : calTabIdle,
+      openEventModal:() => this.setState({ eventModalOpen:true, dayModal:null }),
+      closeEventModal:() => this.setState({ eventModalOpen:false }),
+      eventModalOpen:s.eventModalOpen,
+      dayModalOpen:!!dm, closeDay:() => this.setState({ dayModal:null }), stop:(e) => e.stopPropagation(),
+      dayModalDate:dm ? ('September ' + dm) : '', dayModalEvents:dayEvents,
+      eventLog, bulkApprove:() => this.bulkApprove(), saveEvent:() => this.saveEvent(),
+      // points
+      isTotal, isMonthly,
+      setTotalView:() => this.setState({ ptsView:'total' }), setMonthlyView:() => this.setState({ ptsView:'monthly' }),
+      totalViewStyle:ptsSeg(isTotal), monthlyViewStyle:ptsSeg(isMonthly),
+      onMonthChange:(e) => this.setState({ ptsMonth:e.target.value }), months,
+      totalRows, monthCols, monthlyRows,
+      hasEdits, dirtyLabel:dirtyCount + (dirtyCount === 1 ? ' unsaved edit' : ' unsaved edits'),
+      saveEdits:() => this.saveEdits(),
+      saveBtnStyle:'border:none;border-radius:3px;padding:9px 16px;font-family:Oswald;font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:13px;cursor:'+(hasEdits ? 'pointer' : 'default')+';'+(hasEdits ? 'background:#500000;color:#fff' : 'background:#EAEAEA;color:#A7A7A7'),
+      updatePoints:() => this.updatePoints(), updating:s.updating, updateLabel:s.updating ? 'Updating\u2026' : 'Update points',
+      exportExcel:() => this.exportExcel(),
+      // membership
+      memTabs, tabRequests:s.memTab === 'requests', tabOfficial:s.memTab === 'official', tabAll:s.memTab === 'all',
+      requests, hasRequests:s.requests.length > 0, noRequests:s.requests.length === 0,
+      officialMembers, allUsers,
+      // committees
+      committees:this.COMMITTEES,
+      // tools
+      resumeIdle:s.resume === 'idle', resumeGenerating:s.resume === 'generating', resumeReady:s.resume === 'ready', resumeExpired:s.resume === 'expired',
+      genResume:() => this.genResume(), downloadResume:() => this.toast('Downloading shpe-resumes-2025.zip'), expireResume:() => this.setState({ resume:'expired' }),
+      // shirt
+      shirtRows, noShirtRows:shirtRows.length === 0, shirtSearch:s.shirtSearch, onShirtSearch:(e) => this.setState({ shirtSearch:e.target.value }),
+      shirtPicked:String(shirtPicked), shirtRemaining:String(shirtAll.length - shirtPicked),
+    };
+  }
+}
+</script>
+</body>
+</html>

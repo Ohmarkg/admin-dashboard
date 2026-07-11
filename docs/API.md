@@ -1,0 +1,115 @@
+# TAMU SHPE Admin Web — HTTP API Contract
+
+The server-side HTTP surface, served by **Hono** mounted at `app/api/[[...route]]/route.ts` (the only `route.ts`). This is the contract the client hooks (`lib/hooks/*`) and AI tools should code against. Data shapes referenced here are defined in [DATA_MODEL.md](./DATA_MODEL.md).
+
+> **Status:** design/contract. No routes are implemented yet. Shapes below are the agreed target; adjust here first if they change, then in code.
+
+---
+
+## The boundary: this API is write-only
+
+Per [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §3, **reads stay on the client Firebase SDK** (wrapped in TanStack Query). The Hono API exists only for:
+
+1. **Writes** — anything that mutates Firestore (create/update/approve/deny/points-edit), run under the Admin SDK service account so client write rules can stay locked down.
+2. **Privileged actions** — server-only operations that shouldn't be client-triggerable, e.g. Cloud Function invocations that recalculate or notify.
+
+There are **no `GET` data-fetch routes** — none, including Excel export (that generates client-side; see [Points](#server-routespointsts--apipoints)). If you're reaching for a `GET`, the read belongs in a client hook instead (see [§ Client-side reads](#client-side-reads-not-api-routes)).
+
+> Note: [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4 sketches some `GET` routes in its "example route shapes." Those illustrate what each module's data *is*; in implementation those reads live in client hooks, not here. This file is the authoritative split.
+
+---
+
+## Conventions
+
+- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`.
+- **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
+- **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`/`lead`/`representative`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
+- **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
+- **Responses:** JSON. Success → `200` (or `201` for create) with the resource or `{ ok: true }`. 
+- **Error shape (standardize):**
+  ```jsonc
+  { "error": { "code": "string_slug", "message": "human readable" } }
+  ```
+  Status codes: `400` validation, `401` unauthenticated, `403` unauthorized, `404` not found, `409` conflict, `500` server/Firestore error.
+- **Timestamps (decided):** `Timestamp` fields in request/response bodies are serialized as **`{ seconds: number, nanoseconds: number }`** — Firestore-native, round-trips to a `Timestamp` on both ends, and the existing `isMemberVerified`/`formatExpirationDate` helpers already accept this shape. Validate with zod `{ seconds, nanoseconds }` and convert to an Admin-SDK `Timestamp` in the route. (This only matters for event create/update bodies — reads go through the client SDK and get native `Timestamp` objects, no serialization involved.)
+- **Same-origin:** called only from this app's frontend — no CORS config needed.
+
+---
+
+## Routes
+
+Legend — **Writes**: Firestore docs mutated (all within one atomic batch per request). **CF**: Cloud Function invoked.
+
+### `server/routes/membership.ts` — `/api/membership`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/:uid/approve` | none (reads request server-side) | `users/{uid}` set `chapterExpiration` + `nationalExpiration` (from `memberSHPE/{uid}`); delete `memberSHPE/{uid}`. CF: `sendNotificationMemberSHPE({uid, type:'approved'})` | User-doc update + request delete must be one atomic batch; fire the notification after commit succeeds |
+| POST | `/:uid/deny` | none | `users/{uid}` clear `chapterExpiration` + `nationalExpiration`; delete `memberSHPE/{uid}`. CF: `sendNotificationMemberSHPE({uid, type:'denied'})` | Same atomicity note |
+
+### `server/routes/points.ts` — `/api/points`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/edit` | `{ edits: [{ eventId: string, uid: string, points: number \| null }] }` | For each edit, dual-write `events/{eventId}/logs/{uid}` + `users/{uid}/event-logs/{eventId}`, both `edited:true, verified:true`; backfill `creationTime`/`signInTime` from event `startTime`. **All edits in one atomic batch.** | **Decided: batch, not single-cell** — the spreadsheet saves many cells at once and the original `updatePointsInFirebase` already takes an array. A single edit is just a one-element array. The reference vertical slice ([REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §10) |
+| POST | `/recalculate` | none | CF: `updateAllUserPoints` | Recomputes aggregate `points`/`pointsThisMonth` on user docs. Client calls this after `/edit` succeeds |
+
+> **Firestore batch limit:** a batch caps at **500 writes**, and each edit is 2 writes (dual-write), so **≤250 edits per batch**. If a save exceeds that, chunk into sequential batches server-side and only report success if all commit. The per-edit `startTime` lookups are reads (not batched) — cache them per `eventId` within the request to avoid N duplicate `getDoc`s.
+
+> **Excel export — decided: client-side, no route.** Generated in the browser with ExcelJS + file-saver (as in the original), from the points data already read client-side. A server route would only re-fetch data the officer already has, for no security gain.
+
+### `server/routes/events.ts` — `/api/events`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/` | `SHPEEvent` (subtype-shaped) | create `events/{eventId}` | Fixes original bug: create only `console.log`'d, never persisted |
+| PUT | `/:id` | partial `SHPEEvent` | update `events/{id}` | |
+| POST | `/:id/logs/:uid/approve` | none | set `verified:true` on `events/{id}/logs/{uid}` **and** `users/{uid}/event-logs/{id}` | Dual-write batch, mirrors points pattern |
+| POST | `/:id/logs/bulk-approve` | `{ uids: string[] }` | set `verified:true` for each uid across both log paths, one batch | New feature — was missing entirely |
+
+### `server/routes/tools.ts` — `/api/tools`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/shirts/:uid/toggle` | `{ shirtPickedUp: boolean }` | update `shirt-sizes/{uid}.shirtPickedUp` | **Decided: Hono route.** It's a Firestore write, so it must go server-side — leaving it client-side would require client write access to `shirt-sizes`, reopening the write surface the rebuild closes |
+
+> **Resume-zip trigger — decided: stays a client `httpsCallable('zipResume')`, NOT a Hono route.** It is *not* a Firestore write from the client — it invokes a Cloud Function that writes `resumes/status`/`resumes/data` under its own service account and must authorize its own callers anyway (the mobile app can call it too). Routing it through the Admin SDK (which has no `httpsCallable`) would add plumbing for zero security gain. This is the one deliberate client-side mutation-trigger exception; the `resumes/*` reads are already client `onSnapshot`. If strict "every action through Hono" uniformity is ever wanted, wrap it as `POST /tools/resume-zip` calling the function's HTTPS endpoint.
+
+### `committees`
+No routes — committees are **read-only** in this app (client hook, [§ below](#client-side-reads-not-api-routes)). Add a router only if committee editing is introduced.
+
+---
+
+## Client-side reads (NOT API routes)
+
+For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` using the client Firebase SDK + TanStack Query (`useQuery`), or `onSnapshot` for live data. Maps to the original [`app/api/firebaseUtils.ts`](../app/api/firebaseUtils.ts) helpers.
+
+| Data | Source helper (original) | Query key (suggested) |
+|---|---|---|
+| Event roster / calendar | `getEvents` | `['events']` |
+| Event logs (per event) | `getEventLogs(eventId)` | `['events', eventId, 'logs']` |
+| Pending events (unverified logs) | derived from `getEvents` + `getEventLogs` | `['events', 'pending']` |
+| Members / roster (+ private + logs) | `getMembers` | `['members']` |
+| Membership requests | `getMembersToVerify` | `['membership', 'requests']` |
+| Official members | filter `getMembers` by `isMemberVerified` | `['membership', 'official']` |
+| Committees | `getCommittees` | `['committees']` |
+| Shirt list | `getShirtsToVerify` (+ `getMembers`) | `['shirts']` |
+| Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
+| Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |
+
+**Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
+
+---
+
+## Resolved decisions
+
+These were open; now settled (rationale in the route notes above):
+
+- **Excel export** → client-side, no route. Data is already read client-side; ExcelJS in the browser.
+- **Points edit granularity** → batch endpoint `POST /points/edit` with `{ edits: [...] }`, one atomic batch (≤250 edits/batch, chunk beyond).
+- **Shirt toggle** → Hono route (it's a Firestore write). **Resume-zip trigger** → stays client `httpsCallable` (not a client Firestore write; function self-authorizes).
+- **Timestamp serialization** → `{ seconds, nanoseconds }` in bodies (see Conventions).
+
+## Still open
+
+- **Batch commit failure semantics** for a multi-chunk points save: all-or-nothing across chunks isn't possible with plain batches (each chunk commits independently). Decide whether that's acceptable, or whether a large save should fail fast before any chunk commits. Low priority until save sizes approach the 250-edit cap.
