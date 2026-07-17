@@ -21,7 +21,10 @@ services:
     # idempotent (fixed doc IDs, tolerates existing Auth users), so re-seeding
     # on every start just re-applies the deterministic fixtures on top of any
     # state the emulators re-imported from ./seed.
-    command: sh -c "bun install && echo 'waiting for Firestore emulator...' && until curl -sf http://emulators:8080 >/dev/null 2>&1; do sleep 1; done && bun run seed && bun run dev"
+    # Wait for Firestore AND Auth — seed creates Auth users, so waiting only
+    # on :8080 races the first boot while Auth/Storage JARs are still downloading.
+    # Auth uses curl without -f: its root may be non-2xx; any response means the port is up.
+    command: sh -c "bun install && echo 'waiting for emulators...' && until curl -sf http://emulators:8080 >/dev/null 2>&1 && curl -s --connect-timeout 1 http://emulators:9099 >/dev/null 2>&1; do sleep 1; done && bun run seed && bun run dev"
     working_dir: /workspace
     volumes:
       - .:/workspace
