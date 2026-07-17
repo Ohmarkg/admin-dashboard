@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Download, Loader2, Shirt } from "lucide-react";
+import { Award, Download, Loader2, Shirt } from "lucide-react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
@@ -139,6 +139,31 @@ function ShirtTrackerPanel() {
     );
 }
 
+function ConventionTrackerPanel() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-display text-base font-semibold uppercase tracking-wide text-foreground">
+                    Convention Tracker
+                </CardTitle>
+                <CardDescription>
+                    Track selected members&rsquo; National Convention eligibility —
+                    volunteering, workshops, and general meetings attended out of 2
+                    each.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild variant="outline">
+                    <Link href="/tools/convention-tracker">
+                        <Award className="h-4 w-4" />
+                        Open Convention Tracker
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function ToolsPage() {
     return (
         <div className="mx-auto max-w-[1240px] px-10 py-8">
@@ -146,6 +171,7 @@ export default function ToolsPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <ResumePanel />
                 <ShirtTrackerPanel />
+                <ConventionTrackerPanel />
             </div>
         </div>
     );

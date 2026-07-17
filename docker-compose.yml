@@ -1,4 +1,4 @@
-# `docker compose up` = Firebase Emulator Suite + `bun run dev` (REBUILD_CONCEPT §9.1).
+# `docker compose up` = Firebase Emulator Suite + seed + `bun run dev` (REBUILD_CONCEPT §9.1).
 # No real credentials anywhere in this file — emulator-only by design.
 services:
   emulators:
@@ -16,7 +16,12 @@ services:
 
   web:
     build: .
-    command: sh -c "bun install && bun run dev"
+    # Seed runs here (not a separate one-shot service) so it can't race web's
+    # `bun install` on the shared node_modules volume. The seed script is
+    # idempotent (fixed doc IDs, tolerates existing Auth users), so re-seeding
+    # on every start just re-applies the deterministic fixtures on top of any
+    # state the emulators re-imported from ./seed.
+    command: sh -c "bun install && echo 'waiting for Firestore emulator...' && until curl -sf http://emulators:8080 >/dev/null 2>&1; do sleep 1; done && bun run seed && bun run dev"
     working_dir: /workspace
     volumes:
       - .:/workspace

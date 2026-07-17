@@ -8,12 +8,16 @@
  * Creates:
  *  - 1 test officer Auth account (custom claim `officer`) + officer user doc
  *  - 8 member users with `private/privateInfo`
- *  - 6 events across 3 months with verified AND unverified logs, dual-located
+ *  - 9 events across 3 months with verified AND unverified logs, dual-located
  *    (events/{id}/logs/{uid} + users/{uid}/event-logs/{id} — mirror pattern)
  *  - 2 valid memberSHPE requests (both proof URLs) + 1 invalid (missing one)
  *  - shirt-sizes docs
  *  - 3 committees with heads/leads
  *  - resumes/status + resumes/data
+ *  - convention-tracking docs for member-01 (fully eligible) and member-02
+ *    (partial attendance, added anyway to exercise the manual-add path);
+ *    member-03 is deliberately NOT tracked so it can be added via the UI
+ *    during manual testing
  */
 
 process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
@@ -134,10 +138,48 @@ const EVENTS = [
         pointsPerHour: 0,
         committee: "",
     },
+    // --- Second occurrences of the three Convention Tracker-eligible types ---
+    {
+        id: "event-general-02",
+        name: "General Meeting #2",
+        eventType: "General Meeting",
+        start: monthDate(-1, 12, 18),
+        durationHrs: 2,
+        signInPoints: 3,
+        signOutPoints: 0,
+        pointsPerHour: 0,
+        committee: "",
+    },
+    {
+        id: "event-workshop-02",
+        name: "LinkedIn Workshop",
+        eventType: "Workshop",
+        start: monthDate(-1, 26, 17),
+        durationHrs: 2,
+        signInPoints: 3,
+        signOutPoints: 0,
+        pointsPerHour: 0,
+        committee: "professional-development",
+        workshopType: "Professional",
+    },
+    {
+        id: "event-volunteer-02",
+        name: "Food Bank Volunteering",
+        eventType: "Volunteer Event",
+        start: monthDate(0, 16, 9),
+        durationHrs: 3,
+        signInPoints: 4,
+        signOutPoints: 2,
+        pointsPerHour: 0,
+        committee: "",
+    },
 ];
 
-// eventId -> [uid, points, verified][]
-const LOGS: Record<string, Array<[string, number, boolean]>> = {
+// eventId -> [uid, points, verified, noSignOut?][]
+// `noSignOut` (Convention Tracker fixture only) omits signOutTime so member-03
+// has a qualifying-event log with a sign-in but no sign-out — proving the
+// "attended" definition (signInTime AND signOutTime) correctly excludes it.
+const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
     "event-general-01": [
         ["member-01", 3, true],
         ["member-02", 3, true],
@@ -170,6 +212,20 @@ const LOGS: Record<string, Array<[string, number, boolean]>> = {
         ["member-05", 6, false],
         ["member-07", 6, false],
     ],
+    // Convention Tracker eligibility fixtures (>= 2 attended events of EACH
+    // Volunteer Event / Workshop / General Meeting type):
+    //  - member-01: attends all three -> fully eligible (2/2/2).
+    //  - member-02: attends this general meeting only -> 2 general, 1
+    //    workshop (from event-workshop-01), 0 volunteer -> partial.
+    //  - member-03: signs in but never signs out -> proves the exclusion of
+    //    incomplete logs (still only 1 fully-attended General Meeting).
+    "event-general-02": [
+        ["member-01", 3, true],
+        ["member-02", 3, true],
+        ["member-03", 3, true, true],
+    ],
+    "event-workshop-02": [["member-01", 3, true]],
+    "event-volunteer-02": [["member-01", 6, true]],
 };
 
 const COMMITTEES = [
@@ -339,12 +395,12 @@ async function main() {
             ...(ev.workshopType ? { workshopType: ev.workshopType } : {}),
         });
 
-        for (const [uid, points, verified] of LOGS[ev.id] ?? []) {
+        for (const [uid, points, verified, noSignOut] of LOGS[ev.id] ?? []) {
             const log = {
                 uid,
                 points,
                 signInTime: start,
-                signOutTime: end,
+                ...(noSignOut ? {} : { signOutTime: end }),
                 creationTime: start,
                 verified,
                 instagramLogs: [],
@@ -402,6 +458,15 @@ async function main() {
         });
     }
 
+    // --- convention-tracking (dateAdded/addedBy — member-03 intentionally
+    // omitted so it can be added via the UI during manual testing) ---
+    for (const uid of ["member-01", "member-02"]) {
+        await db.doc(`convention-tracking/${uid}`).set({
+            dateAdded: ts(monthDate(0, 12, 10)),
+            addedBy: OFFICER.uid,
+        });
+    }
+
     // --- resumes (zip job status docs) ---
     await db.doc("resumes/status").set({ isGenerated: false });
     await db.doc("resumes/data").set({
@@ -413,6 +478,7 @@ async function main() {
     console.log("Seed complete:");
     console.log(`  officer login: ${OFFICER.email} / ${OFFICER.password} (claim: officer)`);
     console.log(`  ${MEMBERS.length} members, ${EVENTS.length} events, 3 memberSHPE requests, ${COMMITTEES.length} committees`);
+    console.log("  convention-tracking: member-01 (fully eligible), member-02 (partial) — member-03 not tracked");
 }
 
 main().then(

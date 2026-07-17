@@ -21,7 +21,7 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 ## Conventions
 
-- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`.
+- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`.
 - **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
 - **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`/`lead`/`representative`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
 - **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
@@ -75,6 +75,15 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 
 > **Resume-zip trigger — decided: stays a client `httpsCallable('zipResume')`, NOT a Hono route.** It is *not* a Firestore write from the client — it invokes a Cloud Function that writes `resumes/status`/`resumes/data` under its own service account and must authorize its own callers anyway (the mobile app can call it too). Routing it through the Admin SDK (which has no `httpsCallable`) would add plumbing for zero security gain. This is the one deliberate client-side mutation-trigger exception; the `resumes/*` reads are already client `onSnapshot`. If strict "every action through Hono" uniformity is ever wanted, wrap it as `POST /tools/resume-zip` calling the function's HTTPS endpoint.
 
+### `server/routes/conventions.ts` — `/api/conventions`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/track` | `{ uids: string[] }` (1–500, deduped server-side) | create `convention-tracking/{uid}` (`{ dateAdded, addedBy }`) for each uid not already tracked, one batch | **Idempotent adds:** already-tracked uids are skipped (original `dateAdded`/`addedBy` preserved) and reported in `alreadyTracked`; uids with no `users/{uid}` doc are skipped and reported in `unknownUids` (non-fatal — the CSV import surfaces them). Response: `{ ok: true, tracked, alreadyTracked, unknownUids }` |
+| POST | `/:uid/untrack` | none | delete `convention-tracking/{uid}` | Always `200 { ok: true }`, even if not tracked — deliberate divergence from the shirt-toggle 404; remove-twice is harmless and a 404 would only surface a spurious error after a race |
+
+> Eligibility counts are **never written** — they are derived client-side at read time from `users/{uid}/event-logs` joined to `events/{eventId}.eventType` (see [DATA_MODEL.md](./DATA_MODEL.md) § convention-tracking).
+
 ### `committees`
 No routes — committees are **read-only** in this app (client hook, [§ below](#client-side-reads-not-api-routes)). Add a router only if committee editing is introduced.
 
@@ -96,6 +105,7 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Shirt list | `getShirtsToVerify` (+ `getMembers`) | `['shirts']` |
 | Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
 | Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |
+| Convention tracking roster + derived counts | new (`convention-tracking` + per-user `event-logs` + `events` type join) | `['conventions']` |
 
 **Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
 

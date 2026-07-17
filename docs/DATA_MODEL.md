@@ -25,6 +25,7 @@ This app shares the Firestore database `tamushpemobileapp` with the chapter mobi
 | `committees/{id}` | slug (e.g. `technical-affairs`) | `Committee` | `Committees.ts` |
 | `resumes/status` | fixed `status` | `{ isGenerated }` | — |
 | `resumes/data` | fixed `data` | `{ url, createdAt, expiresAt }` | — |
+| `convention-tracking/{uid}` | user UID | roster doc (see below) | — (admin-web-only) |
 
 Defined in [`app/types/`](../app/types/): [`user.ts`](../app/types/user.ts), [`events.ts`](../app/types/events.ts), [`membership.ts`](../app/types/membership.ts), [`committees.ts`](../app/types/committees.ts).
 
@@ -126,6 +127,19 @@ A pending membership verification submission. No dedicated stored-shape interfac
 
 ## `committees/{id}` — `Committee`
 `name`, `firebaseDocName` (= doc ID), `color`, `logo` (key into `committeeLogos`), `description`, `head` (`PublicUserInfo`), `leads` (`PublicUserInfo[]`), `memberCount`, `memberApplicationLink`, `leadApplicationLink`. Read-only in this app. `head`/`leads` wiring was partially stubbed in the original; the rebuild's `useCommittees()` hook reads both shapes (embedded `PublicUserInfo` and bare-uid fallback with a `users/{uid}` lookup).
+
+## `convention-tracking/{uid}` — National Convention roster
+
+Roster of members an officer is tracking for National Convention eligibility (Tools → Convention Tracker). `uid` is the doc ID (Firebase Auth UID).
+
+| Field | Type | Notes |
+|---|---|---|
+| `dateAdded` | Timestamp | Set server-side when tracked; preserved on idempotent re-adds |
+| `addedBy` | string | UID of the officer who tracked the member (from the ID token) |
+
+**Counts and eligibility are never stored.** They are derived at read time in `lib/hooks/useConventionTracker.ts`: a log at `users/{uid}/event-logs/{eventId}` counts toward a category iff it has **both `signInTime` and `signOutTime`** and the event's `eventType` is `Volunteer Event`, `Workshop`, or `General Meeting`; eligible = all three counts ≥ 2. (`signInTime` alone is unreliable — the points editor backfills it, invariant 1.) The event's `nationalConventionEligible` flag is **not** consulted (v1 decision). Resetting for a new convention cycle = deleting the roster docs; no migration needed.
+
+> **Admin-web-only collection** — the mobile app never reads or writes it, so there is **no mobile type mirror** (deliberate exception to the type-sync checklist below). Its TS interface lives in `lib/hooks/useConventionTracker.ts`, not `app/types/`.
 
 ## `resumes/status` & `resumes/data`
 Job status for the resume-zip Cloud Function, consumed via real-time `onSnapshot`:
