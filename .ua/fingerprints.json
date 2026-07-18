@@ -1,0 +1,6609 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "49d2988a4e85c7483578d2cffc8a31de19ae6b25",
+  "generatedAt": "2026-07-18T06:37:20.524Z",
+  "files": {
+    ".claude/agents/implementer.md": {
+      "filePath": ".claude/agents/implementer.md",
+      "contentHash": "7a043a2d8c71709f6f1eb629760852b880f262389c9ff297c7551e468000707a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/agents/scout.md": {
+      "filePath": ".claude/agents/scout.md",
+      "contentHash": "889e779688a68769364dc8ecd2b26e4998aad6850dc6d4d6fe3317ab5dbcc0bd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    ".env.development": {
+      "filePath": ".env.development",
+      "contentHash": "0dc861d220f83c20e3df1b3ba2f9f7004b03ec2432b8af260512eba48a9c2317",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    ".ua/.understandignore": {
+      "filePath": ".ua/.understandignore",
+      "contentHash": "4256bb41b9c88bb1178dfad45ff3deefe5b277dc2b48bbf3c3464f58ab043b95",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": false
+    },
+    ".ua/config.json": {
+      "filePath": ".ua/config.json",
+      "contentHash": "4b66f98f8a815dfeb2d3a29eeb73418e07c40ed020a1498c07e908b2254f0c8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    ".ua/tmp/ua-scan-files.stderr": {
+      "filePath": ".ua/tmp/ua-scan-files.stderr",
+      "contentHash": "dd488037acdbc77e85ec73bafc9e78c458b5c3040d0df7fd7098ee88f9291327",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "app/(main)/committees/page.tsx": {
+      "filePath": "app/(main)/committees/page.tsx",
+      "contentHash": "a4d0cad5848e0beff4efc09449b24a2334de604b625858b9a5194f78f5ef6afc",
+      "functions": [
+        {
+          "name": "CommitteeGridSkeleton",
+          "params": [],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "CommitteesPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Users"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/ui/skeleton",
+          "specifiers": [
+            "Skeleton"
+          ]
+        },
+        {
+          "source": "@/components/CommitteeCard",
+          "specifiers": [
+            "CommitteeCard"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useCommittees",
+          "specifiers": [
+            "useCommittees"
+          ]
+        }
+      ],
+      "exports": [
+        "CommitteesPage"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/dashboard/page.tsx": {
+      "filePath": "app/(main)/dashboard/page.tsx",
+      "contentHash": "0a9d9184ad82db23473332776d16477e79a8f0f2b8687f13e03b82ee15f2caf8",
+      "functions": [
+        {
+          "name": "DashboardPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 200
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/StatTile",
+          "specifiers": [
+            "StatTile"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "OfficerBadge"
+          ]
+        },
+        {
+          "source": "@/components/ui/skeleton",
+          "specifiers": [
+            "Skeleton"
+          ]
+        },
+        {
+          "source": "@/components/ui/card",
+          "specifiers": [
+            "Card",
+            "CardHeader",
+            "CardTitle",
+            "CardContent"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useMembership",
+          "specifiers": [
+            "useMembershipRequests",
+            "useOfficialMembers"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "usePendingEvents"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "useMembers"
+          ]
+        }
+      ],
+      "exports": [
+        "DashboardPage"
+      ],
+      "totalLines": 228,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/events/page.tsx": {
+      "filePath": "app/(main)/events/page.tsx",
+      "contentHash": "ff959b8fc18cb1b550077f42650182a37eb73979071ee034d45e03fb4f3d12e3",
+      "functions": [
+        {
+          "name": "EventsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 128
+        },
+        {
+          "name": "PendingEventCard",
+          "params": [
+            "{\n    name,\n    startTime,\n    unverifiedCount,\n    onReview,\n}"
+          ],
+          "exported": false,
+          "lineCount": 36
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/ui/skeleton",
+          "specifiers": [
+            "Skeleton"
+          ]
+        },
+        {
+          "source": "@/components/calendar/EventCalendar",
+          "specifiers": [
+            "EventCalendar",
+            "CalendarEvent"
+          ]
+        },
+        {
+          "source": "@/components/calendar/DayDrilldownModal",
+          "specifiers": [
+            "DayDrilldownModal"
+          ]
+        },
+        {
+          "source": "@/components/EventModal",
+          "specifiers": [
+            "EventModal"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "useEvents",
+            "usePendingEvents",
+            "EventWithId"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useCommittees",
+          "specifiers": [
+            "useCommittees"
+          ]
+        }
+      ],
+      "exports": [
+        "EventsPage"
+      ],
+      "totalLines": 183,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/layout.tsx": {
+      "filePath": "app/(main)/layout.tsx",
+      "contentHash": "25a87400f8476a425a3c8a7d67303cadd01744fd6bda997e910825620239be08",
+      "functions": [
+        {
+          "name": "MainLayout",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 40
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "useRouter"
+          ]
+        },
+        {
+          "source": "firebase/auth",
+          "specifiers": [
+            "onAuthStateChanged"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "auth"
+          ]
+        },
+        {
+          "source": "@/helpers/auth",
+          "specifiers": [
+            "checkHasRecognizedClaim"
+          ]
+        },
+        {
+          "source": "@/components/Navbar",
+          "specifiers": [
+            "Navbar"
+          ]
+        }
+      ],
+      "exports": [
+        "MainLayout"
+      ],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/membership/page.tsx": {
+      "filePath": "app/(main)/membership/page.tsx",
+      "contentHash": "2aaeeb6ab3d075d0701cfa9e70f84f816c2a4b25d862c5a755d84bf10589f961",
+      "functions": [
+        {
+          "name": "RequestsTab",
+          "params": [],
+          "exported": false,
+          "lineCount": 71
+        },
+        {
+          "name": "OfficialMembersTab",
+          "params": [],
+          "exported": false,
+          "lineCount": 45
+        },
+        {
+          "name": "AllUsersTab",
+          "params": [],
+          "exported": false,
+          "lineCount": 59
+        },
+        {
+          "name": "AllUsersRow",
+          "params": [
+            "{\n    member,\n    isAlternate,\n}"
+          ],
+          "exported": false,
+          "lineCount": 53
+        },
+        {
+          "name": "MembershipPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 40
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Users"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/BrandTabs",
+          "specifiers": [
+            "BrandTabs"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/MemberCard",
+          "specifiers": [
+            "MemberCard"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "OfficerBadge",
+            "VerifiedBadge",
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useMembership",
+          "specifiers": [
+            "useMembershipRequests",
+            "useOfficialMembers",
+            "useApproveMembership",
+            "useDenyMembership",
+            "useMembers",
+            "MembershipRequestRow"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useMembership",
+          "specifiers": [
+            "MemberPublic"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "Roles"
+          ]
+        }
+      ],
+      "exports": [
+        "MembershipPage"
+      ],
+      "totalLines": 329,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/points/exportPoints.ts": {
+      "filePath": "app/(main)/points/exportPoints.ts",
+      "contentHash": "7ed6e5eb5ada7d06bdcc4f33067d098ff81b0aa11c4dc568403607ee91faf4b2",
+      "functions": [
+        {
+          "name": "getColumnColor",
+          "params": [
+            "index"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "styleHeaderRow",
+          "params": [
+            "sheet"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "monthTotal",
+          "params": [
+            "row",
+            "monthIndex"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "buildMasterSheet",
+          "params": [
+            "workbook",
+            "data"
+          ],
+          "exported": false,
+          "lineCount": 48
+        },
+        {
+          "name": "buildMonthlySheets",
+          "params": [
+            "workbook",
+            "data",
+            "events"
+          ],
+          "exported": false,
+          "lineCount": 68
+        },
+        {
+          "name": "exportPointsWorkbook",
+          "params": [
+            "data",
+            "events"
+          ],
+          "returnType": "Promise<void>",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "exceljs",
+          "specifiers": [
+            "ExcelJS"
+          ]
+        },
+        {
+          "source": "file-saver",
+          "specifiers": [
+            "saveAs"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "PointsData",
+            "PointsRow"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "schoolYearMonthIndex"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "EventWithId"
+          ]
+        }
+      ],
+      "exports": [
+        "exportPointsWorkbook"
+      ],
+      "totalLines": 191,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/points/page.tsx": {
+      "filePath": "app/(main)/points/page.tsx",
+      "contentHash": "a061c9f10260b2df6ea8832d24b5c17eef565efd066e19608a1e841ba1778498",
+      "functions": [
+        {
+          "name": "PointsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 195
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "RefreshCw"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/BrandTabs",
+          "specifiers": [
+            "BrandTabs"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/select",
+          "specifiers": [
+            "Select",
+            "SelectContent",
+            "SelectItem",
+            "SelectTrigger",
+            "SelectValue"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "usePointsData",
+            "useEditPoints",
+            "useRecalculatePoints",
+            "schoolYearMonthIndex",
+            "PointsEdit"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "useEvents"
+          ]
+        },
+        {
+          "source": "./PointsGrid",
+          "specifiers": [
+            "TotalPointsTable",
+            "MonthlyPointsTable",
+            "parsePointsInput"
+          ]
+        },
+        {
+          "source": "./exportPoints",
+          "specifiers": [
+            "exportPointsWorkbook"
+          ]
+        }
+      ],
+      "exports": [
+        "PointsPage"
+      ],
+      "totalLines": 236,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/points/PointsGrid.tsx": {
+      "filePath": "app/(main)/points/PointsGrid.tsx",
+      "contentHash": "5febf8c66e5b70d45aed0e30d7aabe2d5dea930111f93c4554321939c3668b66",
+      "functions": [
+        {
+          "name": "parsePointsInput",
+          "params": [
+            "raw"
+          ],
+          "returnType": "number | null",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "officerRowClassName",
+          "params": [
+            "row"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "MemberCell",
+          "params": [
+            "{ row, rank }"
+          ],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "monthTotal",
+          "params": [
+            "row",
+            "monthIndex"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "TotalPointsTable",
+          "params": [
+            "{\n    rows,\n    months,\n}"
+          ],
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "EditableCell",
+          "params": [
+            "{ value, dirty, onChange }"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "MonthlyPointsTable",
+          "params": [
+            "{\n    rows,\n    monthIndex,\n    monthEvents,\n    edits,\n    onEditCell,\n}"
+          ],
+          "exported": true,
+          "lineCount": 85
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/components/DataTable",
+          "specifiers": [
+            "DataTable",
+            "DataTableColumn"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "OfficerBadge"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "PointsRow"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "EventWithId"
+          ]
+        }
+      ],
+      "exports": [
+        "parsePointsInput",
+        "TotalPointsTable",
+        "MonthlyPointsTable"
+      ],
+      "totalLines": 216,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/convention-tracker/AddMembersDialog.tsx": {
+      "filePath": "app/(main)/tools/convention-tracker/AddMembersDialog.tsx",
+      "contentHash": "c95ed3380631481348b7f49f54563ec38e7987933b85ebbda9f04d722c547ee6",
+      "functions": [
+        {
+          "name": "AddMembersDialog",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    trackedUids,\n}"
+          ],
+          "exported": true,
+          "lineCount": 198
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/FormDialog",
+          "specifiers": [
+            "FormDialog"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/checkbox",
+          "specifiers": [
+            "Checkbox"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "useMembers"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useConventionTracker",
+          "specifiers": [
+            "useTrackMembers"
+          ]
+        }
+      ],
+      "exports": [
+        "AddMembersDialog"
+      ],
+      "totalLines": 218,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/convention-tracker/ImportDialog.tsx": {
+      "filePath": "app/(main)/tools/convention-tracker/ImportDialog.tsx",
+      "contentHash": "88d3018035fde0fc1a594a726af8c9fb1e44078584883d6301b88df2cdff2fa3",
+      "functions": [
+        {
+          "name": "ImportDialog",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    trackedUids,\n}"
+          ],
+          "exported": true,
+          "lineCount": 200
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/FormDialog",
+          "specifiers": [
+            "FormDialog"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "useMembers"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useConventionTracker",
+          "specifiers": [
+            "useTrackMembers"
+          ]
+        },
+        {
+          "source": "./parseRoster",
+          "specifiers": [
+            "parseRosterFile"
+          ]
+        }
+      ],
+      "exports": [
+        "ImportDialog"
+      ],
+      "totalLines": 224,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/convention-tracker/page.tsx": {
+      "filePath": "app/(main)/tools/convention-tracker/page.tsx",
+      "contentHash": "27d71cdf301dd6e38e3f7433355fe0bdedddfb96e1fe709602f13c0faedc758d",
+      "functions": [
+        {
+          "name": "CountCell",
+          "params": [
+            "{ count }"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "ConventionTrackerPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 225
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowLeft",
+            "Search",
+            "Trash2",
+            "Upload",
+            "UserPlus"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ConfirmDialog",
+          "specifiers": [
+            "ConfirmDialog"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "VerifiedBadge",
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/components/DataTable",
+          "specifiers": [
+            "DataTable"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useConventionTracker",
+          "specifiers": [
+            "useConventionTracking",
+            "useUntrackMember",
+            "REQUIRED_COUNT",
+            "ConventionRow"
+          ]
+        },
+        {
+          "source": "./AddMembersDialog",
+          "specifiers": [
+            "AddMembersDialog"
+          ]
+        },
+        {
+          "source": "./ImportDialog",
+          "specifiers": [
+            "ImportDialog"
+          ]
+        }
+      ],
+      "exports": [
+        "ConventionTrackerPage"
+      ],
+      "totalLines": 270,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/convention-tracker/parseRoster.ts": {
+      "filePath": "app/(main)/tools/convention-tracker/parseRoster.ts",
+      "contentHash": "97886c7688a56e739df81c626bb0ebfe62e6207d20d3f973190392039c83d24c",
+      "functions": [
+        {
+          "name": "parseCsvText",
+          "params": [
+            "text"
+          ],
+          "returnType": "string[][]",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "parseXlsxRows",
+          "params": [
+            "buffer"
+          ],
+          "returnType": "Promise<string[][]>",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "looksLikeEmail",
+          "params": [
+            "value"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "extractEmails",
+          "params": [
+            "rows"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "parseRosterFile",
+          "params": [
+            "file"
+          ],
+          "returnType": "Promise<string[]>",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "parseCsvText",
+        "parseXlsxRows",
+        "extractEmails",
+        "parseRosterFile"
+      ],
+      "totalLines": 165,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/instagram-points/AwardPointsDialog.tsx": {
+      "filePath": "app/(main)/tools/instagram-points/AwardPointsDialog.tsx",
+      "contentHash": "ef112f239c38e41f2df506ee8056ea757c00211de5a8b82ec811b3ee61d6abcd",
+      "functions": [
+        {
+          "name": "AwardPointsDialog",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    awardCounts,\n}"
+          ],
+          "exported": true,
+          "lineCount": 224
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/FormDialog",
+          "specifiers": [
+            "FormDialog"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/checkbox",
+          "specifiers": [
+            "Checkbox"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "useMembers"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useInstagramPoints",
+          "specifiers": [
+            "useAwardInstagramPoints"
+          ]
+        }
+      ],
+      "exports": [
+        "AwardPointsDialog"
+      ],
+      "totalLines": 245,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/instagram-points/page.tsx": {
+      "filePath": "app/(main)/tools/instagram-points/page.tsx",
+      "contentHash": "dc54ff51c3437db33b3df2cd3ac97c1446d8531b1d83f5b6e9f1a932d2932619",
+      "functions": [
+        {
+          "name": "InstagramPointsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 175
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowLeft",
+            "Search",
+            "Star"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "VerifiedBadge",
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/components/DataTable",
+          "specifiers": [
+            "DataTable"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useInstagramPoints",
+          "specifiers": [
+            "useInstagramPoints",
+            "InstagramPointsRow"
+          ]
+        },
+        {
+          "source": "./AwardPointsDialog",
+          "specifiers": [
+            "AwardPointsDialog"
+          ]
+        }
+      ],
+      "exports": [
+        "InstagramPointsPage"
+      ],
+      "totalLines": 204,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/page.tsx": {
+      "filePath": "app/(main)/tools/page.tsx",
+      "contentHash": "89c233f00ee7a1a2ac3b90299b554ba2cb60c2ae5832a1d8f9118df2a8295504",
+      "functions": [
+        {
+          "name": "ResumePanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 92
+        },
+        {
+          "name": "ShirtTrackerPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "ConventionTrackerPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "InstagramPointsPanel",
+          "params": [],
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "ToolsPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Award",
+            "Download",
+            "Instagram",
+            "Loader2",
+            "Shirt"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/card",
+          "specifiers": [
+            "Card",
+            "CardContent",
+            "CardDescription",
+            "CardHeader",
+            "CardTitle"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useTools",
+          "specifiers": [
+            "useResumeStatus",
+            "useZipResumes"
+          ]
+        }
+      ],
+      "exports": [
+        "ToolsPage"
+      ],
+      "totalLines": 204,
+      "hasStructuralAnalysis": true
+    },
+    "app/(main)/tools/shirt-tracker/page.tsx": {
+      "filePath": "app/(main)/tools/shirt-tracker/page.tsx",
+      "contentHash": "141fe94e04710832368f313ca21bb8fa384675e01c0cc3ca1b6343ac202416d3",
+      "functions": [
+        {
+          "name": "ShirtTrackerPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 166
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowLeft",
+            "Search"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/PageHeader",
+          "specifiers": [
+            "PageHeader"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/checkbox",
+          "specifiers": [
+            "Checkbox"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "VerifiedBadge",
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/components/DataTable",
+          "specifiers": [
+            "DataTable"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useTools",
+          "specifiers": [
+            "useShirts",
+            "useToggleShirt",
+            "ShirtRow"
+          ]
+        }
+      ],
+      "exports": [
+        "ShirtTrackerPage"
+      ],
+      "totalLines": 190,
+      "hasStructuralAnalysis": true
+    },
+    "app/api/[[...route]]/route.ts": {
+      "filePath": "app/api/[[...route]]/route.ts",
+      "contentHash": "4b788f45f05f18f9e636b2acbc7f9686c168484bd72f80d91b06969e305dfa97",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono/vercel",
+          "specifiers": [
+            "handle"
+          ]
+        },
+        {
+          "source": "@/server/app",
+          "specifiers": [
+            "app"
+          ]
+        }
+      ],
+      "exports": [
+        "runtime",
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/Badges.tsx": {
+      "filePath": "app/components/Badges.tsx",
+      "contentHash": "dc9a5971dfd628c0e3eaa9f71ffe787f7d8ae2a2853571dd22722920516e029a",
+      "functions": [
+        {
+          "name": "OfficerBadge",
+          "params": [
+            "{ className, children, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "VerifiedBadge",
+          "params": [
+            "{ className, children, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "NeutralBadge",
+          "params": [
+            "{ className, children, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "OfficerBadge",
+        "VerifiedBadge",
+        "NeutralBadge"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/BrandTabs.tsx": {
+      "filePath": "app/components/BrandTabs.tsx",
+      "contentHash": "22c4aaa0acb50c170dbd3324f95a1a77d5bfaa7e332250adb020b699284ae098",
+      "functions": [
+        {
+          "name": "BrandTabs",
+          "params": [
+            "{\n    tabs,\n    value,\n    defaultValue,\n    onValueChange,\n    children,\n    className,\n    listClassName,\n}"
+          ],
+          "exported": true,
+          "lineCount": 56
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@radix-ui/react-tabs",
+          "specifiers": [
+            "* as TabsPrimitive"
+          ]
+        },
+        {
+          "source": "@/components/ui/tabs",
+          "specifiers": [
+            "Tabs",
+            "TabsContent"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "BrandTabs"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/calendar/DayDrilldownModal.tsx": {
+      "filePath": "app/components/calendar/DayDrilldownModal.tsx",
+      "contentHash": "dcc726ea72acfc05183150ed147b2f909826f4422de55eef698ff344b8fd320a",
+      "functions": [
+        {
+          "name": "DayDrilldownModal",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    date,\n    events,\n    onEventClick,\n}"
+          ],
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "@/components/FormDialog",
+          "specifiers": [
+            "FormDialog"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "./EventChip",
+          "specifiers": [
+            "getEventColor"
+          ]
+        },
+        {
+          "source": "./EventCalendar",
+          "specifiers": [
+            "CalendarEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "DayDrilldownModal"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/calendar/EventCalendar.tsx": {
+      "filePath": "app/components/calendar/EventCalendar.tsx",
+      "contentHash": "ae583984e695c68a991cc38a907869c37b476b541cd1f9b9b1303af0eef9f50f",
+      "functions": [
+        {
+          "name": "EventCalendar",
+          "params": [
+            "{\n    events,\n    onEventClick,\n    onDayClick,\n    onCreateClick,\n    initialDate,\n    initialView = \"month\",\n    className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 236
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "addDays",
+            "addMonths",
+            "addWeeks",
+            "endOfMonth",
+            "endOfWeek",
+            "format",
+            "isSameMonth",
+            "isToday",
+            "startOfMonth",
+            "startOfWeek",
+            "subMonths",
+            "subWeeks"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ChevronLeft",
+            "ChevronRight"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "./EventChip",
+          "specifiers": [
+            "EventChip"
+          ]
+        }
+      ],
+      "exports": [
+        "EventCalendar"
+      ],
+      "totalLines": 300,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/calendar/EventChip.tsx": {
+      "filePath": "app/components/calendar/EventChip.tsx",
+      "contentHash": "3a654864f02cc862883e3f8280eabe93d24927a76e41c77722c1e6cc06d8b582",
+      "functions": [
+        {
+          "name": "getEventColor",
+          "params": [
+            "eventType",
+            "override"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "EventChip",
+          "params": [
+            "{\n    event,\n    onClick,\n    color,\n    size = \"sm\",\n    timeLabel,\n    className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 34
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "./EventCalendar",
+          "specifiers": [
+            "CalendarEvent"
+          ]
+        }
+      ],
+      "exports": [
+        "EVENT_TYPE_COLORS",
+        "getEventColor",
+        "EventChip"
+      ],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/CommitteeCard.tsx": {
+      "filePath": "app/components/CommitteeCard.tsx",
+      "contentHash": "f479a96239f20aceaa52fdd2e50c2dab1200d686057966c04188d2692c96a1a8",
+      "functions": [
+        {
+          "name": "getInitials",
+          "params": [
+            "label"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "resolveLogoSrc",
+          "params": [
+            "logo"
+          ],
+          "returnType": "string | undefined",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "UserAvatar",
+          "params": [
+            "{ user, size = \"sm\" }"
+          ],
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "CommitteeCard",
+          "params": [
+            "{ committee, className }"
+          ],
+          "exported": true,
+          "lineCount": 110
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/types/committees",
+          "specifiers": [
+            "getLogoComponent",
+            "Committee",
+            "CommitteeLogosName"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        }
+      ],
+      "exports": [
+        "CommitteeCard"
+      ],
+      "totalLines": 182,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ConfirmDialog.tsx": {
+      "filePath": "app/components/ConfirmDialog.tsx",
+      "contentHash": "bdca3395ea67d04795667bdf3f82f1eeaa29af1ace7a91ddcaa39f74ce2930e5",
+      "functions": [
+        {
+          "name": "ConfirmDialog",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    title,\n    description,\n    confirmLabel = \"Confirm\",\n    cancelLabel = \"Cancel\",\n    variant = \"default\",\n    onConfirm,\n}"
+          ],
+          "exported": true,
+          "lineCount": 70
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        }
+      ],
+      "exports": [
+        "ConfirmDialog"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/DataTable.tsx": {
+      "filePath": "app/components/DataTable.tsx",
+      "contentHash": "d4f810218fe3e20e35e027049fed14047dc58a34f3a03d2157f6d1cc159365e1",
+      "functions": [
+        {
+          "name": "DataTable",
+          "params": [
+            "{\n  columns,\n  data,\n  getRowId,\n  frozenFirstColumn = false,\n  getRowClassName,\n  onRowClick,\n  className,\n  maxHeight,\n}"
+          ],
+          "exported": true,
+          "lineCount": 73
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "DataTable"
+      ],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/EmptyState.tsx": {
+      "filePath": "app/components/EmptyState.tsx",
+      "contentHash": "4251f49e7ccbbb4ff1f38918ae77680dc4087631b3f27c3187177a1fbed9bef5",
+      "functions": [
+        {
+          "name": "EmptyState",
+          "params": [
+            "{\n  icon: Icon = Inbox,\n  title,\n  message,\n  action,\n  className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "LucideIcon"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Inbox"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        }
+      ],
+      "exports": [
+        "EmptyState"
+      ],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ErrorState.tsx": {
+      "filePath": "app/components/ErrorState.tsx",
+      "contentHash": "50e2da5c5b67abaf823a604fdd9b31b3b5cfdd0edbd24405ded9c26a9930da9b",
+      "functions": [
+        {
+          "name": "ErrorState",
+          "params": [
+            "{\n  title = \"Something went wrong\",\n  message = \"We couldn't load this data. Please try again.\",\n  onRetry,\n  retryLabel = \"Retry\",\n  className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "AlertTriangle"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        }
+      ],
+      "exports": [
+        "ErrorState"
+      ],
+      "totalLines": 50,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/EventModal.tsx": {
+      "filePath": "app/components/EventModal.tsx",
+      "contentHash": "97abfb325a842d0203899cebdd58006b92470384a644d43d5efbdf663a28b552",
+      "functions": [
+        {
+          "name": "padTwo",
+          "params": [
+            "n"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "toDatetimeLocal",
+          "params": [
+            "ts"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "fromDatetimeLocal",
+          "params": [
+            "s"
+          ],
+          "returnType": "Timestamp | null",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "toDatetimeLocalFromDate",
+          "params": [
+            "d"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "nextHourDate",
+          "params": [],
+          "returnType": "Date",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "defaultForm",
+          "params": [],
+          "returnType": "EventFormState",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "eventToForm",
+          "params": [
+            "event"
+          ],
+          "returnType": "EventFormState",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "EventModal",
+          "params": [
+            "{ open, onOpenChange, event, committees }"
+          ],
+          "exported": true,
+          "lineCount": 490
+        },
+        {
+          "name": "FormSection",
+          "params": [
+            "{ label, children }"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "FieldRow",
+          "params": [
+            "{ children }"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "FormField",
+          "params": [
+            "{\n    label,\n    id,\n    children,\n}"
+          ],
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "CheckboxRow",
+          "params": [
+            "{\n    id,\n    label,\n    checked,\n    onCheckedChange,\n}"
+          ],
+          "exported": false,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "date-fns",
+          "specifiers": [
+            "format"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "CheckSquare"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@/components/FormDialog",
+          "specifiers": [
+            "FormDialog"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/label",
+          "specifiers": [
+            "Label"
+          ]
+        },
+        {
+          "source": "@/components/ui/checkbox",
+          "specifiers": [
+            "Checkbox"
+          ]
+        },
+        {
+          "source": "@/components/ui/select",
+          "specifiers": [
+            "Select",
+            "SelectContent",
+            "SelectItem",
+            "SelectTrigger",
+            "SelectValue"
+          ]
+        },
+        {
+          "source": "@/components/TableSkeleton",
+          "specifiers": [
+            "TableSkeleton"
+          ]
+        },
+        {
+          "source": "@/components/EmptyState",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ErrorState",
+          "specifiers": [
+            "ErrorState"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "WorkshopType"
+          ]
+        },
+        {
+          "source": "@/types/committees",
+          "specifiers": [
+            "Committee"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/useEvents",
+          "specifiers": [
+            "useCreateEvent",
+            "useUpdateEvent",
+            "useEventLogs",
+            "useApproveLog",
+            "useBulkApproveLogs",
+            "EventWithId"
+          ]
+        }
+      ],
+      "exports": [
+        "EventModal"
+      ],
+      "totalLines": 701,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/Eyebrow.tsx": {
+      "filePath": "app/components/Eyebrow.tsx",
+      "contentHash": "3cfa2b38ed0e52b9c0da41997e9597901f616a804b4c1e4aa2d4958bb26be1c1",
+      "functions": [
+        {
+          "name": "Eyebrow",
+          "params": [
+            "{\n    children,\n    className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Eyebrow"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/FormDialog.tsx": {
+      "filePath": "app/components/FormDialog.tsx",
+      "contentHash": "881910773c1ec7fc75af59aecb1adfea02837cc6c4ad5c9d8f8c09f55eda5f35",
+      "functions": [
+        {
+          "name": "FormDialog",
+          "params": [
+            "{\n    open,\n    onOpenChange,\n    title,\n    eyebrow,\n    children,\n    footer,\n    className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 54
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@radix-ui/react-dialog",
+          "specifiers": [
+            "* as DialogPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogOverlay",
+            "DialogPortal"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "FormDialog"
+      ],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/lib/utils.ts": {
+      "filePath": "app/components/lib/utils.ts",
+      "contentHash": "3075aa77cadcd019a1ec91c7edaf1364ecf6ecebf315b68e417dc56f24dd9d71",
+      "functions": [
+        {
+          "name": "cn",
+          "params": [
+            "...inputs"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "clsx",
+          "specifiers": [
+            "ClassValue",
+            "clsx"
+          ]
+        },
+        {
+          "source": "tailwind-merge",
+          "specifiers": [
+            "twMerge"
+          ]
+        }
+      ],
+      "exports": [
+        "cn"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/MemberCard.tsx": {
+      "filePath": "app/components/MemberCard.tsx",
+      "contentHash": "2e31f233cf1e8cd002b71601fe9f4c168247112a87d8301e9a3f68ce58619001",
+      "functions": [
+        {
+          "name": "getInitials",
+          "params": [
+            "label"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "MemberCard",
+          "params": [
+            "{\n  member,\n  request,\n  onApprove,\n  onDeny,\n  className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 160
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "FileText",
+            "ChevronRight"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/Badges",
+          "specifiers": [
+            "OfficerBadge",
+            "VerifiedBadge",
+            "NeutralBadge"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "Roles"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "formatExpirationDate",
+            "isMemberVerified"
+          ]
+        }
+      ],
+      "exports": [
+        "MemberCard"
+      ],
+      "totalLines": 232,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/Navbar.tsx": {
+      "filePath": "app/components/Navbar.tsx",
+      "contentHash": "a9289e7fe2676058c62c6fd01596ddc84c551dea09b627c55121fe51d14327df",
+      "functions": [
+        {
+          "name": "Navbar",
+          "params": [],
+          "exported": true,
+          "lineCount": 56
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "usePathname",
+            "useRouter"
+          ]
+        },
+        {
+          "source": "@/helpers/auth",
+          "specifiers": [
+            "signOutUser"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Navbar"
+      ],
+      "totalLines": 77,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/PageHeader.tsx": {
+      "filePath": "app/components/PageHeader.tsx",
+      "contentHash": "c7f5311b6dc410329d91767747b9099648a74a3bce629da09601af91e88bb725",
+      "functions": [
+        {
+          "name": "PageHeader",
+          "params": [
+            "{\n    eyebrow,\n    title,\n    description,\n    actions,\n    className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 35
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/Eyebrow",
+          "specifiers": [
+            "Eyebrow"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "PageHeader"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/Providers.tsx": {
+      "filePath": "app/components/Providers.tsx",
+      "contentHash": "7aaf13d90d3c94158e2fce0e21066ce11aae0a3482e7253345f4fa547b78a519",
+      "functions": [
+        {
+          "name": "Providers",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "QueryClientProvider"
+          ]
+        },
+        {
+          "source": "@/lib/queryClient",
+          "specifiers": [
+            "getQueryClient"
+          ]
+        }
+      ],
+      "exports": [
+        "Providers"
+      ],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/StatTile.tsx": {
+      "filePath": "app/components/StatTile.tsx",
+      "contentHash": "718a9009eb744965e4fea90d50390446596c9a1acdbafcf8b19e744cb70e4a26",
+      "functions": [
+        {
+          "name": "StatTile",
+          "params": [
+            "{\n  eyebrow,\n  value,\n  label,\n  hint,\n  href,\n  onClick,\n  className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 53
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "StatTile"
+      ],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/TableSkeleton.tsx": {
+      "filePath": "app/components/TableSkeleton.tsx",
+      "contentHash": "d4eb3d734ea65724f91582783a3da5c79a7710af1f2acd90d3f08a233f6995f4",
+      "functions": [
+        {
+          "name": "TableSkeleton",
+          "params": [
+            "{\n  rows = 6,\n  columns = 4,\n  showHeader = true,\n  className,\n}"
+          ],
+          "exported": true,
+          "lineCount": 38
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        },
+        {
+          "source": "@/components/ui/skeleton",
+          "specifiers": [
+            "Skeleton"
+          ]
+        }
+      ],
+      "exports": [
+        "TableSkeleton"
+      ],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/badge.tsx": {
+      "filePath": "app/components/ui/badge.tsx",
+      "contentHash": "487c9871802396624e73f72c4c1d5f900a1c35136c8d1e6bae646eebb61065f9",
+      "functions": [
+        {
+          "name": "Badge",
+          "params": [
+            "{ className, variant, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "cva",
+            "VariantProps"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Badge",
+        "badgeVariants"
+      ],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/button.tsx": {
+      "filePath": "app/components/ui/button.tsx",
+      "contentHash": "8f94c79f6675ce3f0fbddde9fcfcc6fcb087b64e8bd98ade66f5189f6a2e063d",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-slot",
+          "specifiers": [
+            "Slot"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "cva",
+            "VariantProps"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Button",
+        "buttonVariants"
+      ],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/card.tsx": {
+      "filePath": "app/components/ui/card.tsx",
+      "contentHash": "cd9a28f60a77e01484c610ba054f9e1b534cfc9ee87a1528b880a556e5cd9011",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Card",
+        "CardHeader",
+        "CardFooter",
+        "CardTitle",
+        "CardDescription",
+        "CardContent"
+      ],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/checkbox.tsx": {
+      "filePath": "app/components/ui/checkbox.tsx",
+      "contentHash": "61c651c5307e9d6accf0e18970c2c7a40a311e2ec43e10ee9f247b42211edba5",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-checkbox",
+          "specifiers": [
+            "* as CheckboxPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Check"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Checkbox"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/dialog.tsx": {
+      "filePath": "app/components/ui/dialog.tsx",
+      "contentHash": "1689251d5ef3db9e5fd828526c571a4e218e9750129680877f00e433f2491f90",
+      "functions": [
+        {
+          "name": "DialogHeader",
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "DialogFooter",
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-dialog",
+          "specifiers": [
+            "* as DialogPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Dialog",
+        "DialogPortal",
+        "DialogOverlay",
+        "DialogClose",
+        "DialogTrigger",
+        "DialogContent",
+        "DialogHeader",
+        "DialogFooter",
+        "DialogTitle",
+        "DialogDescription"
+      ],
+      "totalLines": 123,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/dropdown-menu.tsx": {
+      "filePath": "app/components/ui/dropdown-menu.tsx",
+      "contentHash": "edf27c5c6f72d5873c1ba6834fa50beceb4881c55c30b782cddc4e5a06d0d378",
+      "functions": [
+        {
+          "name": "DropdownMenuShortcut",
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-dropdown-menu",
+          "specifiers": [
+            "* as DropdownMenuPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Check",
+            "ChevronRight",
+            "Circle"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "DropdownMenu",
+        "DropdownMenuTrigger",
+        "DropdownMenuContent",
+        "DropdownMenuItem",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuRadioItem",
+        "DropdownMenuLabel",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuGroup",
+        "DropdownMenuPortal",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuRadioGroup"
+      ],
+      "totalLines": 201,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/input.tsx": {
+      "filePath": "app/components/ui/input.tsx",
+      "contentHash": "91bbbd4f923bcd95d360568a4c96ddd03a39e96fb9e8c035e7c701a75be39131",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Input"
+      ],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/label.tsx": {
+      "filePath": "app/components/ui/label.tsx",
+      "contentHash": "c1aae3cba26b4958262fa0aab3680336d07622f8443cd3c011849c01bca6448f",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-label",
+          "specifiers": [
+            "* as LabelPrimitive"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "cva",
+            "VariantProps"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Label"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/select.tsx": {
+      "filePath": "app/components/ui/select.tsx",
+      "contentHash": "c9ff92eb8cf202c5e580c5b7015e2e75d903e1ce01cce681a9a13d85ea046a86",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-select",
+          "specifiers": [
+            "* as SelectPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Check",
+            "ChevronDown",
+            "ChevronUp"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Select",
+        "SelectGroup",
+        "SelectValue",
+        "SelectTrigger",
+        "SelectContent",
+        "SelectLabel",
+        "SelectItem",
+        "SelectSeparator",
+        "SelectScrollUpButton",
+        "SelectScrollDownButton"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/separator.tsx": {
+      "filePath": "app/components/ui/separator.tsx",
+      "contentHash": "ae290d08480f7201ef7d8a9f91889ae0b6bcdf7512b0a9639f9c76c03ab679ed",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-separator",
+          "specifiers": [
+            "* as SeparatorPrimitive"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Separator"
+      ],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/skeleton.tsx": {
+      "filePath": "app/components/ui/skeleton.tsx",
+      "contentHash": "62fa1e302629242957fcf83c78cba4b854af9347b9a727c6bab283e497771793",
+      "functions": [
+        {
+          "name": "Skeleton",
+          "params": [
+            "{\n  className,\n  ...props\n}"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Skeleton"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/sonner.tsx": {
+      "filePath": "app/components/ui/sonner.tsx",
+      "contentHash": "f338feef80a6015994cd7bbd2d519d3ad7181da29f99529735332bf187f457cd",
+      "functions": [
+        {
+          "name": "Toaster",
+          "params": [
+            "{ ...props }"
+          ],
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "CircleCheck",
+            "Info",
+            "LoaderCircle",
+            "OctagonX",
+            "TriangleAlert"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "Sonner"
+          ]
+        }
+      ],
+      "exports": [
+        "Toaster"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/table.tsx": {
+      "filePath": "app/components/ui/table.tsx",
+      "contentHash": "d62467ee7486cffb67c55752fedafb700cde8be12e82bcaffec8c0799be5e146",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Table",
+        "TableHeader",
+        "TableBody",
+        "TableFooter",
+        "TableHead",
+        "TableRow",
+        "TableCell",
+        "TableCaption"
+      ],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/tabs.tsx": {
+      "filePath": "app/components/ui/tabs.tsx",
+      "contentHash": "73ad95e1e43da0674e75b3b0b6486e6cb1f3be63b2656bb68c4f5a3acd5f558f",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-tabs",
+          "specifiers": [
+            "* as TabsPrimitive"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Tabs",
+        "TabsList",
+        "TabsTrigger",
+        "TabsContent"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "app/components/ui/tooltip.tsx": {
+      "filePath": "app/components/ui/tooltip.tsx",
+      "contentHash": "b0d32be8f03bdadad8edf4da6c10a83775df2e03fb8404a09713c079a43c7ec1",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-tooltip",
+          "specifiers": [
+            "* as TooltipPrimitive"
+          ]
+        },
+        {
+          "source": "@/components/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Tooltip",
+        "TooltipTrigger",
+        "TooltipContent",
+        "TooltipProvider"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "app/config/firebaseClient.ts": {
+      "filePath": "app/config/firebaseClient.ts",
+      "contentHash": "3dd82f06ca0ae1337eae18772e5c1259b1be0790a85df068fa6aa18e031f6684",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase/app",
+          "specifiers": [
+            "initializeApp",
+            "FirebaseApp",
+            "getApp",
+            "getApps"
+          ]
+        },
+        {
+          "source": "firebase/auth",
+          "specifiers": [
+            "getAuth",
+            "connectAuthEmulator"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "getFirestore",
+            "connectFirestoreEmulator"
+          ]
+        },
+        {
+          "source": "firebase/functions",
+          "specifiers": [
+            "getFunctions",
+            "connectFunctionsEmulator"
+          ]
+        },
+        {
+          "source": "firebase/storage",
+          "specifiers": [
+            "getStorage",
+            "connectStorageEmulator"
+          ]
+        }
+      ],
+      "exports": [
+        "db",
+        "auth",
+        "storage",
+        "functions"
+      ],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "app/fonts.ts": {
+      "filePath": "app/fonts.ts",
+      "contentHash": "759c2d6a9f6642303f33edf3d196318a7f490c1493827e25966b1136e965bab8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/font/google",
+          "specifiers": [
+            "Oswald",
+            "Work_Sans",
+            "Open_Sans",
+            "Crimson_Text"
+          ]
+        }
+      ],
+      "exports": [
+        "oswald",
+        "workSans",
+        "openSans",
+        "crimsonText",
+        "fontVariables"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "app/globals.css": {
+      "filePath": "app/globals.css",
+      "contentHash": "c304b3f4aa3c32a5f29ef3d7121ff4ee803428d502e38e9d65309d6997d86f5b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": false
+    },
+    "app/helpers/auth.ts": {
+      "filePath": "app/helpers/auth.ts",
+      "contentHash": "c5919c2a8950019ac3cf1fe807c043b36a297e63b1068717d311bc6a28b18eeb",
+      "functions": [
+        {
+          "name": "signInWithGoogle",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "signInWithEmulatorAccount",
+          "params": [
+            "email",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "checkHasRecognizedClaim",
+          "params": [
+            "user"
+          ],
+          "returnType": "Promise<boolean>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "signOutUser",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "auth"
+          ]
+        },
+        {
+          "source": "firebase/auth",
+          "specifiers": [
+            "GoogleAuthProvider",
+            "signInWithPopup",
+            "signInWithEmailAndPassword",
+            "signOut",
+            "User"
+          ]
+        }
+      ],
+      "exports": [
+        "signInWithGoogle",
+        "signInWithEmulatorAccount",
+        "checkHasRecognizedClaim",
+        "signOutUser"
+      ],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "app/helpers/timeUtils.ts": {
+      "filePath": "app/helpers/timeUtils.ts",
+      "contentHash": "a9c9bcc89dc01cfeb0c8c68cfe3b8d3364d6651160019c3eb6ba728f3034bb10",
+      "functions": [
+        {
+          "name": "getNextHourMillis",
+          "params": [],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "formatDate",
+          "params": [
+            "date"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "formatTime",
+          "params": [
+            "date"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "formatDateTime",
+          "params": [
+            "date"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "formatEventDate",
+          "params": [
+            "startTime",
+            "endTime"
+          ],
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "formatHour",
+          "params": [
+            "hour"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [
+        {
+          "name": "MillisecondTimes",
+          "methods": [],
+          "properties": [
+            "YEAR",
+            "MONTH",
+            "WEEK",
+            "DAY",
+            "HOUR",
+            "MINUTE",
+            "SECOND"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "MillisecondTimes",
+        "getNextHourMillis",
+        "monthNames",
+        "formatDate",
+        "formatTime",
+        "formatDateTime",
+        "formatEventDate",
+        "formatHour"
+      ],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "app/layout.tsx": {
+      "filePath": "app/layout.tsx",
+      "contentHash": "216de09b1798f7715b7d4d87d6d01c68ca1dd25a795ed0ae5e157d447c1f273b",
+      "functions": [
+        {
+          "name": "RootLayout",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "./globals.css",
+          "specifiers": []
+        },
+        {
+          "source": "./components/Providers",
+          "specifiers": [
+            "Providers"
+          ]
+        },
+        {
+          "source": "./components/ui/sonner",
+          "specifiers": [
+            "Toaster"
+          ]
+        },
+        {
+          "source": "./fonts",
+          "specifiers": [
+            "fontVariables"
+          ]
+        }
+      ],
+      "exports": [
+        "metadata",
+        "RootLayout"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "app/page.tsx": {
+      "filePath": "app/page.tsx",
+      "contentHash": "6ea9ea2c75bda9c95553b2f2d848b984f2625afe5572444037466c98ec379e55",
+      "functions": [
+        {
+          "name": "LoginPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 196
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "useRouter"
+          ]
+        },
+        {
+          "source": "firebase/auth",
+          "specifiers": [
+            "onAuthStateChanged"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "auth"
+          ]
+        },
+        {
+          "source": "@/helpers/auth",
+          "specifiers": [
+            "signInWithGoogle",
+            "signInWithEmulatorAccount",
+            "checkHasRecognizedClaim",
+            "signOutUser"
+          ]
+        }
+      ],
+      "exports": [
+        "LoginPage"
+      ],
+      "totalLines": 212,
+      "hasStructuralAnalysis": true
+    },
+    "app/types/committees.ts": {
+      "filePath": "app/types/committees.ts",
+      "contentHash": "0bba4e9af8f236d8df62ea1b11bb5da4dbd77d4b3b1e3012d92caf24c45a3af7",
+      "functions": [
+        {
+          "name": "getLogoComponent",
+          "params": [
+            "logoName"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "reverseFormattedFirebaseName",
+          "params": [
+            "firebaseName"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "/public/shpetinas_icon.svg",
+          "specifiers": [
+            "SHPEtinas"
+          ]
+        },
+        {
+          "source": "/public/technical_affairs_icon.svg",
+          "specifiers": [
+            "TechnicalAffairs"
+          ]
+        },
+        {
+          "source": "/public/generic_course_icon.svg",
+          "specifiers": [
+            "DefaultIcon"
+          ]
+        },
+        {
+          "source": "/public/scholastic_committee_icon.svg",
+          "specifiers": [
+            "Scholastic"
+          ]
+        },
+        {
+          "source": "/public/mentorshpe_committee_icon.svg",
+          "specifiers": [
+            "MentorSHPE"
+          ]
+        },
+        {
+          "source": "/public/presidents_committee_icon.svg",
+          "specifiers": [
+            "Presidents"
+          ]
+        },
+        {
+          "source": "/public/public_relations_committee_icon.svg",
+          "specifiers": [
+            "PublicRelations"
+          ]
+        },
+        {
+          "source": "/public/jones_shpe_jr_committee.svg",
+          "specifiers": [
+            "JonesSHPEjr"
+          ]
+        },
+        {
+          "source": "/public/treasurer_committee_icon.svg",
+          "specifiers": [
+            "Treasurer"
+          ]
+        },
+        {
+          "source": "/public/internal_affairs_committee_icon.svg",
+          "specifiers": [
+            "InternalAffairs"
+          ]
+        },
+        {
+          "source": "/public/secretary_committee_icon.svg",
+          "specifiers": [
+            "Secretary"
+          ]
+        },
+        {
+          "source": "/public/professional_development_committee_icon.svg",
+          "specifiers": [
+            "ProfessionalDevelopment"
+          ]
+        },
+        {
+          "source": "./user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        }
+      ],
+      "exports": [
+        "committeeLogos",
+        "getLogoComponent",
+        "reverseFormattedFirebaseName"
+      ],
+      "totalLines": 117,
+      "hasStructuralAnalysis": true
+    },
+    "app/types/events.ts": {
+      "filePath": "app/types/events.ts",
+      "contentHash": "a149602a0a509516380c817d80a2b04def1d0246d192d2a4f3827b59f2a2f097",
+      "functions": [
+        {
+          "name": "getStatusMessage",
+          "params": [
+            "status",
+            "mode"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [
+        {
+          "name": "SHPEEvent",
+          "methods": [
+            "constructor",
+            "copyFromObject"
+          ],
+          "properties": [
+            "id",
+            "name",
+            "description",
+            "eventType",
+            "tags",
+            "startTime",
+            "endTime",
+            "startTimeBuffer",
+            "endTimeBuffer",
+            "coverImageURI",
+            "signInPoints",
+            "signOutPoints",
+            "pointsPerHour",
+            "locationName",
+            "geolocation",
+            "geofencingRadius",
+            "workshopType",
+            "committee",
+            "creator",
+            "nationalConventionEligible",
+            "general",
+            "notificationSent",
+            "hiddenEvent"
+          ],
+          "exported": true,
+          "lineCount": 85
+        },
+        {
+          "name": "GeneralMeeting",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "description",
+            "eventType",
+            "tags",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "signOutPoints",
+            "locationName",
+            "geolocation",
+            "general",
+            "notificationSent"
+          ],
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "CommitteeMeeting",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "tags",
+            "description",
+            "eventType",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "StudyHours",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "description",
+            "eventType",
+            "tags",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "signOutPoints",
+            "pointsPerHour",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "Workshop",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "description",
+            "tags",
+            "eventType",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "locationName",
+            "geolocation",
+            "workshopType",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "VolunteerEvent",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "tags",
+            "description",
+            "eventType",
+            "startTime",
+            "endTime",
+            "pointsPerHour",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "SocialEvent",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "tags",
+            "description",
+            "eventType",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "IntramuralEvent",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "tags",
+            "description",
+            "eventType",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "CustomEvent",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "name",
+            "description",
+            "eventType",
+            "tags",
+            "startTime",
+            "endTime",
+            "signInPoints",
+            "signOutPoints",
+            "pointsPerHour",
+            "locationName",
+            "geolocation",
+            "general"
+          ],
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "imports": [
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "GeoPoint",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "../helpers/timeUtils",
+          "specifiers": [
+            "MillisecondTimes",
+            "getNextHourMillis"
+          ]
+        }
+      ],
+      "exports": [
+        "SHPEEvent",
+        "GeneralMeeting",
+        "CommitteeMeeting",
+        "StudyHours",
+        "Workshop",
+        "VolunteerEvent",
+        "SocialEvent",
+        "IntramuralEvent",
+        "CustomEvent",
+        "getStatusMessage"
+      ],
+      "totalLines": 437,
+      "hasStructuralAnalysis": true
+    },
+    "app/types/membership.ts": {
+      "filePath": "app/types/membership.ts",
+      "contentHash": "cd8c736cb1afe832a78e8f851bc34fbbb1ff3cc3eff651030444b27093d0eec2",
+      "functions": [
+        {
+          "name": "isMemberVerified",
+          "params": [
+            "nationalExpiration",
+            "chapterExpiration"
+          ],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "getBadgeColor",
+          "params": [
+            "isOfficer",
+            "isVerified"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "formatExpirationDate",
+          "params": [
+            "expiration"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        }
+      ],
+      "exports": [
+        "isMemberVerified",
+        "getBadgeColor",
+        "formatExpirationDate"
+      ],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    "app/types/user.ts": {
+      "filePath": "app/types/user.ts",
+      "contentHash": "10d8f4b88a10840f3173c02b8b4d305875237f414b7dd910ae37792d8bf97a86",
+      "functions": [
+        {
+          "name": "generateClassYears",
+          "params": [],
+          "returnType": "{ year: string }[]",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "Timestamp",
+            "FieldValue"
+          ]
+        }
+      ],
+      "exports": [
+        "classYears",
+        "MAJORS"
+      ],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "90f072ccee3a0d5f5f05e52989e53695b2a8ebb6b968ccf98cd4b9ab07b76527",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "components.json": {
+      "filePath": "components.json",
+      "contentHash": "2582ea4e03ea0ebca3d1c459327e45bf4cb2cd8c26f7a20bc26e2256bcb4ceb3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "41334ed4392f1a2f77123da4b221cd398b4d825b9e2765f74ffb2f25df06a2c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "f2fd2162339cbeb923a6061911e337818307696f46ac8913296c8651bcf354ac",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "docs/API.md": {
+      "filePath": "docs/API.md",
+      "contentHash": "edf3a09d3a53d33c22406ecc56208bcfc5bea34adbb321342fa66fe7e77becbe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "docs/BUILD_PLAN.md": {
+      "filePath": "docs/BUILD_PLAN.md",
+      "contentHash": "1c00652c8d2e4cfb4ed5e6b292ae906bbc5e19d3b8b7be0cf5e1d4b5c1a48b8e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 380,
+      "hasStructuralAnalysis": true
+    },
+    "docs/DATA_MODEL.md": {
+      "filePath": "docs/DATA_MODEL.md",
+      "contentHash": "697af3a71a4d173a5027670bb56f69b72eb4b6effa4030b8752f156f4a6265b9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 175,
+      "hasStructuralAnalysis": true
+    },
+    "docs/DESIGN_BRIEF.md": {
+      "filePath": "docs/DESIGN_BRIEF.md",
+      "contentHash": "ae57d5603b1d402e916562d188340af62f95733bd40f337dd249d7b2a1337b60",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 191,
+      "hasStructuralAnalysis": true
+    },
+    "docs/PURPOSE_AND_FUNCTIONALITY.md": {
+      "filePath": "docs/PURPOSE_AND_FUNCTIONALITY.md",
+      "contentHash": "9889d95cd7471809a54f7553066e4cbb9d6d148f7dae1dcda89ae7e584f3b85a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 370,
+      "hasStructuralAnalysis": true
+    },
+    "docs/REBUILD_CONCEPT.md": {
+      "filePath": "docs/REBUILD_CONCEPT.md",
+      "contentHash": "efb5d4c31cb3a0ba92c628c25f2a3eab222fc92a6b5631f16b2bc4af0d8c2f9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 368,
+      "hasStructuralAnalysis": true
+    },
+    "docs/tamu-design-system.html": {
+      "filePath": "docs/tamu-design-system.html",
+      "contentHash": "535f52c724167c1032ddf0d2748ad7ccc66ee4260b260908d3b15b9388a16fb8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 532,
+      "hasStructuralAnalysis": false
+    },
+    "firebase.json": {
+      "filePath": "firebase.json",
+      "contentHash": "01479c30dba894f7484e74ff94234eb7e18f19a70c58862f5d1d171145992a5b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "firestore.rules": {
+      "filePath": "firestore.rules",
+      "contentHash": "4dbf9620f0dd674dc4d1704baa7bcbc3cf0c4f4489ee1589673b38983b1ddf25",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "lib/hooks/authedFetch.ts": {
+      "filePath": "lib/hooks/authedFetch.ts",
+      "contentHash": "f6efecbec16d26bc52bdf4998265abccc25bd8c3c7b34db217c305ec0635cc62",
+      "functions": [
+        {
+          "name": "authedFetch",
+          "params": [
+            "path",
+            "init"
+          ],
+          "returnType": "Promise<Response>",
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "auth"
+          ]
+        }
+      ],
+      "exports": [
+        "authedFetch"
+      ],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useCommittees.ts": {
+      "filePath": "lib/hooks/useCommittees.ts",
+      "contentHash": "079dd56f18c04d8562b81f93b02e950839b867e6e137c69ac4a296e1f4e5bb4a",
+      "functions": [
+        {
+          "name": "resolvePublicUserInfo",
+          "params": [
+            "value"
+          ],
+          "returnType": "Promise<PublicUserInfo | undefined>",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "fetchCommittees",
+          "params": [],
+          "returnType": "Promise<Committee[]>",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "useCommittees",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useQuery"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/committees",
+          "specifiers": [
+            "Committee"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        }
+      ],
+      "exports": [
+        "useCommittees"
+      ],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useConventionTracker.ts": {
+      "filePath": "lib/hooks/useConventionTracker.ts",
+      "contentHash": "68167779b7b6f5f11653cdc4ce0c09ae4827532a92afefea1f22eef7979589a2",
+      "functions": [
+        {
+          "name": "deriveConventionCounts",
+          "params": [
+            "logs",
+            "eventTypeById"
+          ],
+          "returnType": "ConventionCounts",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "isConventionEligible",
+          "params": [
+            "counts"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "fetchConventionData",
+          "params": [],
+          "returnType": "Promise<ConventionRow[]>",
+          "exported": false,
+          "lineCount": 59
+        },
+        {
+          "name": "useConventionTracking",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "useTrackMembers",
+          "params": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "useUntrackMember",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PrivateUserInfo",
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "SHPEEvent",
+            "SHPEEventLog"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "isMemberVerified"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        }
+      ],
+      "exports": [
+        "REQUIRED_COUNT",
+        "deriveConventionCounts",
+        "isConventionEligible",
+        "useConventionTracking",
+        "useTrackMembers",
+        "useUntrackMember"
+      ],
+      "totalLines": 214,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useEvents.ts": {
+      "filePath": "lib/hooks/useEvents.ts",
+      "contentHash": "e33dbf562dce605acc9b83b602410dfe70d7e4a383064d11cefe568131de5c9b",
+      "functions": [
+        {
+          "name": "fetchEvents",
+          "params": [],
+          "returnType": "Promise<EventWithId[]>",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "useEvents",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "fetchEventLogs",
+          "params": [
+            "eventId"
+          ],
+          "returnType": "Promise<EventLogRow[]>",
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "useEventLogs",
+          "params": [
+            "eventId"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "fetchPendingEvents",
+          "params": [],
+          "returnType": "Promise<PendingEvent[]>",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "usePendingEvents",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "serializeTimestamp",
+          "params": [
+            "value"
+          ],
+          "returnType": "SerializedTimestamp | null | undefined",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "serializeEventInput",
+          "params": [
+            "input"
+          ],
+          "returnType": "Record<string, unknown>",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "useCreateEvent",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "useUpdateEvent",
+          "params": [],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "useApproveLog",
+          "params": [],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "useBulkApproveLogs",
+          "params": [],
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "SHPEEvent",
+            "SHPEEventLog"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        }
+      ],
+      "exports": [
+        "useEvents",
+        "useEventLogs",
+        "usePendingEvents",
+        "useCreateEvent",
+        "useUpdateEvent",
+        "useApproveLog",
+        "useBulkApproveLogs"
+      ],
+      "totalLines": 273,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useInstagramPoints.ts": {
+      "filePath": "lib/hooks/useInstagramPoints.ts",
+      "contentHash": "ecee3c1e7a323015caad297b603e4293ed1b150b6b73395b5eb137e08815fabb",
+      "functions": [
+        {
+          "name": "fetchInstagramPointsData",
+          "params": [],
+          "returnType": "Promise<InstagramPointsData>",
+          "exported": false,
+          "lineCount": 61
+        },
+        {
+          "name": "useInstagramPoints",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "useAwardInstagramPoints",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs",
+            "limit",
+            "query",
+            "where",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PrivateUserInfo",
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "SHPEEventLog"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "isMemberVerified"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        }
+      ],
+      "exports": [
+        "INSTAGRAM_EVENT_NAME",
+        "useInstagramPoints",
+        "useAwardInstagramPoints"
+      ],
+      "totalLines": 142,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useMembership.ts": {
+      "filePath": "lib/hooks/useMembership.ts",
+      "contentHash": "63bf7fd280f60c4c254101a52bd7575c9ab6852545ea5b89582470e7ed41a167",
+      "functions": [
+        {
+          "name": "fetchMembershipRequests",
+          "params": [],
+          "returnType": "Promise<MembershipRequestRow[]>",
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "useMembershipRequests",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "fetchOfficialMembers",
+          "params": [],
+          "returnType": "Promise<MemberPublic[]>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "useOfficialMembers",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "invalidateMembershipQueries",
+          "params": [
+            "queryClient"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "useApproveMembership",
+          "params": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "useDenyMembership",
+          "params": [],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "RequestWithDoc"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "isMemberVerified"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/usePoints",
+          "specifiers": [
+            "useMembers",
+            "MemberPublic"
+          ]
+        }
+      ],
+      "exports": [
+        "useMembers",
+        "MemberPublic",
+        "useMembershipRequests",
+        "useOfficialMembers",
+        "useApproveMembership",
+        "useDenyMembership"
+      ],
+      "totalLines": 141,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/usePoints.ts": {
+      "filePath": "lib/hooks/usePoints.ts",
+      "contentHash": "cd5a72f61a55e1acb43baaf685fbc00be34bc08e752c29086d6f31a95a52f109",
+      "functions": [
+        {
+          "name": "getSchoolYearStartYear",
+          "params": [
+            "now"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getSchoolYearLabel",
+          "params": [
+            "now"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getCurrentSchoolYearMonths",
+          "params": [
+            "now"
+          ],
+          "returnType": "Date[]",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "schoolYearMonthIndex",
+          "params": [
+            "date",
+            "now"
+          ],
+          "returnType": "number | null",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "fetchMembers",
+          "params": [],
+          "returnType": "Promise<MemberPublic[]>",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "useMembers",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "buildMonthlyBuckets",
+          "params": [
+            "eventLogs",
+            "instagramEventIds",
+            "months",
+            "now"
+          ],
+          "returnType": "PointsMonthBucket[]",
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "fetchPointsData",
+          "params": [],
+          "returnType": "Promise<PointsData>",
+          "exported": false,
+          "lineCount": 56
+        },
+        {
+          "name": "usePointsData",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "useEditPoints",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "useRecalculatePoints",
+          "params": [],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs",
+            "orderBy",
+            "query"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PrivateUserInfo",
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "SHPEEvent",
+            "SHPEEventLog"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        }
+      ],
+      "exports": [
+        "getSchoolYearStartYear",
+        "getSchoolYearLabel",
+        "getCurrentSchoolYearMonths",
+        "schoolYearMonthIndex",
+        "useMembers",
+        "usePointsData",
+        "useEditPoints",
+        "useRecalculatePoints"
+      ],
+      "totalLines": 297,
+      "hasStructuralAnalysis": true
+    },
+    "lib/hooks/useTools.ts": {
+      "filePath": "lib/hooks/useTools.ts",
+      "contentHash": "2731d6bc07246b229ddaaeedca2b729656dc7e52c885ba77d9487c7bf126c1cd",
+      "functions": [
+        {
+          "name": "fetchShirts",
+          "params": [],
+          "returnType": "Promise<ShirtRow[]>",
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "useShirts",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "useToggleShirt",
+          "params": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "useResumeStatus",
+          "params": [],
+          "returnType": "UseResumeStatusResult",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "callZipResume",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "useZipResumes",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "collection",
+            "doc",
+            "getDoc",
+            "getDocs",
+            "onSnapshot",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "firebase/functions",
+          "specifiers": [
+            "httpsCallable"
+          ]
+        },
+        {
+          "source": "@/config/firebaseClient",
+          "specifiers": [
+            "db",
+            "functions"
+          ]
+        },
+        {
+          "source": "@/types/user",
+          "specifiers": [
+            "PublicUserInfo"
+          ]
+        },
+        {
+          "source": "@/types/membership",
+          "specifiers": [
+            "isMemberVerified"
+          ]
+        },
+        {
+          "source": "@/lib/hooks/authedFetch",
+          "specifiers": [
+            "authedFetch"
+          ]
+        }
+      ],
+      "exports": [
+        "useShirts",
+        "useToggleShirt",
+        "useResumeStatus",
+        "useZipResumes"
+      ],
+      "totalLines": 199,
+      "hasStructuralAnalysis": true
+    },
+    "lib/queryClient.ts": {
+      "filePath": "lib/queryClient.ts",
+      "contentHash": "7260725b283f62f9dbb439f8523926c8726242f29698137658a0b0fee83f85da",
+      "functions": [
+        {
+          "name": "makeQueryClient",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "getQueryClient",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "QueryClient"
+          ]
+        }
+      ],
+      "exports": [
+        "getQueryClient"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "next.config.js": {
+      "filePath": "next.config.js",
+      "contentHash": "d00893d8f63fd40985e4c5b40855fe501561b32cef2ea945b751f1f5259de37c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "1616b92a3b3fb9ef719d894bb0c175c69ba45b9963b16f557bf3b378bf6bdf2b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    "postcss.config.js": {
+      "filePath": "postcss.config.js",
+      "contentHash": "4272033ff06b407e7ff7b64345e1585e0764ae3b89e8811b89c572d1834b64a8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "prototype/SHPE Admin Portal.dc.html": {
+      "filePath": "prototype/SHPE Admin Portal.dc.html",
+      "contentHash": "1fff7a634a5121a14bdef9e1d06a81a26639ecc22f38c85bd716b791482566cb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 952,
+      "hasStructuralAnalysis": false
+    },
+    "prototype/support.js": {
+      "filePath": "prototype/support.js",
+      "contentHash": "ae4f0ac8449655e17cca1e3b179effcb6817a3b0d8dc47f112a9c39c25c39fd7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1769,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "84d09edd1092423729c3c6a1b6063deed770a8b267b6cf20d8868ab5ce7da489",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/seed.ts": {
+      "filePath": "scripts/seed.ts",
+      "contentHash": "0d17c02d748ef47353aaf10f886cfe792407a278cc9400e5a72326b6e7b09f3f",
+      "functions": [
+        {
+          "name": "ts",
+          "params": [
+            "d"
+          ],
+          "returnType": "Timestamp",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "monthDate",
+          "params": [
+            "monthOffset",
+            "day",
+            "hour"
+          ],
+          "returnType": "Date",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "inAYear",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "ensureAuthUser",
+          "params": [
+            "opts"
+          ],
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 196
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase-admin/app",
+          "specifiers": [
+            "getApps",
+            "initializeApp"
+          ]
+        },
+        {
+          "source": "firebase-admin/auth",
+          "specifiers": [
+            "getAuth"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "getFirestore",
+            "Timestamp",
+            "FieldValue"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 491,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-convention-counts.ts": {
+      "filePath": "scripts/test-convention-counts.ts",
+      "contentHash": "fc21ee738c051492fbf925cc70ac1913a84ed09e1b65c268a9c7f8e39923b68b",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "assertCounts",
+          "params": [
+            "label",
+            "got",
+            "expected"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "log",
+          "params": [
+            "overrides"
+          ],
+          "returnType": "SHPEEventLog",
+          "exported": false,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "../lib/hooks/useConventionTracker",
+          "specifiers": [
+            "deriveConventionCounts",
+            "isConventionEligible",
+            "ConventionCounts"
+          ]
+        },
+        {
+          "source": "../app/types/events",
+          "specifiers": [
+            "EventType",
+            "SHPEEventLog"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 153,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-conventions-route.ts": {
+      "filePath": "scripts/test-conventions-route.ts",
+      "contentHash": "1ec4910b59e047462d6ce7cdb2ed1548193b5232bfe32ea5b47d87a24f6250bd",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "seedFixtureUsers",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "cleanupFixtures",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testTrackNewUids",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "testRetrackAlreadyTracked",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 49
+        },
+        {
+          "name": "testMixedValidAndUnknown",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "expectValidationError",
+          "params": [
+            "label",
+            "body",
+            "contentType"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "testBadBodies",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "testUntrack",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 40
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "firebase-admin/auth",
+          "specifiers": [
+            "DecodedIdToken"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "../server/routes/conventions",
+          "specifiers": [
+            "conventionsRouter"
+          ]
+        },
+        {
+          "source": "../server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 293,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-db-helpers.ts": {
+      "filePath": "scripts/test-db-helpers.ts",
+      "contentHash": "57ff53dd325cefa6c31ee7a5177162629927db3e315030f504c3c864d020d6c3",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "cleanupScratch",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "test251Edits",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "testInjectedFailure",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 43
+        },
+        {
+          "name": "testStartTimeCache",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 38
+        },
+        {
+          "name": "testNotFound",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase-admin/app",
+          "specifiers": [
+            "getApps",
+            "initializeApp"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "getFirestore"
+          ]
+        },
+        {
+          "source": "../server/lib/db-helpers",
+          "specifiers": [
+            "chunkedAtomicBatch",
+            "makeEventStartTimeGetter",
+            "ChunkedBatchError",
+            "EventNotFoundError",
+            "BatchWriteOp"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 202,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-events-route.ts": {
+      "filePath": "scripts/test-events-route.ts",
+      "contentHash": "de9125f9e8ab905c855146bb620f35e003456c586da8fee060e67609f5622661",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "req",
+          "params": [
+            "method",
+            "path",
+            "body"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "testCreateEvent",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 39
+        },
+        {
+          "name": "testInvalidEventType",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "testUpdateEvent",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "testSingleApprove",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 33
+        },
+        {
+          "name": "testBulkApprove",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "testBulkApproveMissingUid",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "cleanup",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase-admin/app",
+          "specifiers": [
+            "getApps",
+            "initializeApp"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "getFirestore",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "../server/routes/events",
+          "specifiers": [
+            "eventsRouter"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 280,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-instagram-route.ts": {
+      "filePath": "scripts/test-instagram-route.ts",
+      "contentHash": "86013e7ac21ed3a88123512143868428c55b495912e67ae42060ffd46a134be1",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "findInstagramEventIds",
+          "params": [],
+          "returnType": "Promise<string[]>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "seedFixtureUsers",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "cleanupFixtures",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "postAward",
+          "params": [
+            "uids"
+          ],
+          "returnType": "Promise<Response>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testFirstAwardCreatesEvent",
+          "params": [],
+          "returnType": "Promise<string | null>",
+          "exported": false,
+          "lineCount": 68
+        },
+        {
+          "name": "testReAwardAccumulates",
+          "params": [
+            "eventId"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 44
+        },
+        {
+          "name": "testMixedValidAndUnknown",
+          "params": [
+            "eventId"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 25
+        },
+        {
+          "name": "testCallableShapedLogCompat",
+          "params": [
+            "eventId"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 37
+        },
+        {
+          "name": "expectValidationError",
+          "params": [
+            "label",
+            "body",
+            "contentType"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "testBadBodies",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "../server/routes/instagram",
+          "specifiers": [
+            "instagramRouter"
+          ]
+        },
+        {
+          "source": "../server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 340,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-membership-route.ts": {
+      "filePath": "scripts/test-membership-route.ts",
+      "contentHash": "f4428544540a2472963c6bc1c9de71527b32d4aa9bc0460f0b349e35efcbf45f",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "inAYear",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "proofURL",
+          "params": [
+            "uid",
+            "kind"
+          ],
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "seededRequestDoc",
+          "params": [],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "testApprove",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 69
+        },
+        {
+          "name": "testDeny",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 64
+        },
+        {
+          "name": "testUnknownUid",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "restoreSeededState",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "firebase-admin/app",
+          "specifiers": [
+            "getApps",
+            "initializeApp"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "getFirestore",
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "../server/routes/membership",
+          "specifiers": [
+            "membershipRouter"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 269,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-points-bucketing.ts": {
+      "filePath": "scripts/test-points-bucketing.ts",
+      "contentHash": "ea6240d0e659776bc83d327b9de8d4d35f65af6ae6f5fbc64a2555849f27357e",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "assertIndex",
+          "params": [
+            "label",
+            "date",
+            "now",
+            "expected"
+          ],
+          "exported": false,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../lib/hooks/usePoints",
+          "specifiers": [
+            "getCurrentSchoolYearMonths",
+            "getSchoolYearLabel",
+            "schoolYearMonthIndex"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "scripts/test-tools-route.ts": {
+      "filePath": "scripts/test-tools-route.ts",
+      "contentHash": "2b5fa28f1e8f2b2acebf98966f34c4e8bbbcd357f8233e5d9532a4b3aee25a70",
+      "functions": [
+        {
+          "name": "pass",
+          "params": [
+            "label"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "fail",
+          "params": [
+            "label",
+            "detail"
+          ],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "testToggleFlips",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "testNonBooleanBody",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "testUnknownUid",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "../server/routes/tools",
+          "specifiers": [
+            "toolsRouter"
+          ]
+        },
+        {
+          "source": "../server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "server/app.ts": {
+      "filePath": "server/app.ts",
+      "contentHash": "218de1bbc05063b753eaf8bc3ab5c20f4fe2724dc9d44502152e766b7dffc740",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "@/server/middleware/auth",
+          "specifiers": [
+            "authMiddleware"
+          ]
+        },
+        {
+          "source": "@/server/routes/points",
+          "specifiers": [
+            "pointsRouter"
+          ]
+        },
+        {
+          "source": "@/server/routes/tools",
+          "specifiers": [
+            "toolsRouter"
+          ]
+        },
+        {
+          "source": "@/server/routes/membership",
+          "specifiers": [
+            "membershipRouter"
+          ]
+        },
+        {
+          "source": "@/server/routes/events",
+          "specifiers": [
+            "eventsRouter"
+          ]
+        },
+        {
+          "source": "@/server/routes/conventions",
+          "specifiers": [
+            "conventionsRouter"
+          ]
+        },
+        {
+          "source": "@/server/routes/instagram",
+          "specifiers": [
+            "instagramRouter"
+          ]
+        }
+      ],
+      "exports": [
+        "app"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "server/firebaseAdmin.ts": {
+      "filePath": "server/firebaseAdmin.ts",
+      "contentHash": "018c972ddf8ba80df176a7eaba3a7424ee6618c660445b1d38a5e9755cb90040",
+      "functions": [
+        {
+          "name": "buildApp",
+          "params": [],
+          "returnType": "App",
+          "exported": false,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "firebase-admin/app",
+          "specifiers": [
+            "getApps",
+            "initializeApp",
+            "cert",
+            "App"
+          ]
+        },
+        {
+          "source": "firebase-admin/auth",
+          "specifiers": [
+            "getAuth"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "getFirestore"
+          ]
+        }
+      ],
+      "exports": [
+        "adminApp",
+        "adminAuth",
+        "adminDb"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "server/lib/cloudFunctions.ts": {
+      "filePath": "server/lib/cloudFunctions.ts",
+      "contentHash": "bd3e6ce3d04c94c5819532c9f4bc945759280c0962bc2442a0b519f2d25de2e9",
+      "functions": [
+        {
+          "name": "updateAllUserPoints",
+          "params": [],
+          "returnType": "Promise<{ ok: true }>",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "sendNotificationMemberSHPE",
+          "params": [
+            "args"
+          ],
+          "returnType": "Promise<{ ok: true }>",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "updateAllUserPoints",
+        "sendNotificationMemberSHPE"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "server/lib/db-helpers.ts": {
+      "filePath": "server/lib/db-helpers.ts",
+      "contentHash": "a20438aa25a55da3ba7f84b466e93d6c536e88804d7b0ff77afc913be64e985e",
+      "functions": [
+        {
+          "name": "chunkedAtomicBatch",
+          "params": [
+            "ops",
+            "db",
+            "chunkSize"
+          ],
+          "returnType": "Promise<ChunkedBatchResult>",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "makeEventStartTimeGetter",
+          "params": [
+            "db"
+          ],
+          "returnType": "(eventId: string) => Promise<FirebaseFirestore.Timestamp>",
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [
+        {
+          "name": "ChunkedBatchError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "failedChunkIndex",
+            "totalChunks",
+            "batchesCommitted",
+            "writesApplied",
+            "cause"
+          ],
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "EventNotFoundError",
+          "methods": [
+            "constructor"
+          ],
+          "properties": [
+            "eventId"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "DocumentData",
+            "DocumentReference",
+            "Firestore"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        }
+      ],
+      "exports": [
+        "FIRESTORE_BATCH_WRITE_LIMIT",
+        "ChunkedBatchError",
+        "chunkedAtomicBatch",
+        "EventNotFoundError",
+        "makeEventStartTimeGetter"
+      ],
+      "totalLines": 187,
+      "hasStructuralAnalysis": true
+    },
+    "server/middleware/auth.ts": {
+      "filePath": "server/middleware/auth.ts",
+      "contentHash": "bc7930801422a8169bebce9ffb124274d17fd7cee2567a7d4e723a02ac046501",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono/factory",
+          "specifiers": [
+            "createMiddleware"
+          ]
+        },
+        {
+          "source": "firebase-admin/auth",
+          "specifiers": [
+            "DecodedIdToken"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminAuth"
+          ]
+        }
+      ],
+      "exports": [
+        "authMiddleware"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/conventions.ts": {
+      "filePath": "server/routes/conventions.ts",
+      "contentHash": "b998cd9faf3ac7040be5b8d24165791edf31274c6474ba7ae647490568345f57",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "firebase-admin/auth",
+          "specifiers": [
+            "DecodedIdToken"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        },
+        {
+          "source": "@/server/lib/db-helpers",
+          "specifiers": [
+            "chunkedAtomicBatch",
+            "ChunkedBatchError",
+            "BatchWriteOp"
+          ]
+        }
+      ],
+      "exports": [
+        "conventionsRouter"
+      ],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/events.ts": {
+      "filePath": "server/routes/events.ts",
+      "contentHash": "cf915e0a2b8c674c8bfcffbeb0f19396c312ebeeb0c01b0cb1449b6d177b8006",
+      "functions": [
+        {
+          "name": "toFirestoreEventData",
+          "params": [
+            "body"
+          ],
+          "returnType": "Record<string, unknown>",
+          "exported": false,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "Timestamp",
+            "GeoPoint"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        },
+        {
+          "source": "@/server/lib/db-helpers",
+          "specifiers": [
+            "chunkedAtomicBatch",
+            "BatchWriteOp"
+          ]
+        },
+        {
+          "source": "@/types/events",
+          "specifiers": [
+            "EventType"
+          ]
+        }
+      ],
+      "exports": [
+        "eventsRouter"
+      ],
+      "totalLines": 229,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/instagram.ts": {
+      "filePath": "server/routes/instagram.ts",
+      "contentHash": "fcd785878d68feb4d6584b1a7755d838e5878f2afe100c8e5fe3c53bf0d4f17f",
+      "functions": [
+        {
+          "name": "getOrCreateInstagramEvent",
+          "params": [],
+          "returnType": "Promise<{ id: string; signInPoints: number }>",
+          "exported": false,
+          "lineCount": 37
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        },
+        {
+          "source": "@/server/lib/db-helpers",
+          "specifiers": [
+            "chunkedAtomicBatch",
+            "ChunkedBatchError",
+            "BatchWriteOp"
+          ]
+        }
+      ],
+      "exports": [
+        "instagramRouter"
+      ],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/membership.ts": {
+      "filePath": "server/routes/membership.ts",
+      "contentHash": "05f9bd653290b83b0d1ef25f546da6f86529fe7dafd6a7358036bd14919ffcb6",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "firebase-admin/firestore",
+          "specifiers": [
+            "FieldValue"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        },
+        {
+          "source": "@/server/lib/cloudFunctions",
+          "specifiers": [
+            "sendNotificationMemberSHPE"
+          ]
+        }
+      ],
+      "exports": [
+        "membershipRouter"
+      ],
+      "totalLines": 103,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/points.ts": {
+      "filePath": "server/routes/points.ts",
+      "contentHash": "be03675789c518448ba2d39fe656e80b894688a93ebeb2d9c0312e506d416049",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        },
+        {
+          "source": "@/server/lib/cloudFunctions",
+          "specifiers": [
+            "updateAllUserPoints"
+          ]
+        },
+        {
+          "source": "@/server/lib/db-helpers",
+          "specifiers": [
+            "chunkedAtomicBatch",
+            "makeEventStartTimeGetter",
+            "EventNotFoundError",
+            "ChunkedBatchError",
+            "BatchWriteOp"
+          ]
+        }
+      ],
+      "exports": [
+        "pointsRouter"
+      ],
+      "totalLines": 154,
+      "hasStructuralAnalysis": true
+    },
+    "server/routes/tools.ts": {
+      "filePath": "server/routes/tools.ts",
+      "contentHash": "d4138828812db9eb8ed59abda9ae05b90496e07b1e8427a10793569287908475",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "hono",
+          "specifiers": [
+            "Hono"
+          ]
+        },
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "@/server/firebaseAdmin",
+          "specifiers": [
+            "adminDb"
+          ]
+        }
+      ],
+      "exports": [
+        "toolsRouter"
+      ],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "storage.rules": {
+      "filePath": "storage.rules",
+      "contentHash": "155b01027f12b531a3fd904ef1afbc245eb4232917ada7fa1e6035c7b1247419",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": false
+    },
+    "tailwind.config.ts": {
+      "filePath": "tailwind.config.ts",
+      "contentHash": "98cb3fbe4dc76cd493daa8e9dc3a358071b0ea1c17f6b990100d9d4cc781d795",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "tailwindcss",
+          "specifiers": [
+            "Config"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.json": {
+      "filePath": "tsconfig.json",
+      "contentHash": "0f3f43bfc4b0bc8754b99d4cd47800f7e7cd78793e8f3d0c81fc61aa647e58df",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

@@ -21,7 +21,7 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 ## Conventions
 
-- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`.
+- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`.
 - **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
 - **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`/`lead`/`representative`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
 - **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
@@ -84,6 +84,12 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 
 > Eligibility counts are **never written** — they are derived client-side at read time from `users/{uid}/event-logs` joined to `events/{eventId}.eventType` (see [DATA_MODEL.md](./DATA_MODEL.md) § convention-tracking).
 
+### `server/routes/instagram.ts` — `/api/instagram`
+
+| Method | Path | Body | Writes / CF | Notes |
+|---|---|---|---|---|
+| POST | `/award` | `{ uids: string[] }` (1–200, deduped server-side) | for each uid: increment `points` by the event's `signInPoints` and append `Timestamp.now()` to `instagramLogs`, merge-set to BOTH `events/{eventId}/logs/{uid}` and `users/{uid}/event-logs/{eventId}`, one atomic batch | Ports the mobile `addInstagramPoints` callable (Wear It Wednesday). The hidden "Instagram Points" event is looked up by name and lazily created server-side with the mobile app's exact field set if missing. Full-doc merge sets (no `arrayUnion`/`increment`) to stay byte-compatible with the callable. uids with no `users/{uid}` doc are skipped and reported. Response: `{ ok: true, eventId, awarded, unknownUids, pointsPerAward }`. The 200-uid cap keeps the dual-write ≤400 ops = one atomic batch |
+
 ### `committees`
 No routes — committees are **read-only** in this app (client hook, [§ below](#client-side-reads-not-api-routes)). Add a router only if committee editing is introduced.
 
@@ -106,6 +112,7 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
 | Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |
 | Convention tracking roster + derived counts | new (`convention-tracking` + per-user `event-logs` + `events` type join) | `['conventions']` |
+| Instagram points history | new (`events` by name "Instagram Points" + `events/{id}/logs` joined to `users/{uid}`) | `['instagram-points']` |
 
 **Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
 

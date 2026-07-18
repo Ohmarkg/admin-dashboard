@@ -1,0 +1,2212 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "tamu-shpe-admin-web",
+    "languages": [
+      "typescript",
+      "javascript",
+      "css",
+      "html",
+      "json",
+      "yaml",
+      "markdown"
+    ],
+    "frameworks": [
+      "Next.js",
+      "React",
+      "Hono",
+      "TanStack Query",
+      "Firebase",
+      "Tailwind CSS",
+      "Docker"
+    ],
+    "description": "Internal officer admin portal for the Texas A&M SHPE chapter. Officers manage the same Firebase/Firestore backend as the mobile app—events, membership verification, points, committees, and operational tools—using client Firestore reads and authenticated Hono API writes.",
+    "analyzedAt": "2026-07-18T06:45:41.839Z",
+    "gitCommitHash": "49d2988a4e85c7483578d2cffc8a31de19ae6b25"
+  },
+  "nodes": [
+    {
+      "id": "domain:officer-access",
+      "type": "domain",
+      "name": "Officer Access & Portal Shell",
+      "summary": "Controls who can use the admin portal. Officers sign in with Firebase Auth (Google or emulator), must hold officer/admin custom claims, and then navigate the branded shell (navbar, dashboard) into feature sections.",
+      "tags": [
+        "auth",
+        "officers",
+        "firebase-auth",
+        "claims",
+        "portal"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "Officer",
+          "AdminClaim",
+          "FirebaseUser",
+          "Navbar",
+          "Dashboard"
+        ],
+        "businessRules": [
+          "Only users with officer or admin Firebase custom claims may enter main admin routes",
+          "All Hono /api routes require a verified Firebase ID token (or emulator bypass)",
+          "Client reads Firestore directly; privileged writes go through authenticated Hono or Cloud Functions"
+        ],
+        "crossDomainInteractions": [
+          "Gates every feature domain behind auth layout",
+          "Dashboard aggregates membership requests, pending events, and top points"
+        ]
+      }
+    },
+    {
+      "id": "domain:event-management",
+      "type": "domain",
+      "name": "Event Management",
+      "summary": "Officers create and update SHPE chapter events (meetings, workshops, study hours, volunteer, social, intramural, custom) and approve member attendance logs. The calendar UI and pending-review queue read from Firestore; create/update/approve mutations go through Hono /api/events.",
+      "tags": [
+        "events",
+        "attendance",
+        "calendar",
+        "firestore",
+        "hono"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "SHPEEvent",
+          "EventLog",
+          "GeneralMeeting",
+          "CommitteeMeeting",
+          "Workshop",
+          "StudyHours",
+          "VolunteerEvent",
+          "SocialEvent",
+          "IntramuralEvent",
+          "CustomEvent"
+        ],
+        "businessRules": [
+          "Event documents and dual-sided event logs are shared with the mobile app",
+          "Attendance approval writes verified logs via Hono, not client Firestore writes",
+          "Events may link to committees and carry sign-in/out or hourly points"
+        ],
+        "crossDomainInteractions": [
+          "Approved logs feed points administration and convention eligibility",
+          "Instagram awards create or reuse a shared Instagram event with logs"
+        ]
+      }
+    },
+    {
+      "id": "domain:points-administration",
+      "type": "domain",
+      "name": "Points Administration",
+      "summary": "Officers view and edit member points for the August–July school year, trigger full recalculation via Cloud Function stub, and export Excel workbooks. Point edits update dual-sided event logs through Hono /api/points.",
+      "tags": [
+        "points",
+        "school-year",
+        "leaderboard",
+        "export",
+        "hono"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "PointsRow",
+          "MonthlyBucket",
+          "EventLogPoints",
+          "SchoolYear",
+          "PointsWorkbook"
+        ],
+        "businessRules": [
+          "School year buckets run August through July (not calendar year)",
+          "Edits write both event-side and user-side log documents in chunked batches",
+          "Recalculation delegates to the shared Cloud Function used by the mobile ecosystem"
+        ],
+        "crossDomainInteractions": [
+          "Reads events and logs owned by event management",
+          "Instagram tool awards feed the same event-log points model",
+          "Dashboard surfaces top members by points"
+        ]
+      }
+    },
+    {
+      "id": "domain:membership-administration",
+      "type": "domain",
+      "name": "Membership Administration",
+      "summary": "Officers review MemberSHPE verification requests, approve or deny applicants, and browse official members versus all users. Approvals update user expiration fields and delete request docs via Hono; lists are client Firestore reads enriched with PublicUserInfo.",
+      "tags": [
+        "membership",
+        "verification",
+        "MemberSHPE",
+        "approve-deny",
+        "hono"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "MembershipRequest",
+          "OfficialMember",
+          "PublicUserInfo",
+          "ChapterExpiration",
+          "NationalExpiration"
+        ],
+        "businessRules": [
+          "Verified membership requires both national and chapter expirations still valid",
+          "Approve/deny mutate user docs and remove pending request documents server-side",
+          "Notifications go through Cloud Function stub (no-op on emulator)"
+        ],
+        "crossDomainInteractions": [
+          "Verified status badges appear on points, tools, and member cards",
+          "Dashboard shows pending request counts"
+        ]
+      }
+    },
+    {
+      "id": "domain:committee-oversight",
+      "type": "domain",
+      "name": "Committee Oversight",
+      "summary": "Read-only view of chapter committees from Firestore, resolving lead references into PublicUserInfo and rendering logo, description, member count, and lead avatars. No Hono write routes exist for committees in this portal.",
+      "tags": [
+        "committees",
+        "leads",
+        "firestore-read",
+        "directory"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entities": [
+          "Committee",
+          "CommitteeLead",
+          "CommitteeLogo",
+          "PublicUserInfo"
+        ],
+        "businessRules": [
+          "Committee data is read-only in the admin portal; mutations are not exposed here",
+          "Lead fields may be embedded PublicUserInfo or user document IDs requiring hydration",
+          "Firebase committee names map to branded React logo components"
+        ],
+        "crossDomainInteractions": [
+          "Events can reference committees in create/edit forms",
+          "Shares PublicUserInfo contract with membership and points"
+        ]
+      }
+    },
+    {
+      "id": "domain:operational-tools",
+      "type": "domain",
+      "name": "Operational Tools",
+      "summary": "Chapter ops tools: award Instagram engagement points, track shirt pickups, track national convention eligibility (including roster CSV/XLSX import), and download zipped member resumes. Mix of Hono writes, Cloud Function calls, and Firestore reads against collections shared with the mobile app.",
+      "tags": [
+        "tools",
+        "instagram",
+        "shirt-tracker",
+        "convention-tracker",
+        "resumes"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "InstagramAward",
+          "ShirtSize",
+          "ConventionTracking",
+          "ConventionEligibility",
+          "ResumeZip",
+          "RosterImport"
+        ],
+        "businessRules": [
+          "Shirt pickup toggles write shirt-sizes/{uid} only via Hono to avoid client write access",
+          "Convention track/untrack writes convention-tracking docs via Hono batch helpers",
+          "Instagram awards get-or-create a shared Instagram event and dual-sided logs",
+          "Resume zip downloads invoke a Cloud Function returning a blob URL",
+          "Convention eligibility derives from verified event-log attendance by event type"
+        ],
+        "crossDomainInteractions": [
+          "Instagram awards write into the events/points log model",
+          "Convention eligibility depends on approved event attendance",
+          "Shirt and resume tools use the shared member directory"
+        ]
+      }
+    },
+    {
+      "id": "flow:officer-sign-in",
+      "type": "flow",
+      "name": "Officer Sign-In",
+      "summary": "Officer authenticates with Google or emulator account, claim check runs, and authorized users redirect into the main admin area.",
+      "tags": [
+        "auth",
+        "login",
+        "google",
+        "emulator"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "GET / (login page)",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:gate-admin-routes",
+      "type": "flow",
+      "name": "Gate Admin Routes",
+      "summary": "Main layout listens to Firebase auth state, verifies officer/admin claims, and renders Navbar plus child routes only when authorized.",
+      "tags": [
+        "auth-guard",
+        "layout",
+        "claims"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "app/(main)/layout.tsx mount",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:view-officer-dashboard",
+      "type": "flow",
+      "name": "View Officer Dashboard",
+      "summary": "Dashboard aggregates pending membership requests, events needing attendance review, and top members by points for a quick ops snapshot.",
+      "tags": [
+        "dashboard",
+        "overview"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "GET /dashboard",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:officer-sign-in:show-login",
+      "name": "Show Login Landing",
+      "summary": "Render Google and emulator sign-in options on the portal landing page.",
+      "tags": [
+        "ui",
+        "login"
+      ],
+      "complexity": "simple",
+      "filePath": "app/page.tsx",
+      "lineRange": [
+        16,
+        211
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:officer-sign-in:authenticate",
+      "name": "Authenticate With Firebase",
+      "summary": "Sign in via Google popup or fixed emulator email/password helpers.",
+      "tags": [
+        "firebase-auth"
+      ],
+      "complexity": "simple",
+      "filePath": "app/helpers/auth.ts",
+      "lineRange": [
+        18,
+        36
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:officer-sign-in:check-claims",
+      "name": "Check Officer Claims",
+      "summary": "Refresh ID token and require officer or admin custom claims before redirect.",
+      "tags": [
+        "claims",
+        "security"
+      ],
+      "complexity": "simple",
+      "filePath": "app/helpers/auth.ts",
+      "lineRange": [
+        42,
+        53
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:officer-sign-in:redirect-dashboard",
+      "name": "Redirect To Dashboard",
+      "summary": "Send authorized officers into the main admin dashboard area.",
+      "tags": [
+        "navigation"
+      ],
+      "complexity": "simple",
+      "filePath": "app/page.tsx",
+      "lineRange": [
+        16,
+        211
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:gate-admin-routes:listen-auth",
+      "name": "Listen To Auth State",
+      "summary": "Main layout observes Firebase client auth state for the current session.",
+      "tags": [
+        "auth",
+        "layout"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/layout.tsx",
+      "lineRange": [
+        11,
+        50
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:gate-admin-routes:verify-claims",
+      "name": "Verify Recognized Claims",
+      "summary": "Block main content until the user has officer/admin claims.",
+      "tags": [
+        "claims",
+        "auth-guard"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/layout.tsx",
+      "lineRange": [
+        11,
+        50
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:gate-admin-routes:render-shell",
+      "name": "Render Navbar Shell",
+      "summary": "Render branded Navbar and child route content for authorized officers.",
+      "tags": [
+        "navbar",
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "app/components/Navbar.tsx",
+      "lineRange": [
+        21,
+        76
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-officer-dashboard:load-membership-stats",
+      "name": "Load Membership Stats",
+      "summary": "Query pending membership requests and official member counts for dashboard cards.",
+      "tags": [
+        "membership",
+        "react-query"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/dashboard/page.tsx",
+      "lineRange": [
+        28,
+        227
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-officer-dashboard:load-pending-events",
+      "name": "Load Pending Events",
+      "summary": "Fetch events that still have unverified attendance logs needing review.",
+      "tags": [
+        "events",
+        "pending"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        100,
+        133
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-officer-dashboard:load-top-points",
+      "name": "Load Top Points Leaders",
+      "summary": "Load school-year points data and surface top members on the dashboard.",
+      "tags": [
+        "points",
+        "leaderboard"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/dashboard/page.tsx",
+      "lineRange": [
+        28,
+        227
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-officer-dashboard:render-overview",
+      "name": "Render Dashboard Overview",
+      "summary": "Compose stats, recent requests, and top members with loading and error states.",
+      "tags": [
+        "ui",
+        "dashboard"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/dashboard/page.tsx",
+      "lineRange": [
+        28,
+        227
+      ]
+    },
+    {
+      "id": "flow:create-update-event",
+      "type": "flow",
+      "name": "Create Or Update Event",
+      "summary": "Officer opens EventModal, fills type-specific fields, and persists create/update through authenticated Hono /api/events while lists remain Firestore client reads.",
+      "tags": [
+        "events",
+        "create",
+        "update",
+        "hono"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST|PUT /api/events",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:approve-attendance-logs",
+      "type": "flow",
+      "name": "Approve Attendance Logs",
+      "summary": "Officer reviews pending unverified logs and approves them singly or in bulk via Hono, writing verified dual-sided logs shared with the mobile app.",
+      "tags": [
+        "attendance",
+        "approval",
+        "event-logs"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/events/:id/logs/.../approve",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:browse-events-calendar",
+      "type": "flow",
+      "name": "Browse Events Calendar",
+      "summary": "Events page loads SHPE events and pending logs from Firestore, maps them onto a calendar, and opens day drill-down and edit modals.",
+      "tags": [
+        "calendar",
+        "firestore-read",
+        "events"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "GET /events",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:open-modal",
+      "name": "Open Event Modal",
+      "summary": "Open create/edit modal with type-specific fields, schedule, committees, and log management UI.",
+      "tags": [
+        "ui",
+        "form"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/components/EventModal.tsx",
+      "lineRange": [
+        148,
+        637
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:serialize-payload",
+      "name": "Serialize Event Payload",
+      "summary": "Normalize form timestamps and nested fields into API-ready event input.",
+      "tags": [
+        "serialization"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        153,
+        177
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:authed-api-call",
+      "name": "Call Authenticated Events API",
+      "summary": "POST or PUT via authedFetch with Bearer Firebase ID token to Hono events router.",
+      "tags": [
+        "hono",
+        "authed-fetch"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/authedFetch.ts",
+      "lineRange": [
+        21,
+        43
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:verify-token",
+      "name": "Verify ID Token On Server",
+      "summary": "Auth middleware verifies Firebase ID token (or emulator bypass) and attaches uid.",
+      "tags": [
+        "middleware",
+        "security"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/middleware/auth.ts"
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:write-firestore",
+      "name": "Write Event Document",
+      "summary": "Map validated body to Firestore event fields and create or update the events collection document.",
+      "tags": [
+        "firestore-write",
+        "admin-sdk"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/routes/events.ts",
+      "lineRange": [
+        75,
+        150
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:create-update-event:invalidate-queries",
+      "name": "Invalidate Event Queries",
+      "summary": "React Query mutations invalidate event lists so the calendar refreshes.",
+      "tags": [
+        "react-query",
+        "cache"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        184,
+        224
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-attendance-logs:load-pending",
+      "name": "Load Pending Logs",
+      "summary": "Fetch events with unapproved attendance logs for the pending-review queue.",
+      "tags": [
+        "firestore-read",
+        "pending"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        100,
+        133
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-attendance-logs:review-ui",
+      "name": "Review In Event UI",
+      "summary": "Show pending event cards and log approval controls inside EventModal or events page.",
+      "tags": [
+        "ui",
+        "approval"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/events/page.tsx",
+      "lineRange": [
+        147,
+        182
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-attendance-logs:single-or-bulk",
+      "name": "Approve Single Or Bulk",
+      "summary": "Mutation hooks call single-log or bulk-approve Hono endpoints for an event.",
+      "tags": [
+        "mutation",
+        "hono"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        231,
+        272
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-attendance-logs:server-verify-write",
+      "name": "Server Verifies And Writes Logs",
+      "summary": "Events router validates logs exist and writes verified attendance state via Admin SDK.",
+      "tags": [
+        "firestore-write",
+        "event-logs"
+      ],
+      "complexity": "complex",
+      "filePath": "server/routes/events.ts",
+      "lineRange": [
+        155,
+        204
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-attendance-logs:refresh-ui",
+      "name": "Refresh Pending Views",
+      "summary": "Invalidate event and pending queries so calendar and dashboard counts update.",
+      "tags": [
+        "react-query"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        231,
+        272
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-events-calendar:fetch-events",
+      "name": "Fetch Events List",
+      "summary": "React Query hook loads the full SHPE events collection from Firestore on the client.",
+      "tags": [
+        "firestore-read"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useEvents.ts",
+      "lineRange": [
+        25,
+        30
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-events-calendar:map-calendar",
+      "name": "Map Onto Calendar",
+      "summary": "Events page places events on the calendar and supports day drill-down.",
+      "tags": [
+        "calendar",
+        "ui"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/events/page.tsx",
+      "lineRange": [
+        18,
+        145
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-events-calendar:show-pending-cards",
+      "name": "Show Pending Review Cards",
+      "summary": "Surface events with unverified log counts for officer follow-up.",
+      "tags": [
+        "pending",
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/events/page.tsx",
+      "lineRange": [
+        147,
+        182
+      ]
+    },
+    {
+      "id": "flow:view-edit-school-year-points",
+      "type": "flow",
+      "name": "View And Edit School-Year Points",
+      "summary": "Load members, events, and logs; bucket points into August–July months; allow inline edits saved through Hono /api/points/edit.",
+      "tags": [
+        "points",
+        "edit",
+        "school-year"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/points/edit",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:recalculate-member-points",
+      "type": "flow",
+      "name": "Recalculate Member Points",
+      "summary": "Officer triggers full points recalculation; Hono /api/points/recalculate delegates to the shared Cloud Function stub.",
+      "tags": [
+        "points",
+        "recalculate",
+        "cloud-functions"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/points/recalculate",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:export-points-workbook",
+      "type": "flow",
+      "name": "Export Points Workbook",
+      "summary": "Build an Excel workbook with master totals and per-month event sheets and download it in the browser.",
+      "tags": [
+        "export",
+        "excel",
+        "points"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Points page export action",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:view-edit-school-year-points:bucket-months",
+      "name": "Compute School-Year Months",
+      "summary": "Derive August–July month windows and labels for the current school year.",
+      "tags": [
+        "school-year",
+        "utility"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/usePoints.ts",
+      "lineRange": [
+        21,
+        67
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-edit-school-year-points:aggregate-logs",
+      "name": "Aggregate Event Log Points",
+      "summary": "Load members/events/logs and build per-member monthly point buckets.",
+      "tags": [
+        "firestore-read",
+        "aggregation"
+      ],
+      "complexity": "complex",
+      "filePath": "lib/hooks/usePoints.ts",
+      "lineRange": [
+        138,
+        230
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-edit-school-year-points:edit-grid",
+      "name": "Edit Points In Grid",
+      "summary": "Editable monthly table tracks dirty cells for member-event point changes.",
+      "tags": [
+        "ui",
+        "data-table"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/points/PointsGrid.tsx",
+      "lineRange": [
+        131,
+        215
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-edit-school-year-points:post-edits",
+      "name": "Post Point Edits To API",
+      "summary": "useEditPoints posts adjustments; server looks up event start times and chunk-writes dual-sided logs.",
+      "tags": [
+        "hono",
+        "firestore-write"
+      ],
+      "complexity": "complex",
+      "filePath": "server/routes/points.ts",
+      "lineRange": [
+        38,
+        148
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:view-edit-school-year-points:refresh-grid",
+      "name": "Refresh Points Grid",
+      "summary": "Invalidate points queries after successful save so totals and ranks update.",
+      "tags": [
+        "react-query"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/usePoints.ts",
+      "lineRange": [
+        261,
+        277
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:recalculate-member-points:trigger-ui",
+      "name": "Trigger Recalculate Action",
+      "summary": "Points page exposes recalculate control wired to useRecalculatePoints.",
+      "tags": [
+        "ui",
+        "points"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/points/page.tsx",
+      "lineRange": [
+        41,
+        235
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:recalculate-member-points:call-api",
+      "name": "Call Recalculate Endpoint",
+      "summary": "Authenticated POST to /api/points/recalculate.",
+      "tags": [
+        "hono",
+        "authed-fetch"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/usePoints.ts",
+      "lineRange": [
+        283,
+        296
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:recalculate-member-points:invoke-cloud-function",
+      "name": "Invoke Points Cloud Function",
+      "summary": "Server stub calls updateAllUserPoints (no-op on emulator until production wiring).",
+      "tags": [
+        "cloud-functions",
+        "stub"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/lib/cloudFunctions.ts",
+      "lineRange": [
+        18,
+        25
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:recalculate-member-points:refresh-data",
+      "name": "Refresh Points Data",
+      "summary": "Invalidate points queries after recalculation completes.",
+      "tags": [
+        "react-query"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/usePoints.ts",
+      "lineRange": [
+        283,
+        296
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:export-points-workbook:build-master",
+      "name": "Build Master Sheet",
+      "summary": "Add master worksheet with member totals and monthly aggregates.",
+      "tags": [
+        "excel",
+        "export"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/points/exportPoints.ts",
+      "lineRange": [
+        54,
+        101
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:export-points-workbook:build-monthly",
+      "name": "Build Monthly Sheets",
+      "summary": "Add per-month worksheets with event columns and member point rows.",
+      "tags": [
+        "excel",
+        "export"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/points/exportPoints.ts",
+      "lineRange": [
+        104,
+        171
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:export-points-workbook:download",
+      "name": "Download Workbook",
+      "summary": "Create workbook buffer and trigger browser download of points data.",
+      "tags": [
+        "download"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/points/exportPoints.ts",
+      "lineRange": [
+        182,
+        190
+      ]
+    },
+    {
+      "id": "flow:review-membership-requests",
+      "type": "flow",
+      "name": "Review Membership Requests",
+      "summary": "Load pending MemberSHPE requests from Firestore with profile enrichment and display them in the requests tab.",
+      "tags": [
+        "membership",
+        "requests",
+        "firestore-read"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "GET /membership (Requests tab)",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:approve-deny-membership",
+      "type": "flow",
+      "name": "Approve Or Deny Membership",
+      "summary": "Officer approves or denies a request; Hono updates user expiration fields, deletes the request doc, and notifies via Cloud Function stub.",
+      "tags": [
+        "membership",
+        "approve",
+        "deny",
+        "hono"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/membership/:uid/approve|deny",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:browse-members-directory",
+      "type": "flow",
+      "name": "Browse Members Directory",
+      "summary": "Switch between official verified members and searchable all-users table with roles, major, and class year.",
+      "tags": [
+        "membership",
+        "directory",
+        "roles"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "GET /membership",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:review-membership-requests:fetch-requests",
+      "name": "Fetch Pending Requests",
+      "summary": "Load pending membership request docs and enrich with user profile data from Firestore.",
+      "tags": [
+        "firestore-read"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useMembership.ts",
+      "lineRange": [
+        27,
+        70
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:review-membership-requests:render-cards",
+      "name": "Render Request Cards",
+      "summary": "Requests tab shows MemberCards with profile details and verification badges.",
+      "tags": [
+        "ui",
+        "membership"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/membership/page.tsx",
+      "lineRange": [
+        45,
+        115
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:review-membership-requests:check-verified",
+      "name": "Evaluate Verification Status",
+      "summary": "Helpers compare national/chapter expiration timestamps for verified badges.",
+      "tags": [
+        "verification",
+        "business-rule"
+      ],
+      "complexity": "simple",
+      "filePath": "app/types/membership.ts",
+      "lineRange": [
+        18,
+        37
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-deny-membership:officer-action",
+      "name": "Officer Approves Or Denies",
+      "summary": "MemberCard approve/deny buttons fire useApproveMembership or useDenyMembership.",
+      "tags": [
+        "ui",
+        "mutation"
+      ],
+      "complexity": "simple",
+      "filePath": "app/components/MemberCard.tsx",
+      "lineRange": [
+        70,
+        229
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-deny-membership:authed-post",
+      "name": "POST Membership Decision",
+      "summary": "Authenticated call to /api/membership/:uid/approve or /deny.",
+      "tags": [
+        "hono",
+        "authed-fetch"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useMembership.ts",
+      "lineRange": [
+        112,
+        140
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-deny-membership:update-user-docs",
+      "name": "Update User And Delete Request",
+      "summary": "Server batch-updates expiration fields (or clears on deny) and deletes the request document.",
+      "tags": [
+        "firestore-write",
+        "batch"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/routes/membership.ts",
+      "lineRange": [
+        19,
+        90
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:approve-deny-membership:notify-member",
+      "name": "Notify Member",
+      "summary": "Cloud Function stub sends membership notification (no-op on emulator).",
+      "tags": [
+        "notifications",
+        "cloud-functions"
+      ],
+      "complexity": "simple",
+      "filePath": "server/lib/cloudFunctions.ts"
+    },
+    {
+      "type": "step",
+      "id": "step:browse-members-directory:official-tab",
+      "name": "List Official Members",
+      "summary": "Official members tab shows verified members in a card grid.",
+      "tags": [
+        "ui",
+        "members"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/membership/page.tsx",
+      "lineRange": [
+        121,
+        165
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-members-directory:all-users-tab",
+      "name": "Search All Users",
+      "summary": "All-users table lists roles, major, and class year with search.",
+      "tags": [
+        "ui",
+        "directory"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/membership/page.tsx",
+      "lineRange": [
+        171,
+        283
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-members-directory:shared-user-types",
+      "name": "Apply Shared User Types",
+      "summary": "Use PublicUserInfo, class-year, and major constants shared with the mobile app contracts.",
+      "tags": [
+        "types",
+        "shared-contract"
+      ],
+      "complexity": "simple",
+      "filePath": "app/types/user.ts"
+    },
+    {
+      "id": "flow:browse-committees",
+      "type": "flow",
+      "name": "Browse Committees",
+      "summary": "Fetch committees from Firestore, resolve lead user references, and render a responsive card grid (read-only).",
+      "tags": [
+        "committees",
+        "firestore-read",
+        "directory"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "GET /committees",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:browse-committees:fetch-collection",
+      "name": "Fetch Committees Collection",
+      "summary": "Load committees documents from Firestore via React Query.",
+      "tags": [
+        "firestore-read"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useCommittees.ts",
+      "lineRange": [
+        35,
+        70
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-committees:resolve-leads",
+      "name": "Resolve Lead Profiles",
+      "summary": "Hydrate leads that are user IDs into PublicUserInfo via userInfo lookups.",
+      "tags": [
+        "hydration",
+        "PublicUserInfo"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useCommittees.ts",
+      "lineRange": [
+        19,
+        33
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:browse-committees:render-cards",
+      "name": "Render Committee Cards",
+      "summary": "Show logo, description, member count, and lead avatars with loading/error/empty states.",
+      "tags": [
+        "ui",
+        "cards"
+      ],
+      "complexity": "simple",
+      "filePath": "app/components/CommitteeCard.tsx",
+      "lineRange": [
+        70,
+        179
+      ]
+    },
+    {
+      "id": "flow:award-instagram-points",
+      "type": "flow",
+      "name": "Award Instagram Points",
+      "summary": "Officer selects members and awards Instagram engagement points; server get-or-creates a shared Instagram event and writes dual-sided logs.",
+      "tags": [
+        "instagram",
+        "points",
+        "tools",
+        "hono"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/instagram/award",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:track-shirt-pickups",
+      "type": "flow",
+      "name": "Track Shirt Pickups",
+      "summary": "Search members and toggle shirtPickedUp on shirt-sizes docs via Hono so clients never hold write access to that collection.",
+      "tags": [
+        "shirts",
+        "inventory",
+        "tools"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/tools/shirts/:uid/toggle",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:track-convention-eligibility",
+      "type": "flow",
+      "name": "Track Convention Eligibility",
+      "summary": "Track/untrack members for national convention, derive eligibility counts from verified event attendance, and optionally import roster emails from CSV/XLSX.",
+      "tags": [
+        "convention",
+        "eligibility",
+        "import",
+        "tools"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/conventions/track|untrack",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:download-member-resumes",
+      "type": "flow",
+      "name": "Download Member Resumes",
+      "summary": "Check how many members uploaded resumes and invoke the zip-resumes Cloud Function to download a zip blob.",
+      "tags": [
+        "resumes",
+        "cloud-functions",
+        "tools"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Tools resume panel / zip Cloud Function",
+        "entryType": "manual"
+      }
+    },
+    {
+      "type": "step",
+      "id": "step:award-instagram-points:load-history",
+      "name": "Load Award History",
+      "summary": "Query Instagram event logs and user profiles into sortable award rows (client Firestore read).",
+      "tags": [
+        "firestore-read",
+        "instagram"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useInstagramPoints.ts",
+      "lineRange": [
+        33,
+        105
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:award-instagram-points:select-members",
+      "name": "Select Members In Dialog",
+      "summary": "AwardPointsDialog multi-selects members for a bulk Instagram points award.",
+      "tags": [
+        "ui",
+        "dialog"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/tools/instagram-points/AwardPointsDialog.tsx",
+      "lineRange": [
+        21,
+        244
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:award-instagram-points:post-award",
+      "name": "POST Award To API",
+      "summary": "useAwardInstagramPoints posts selected UIDs to /api/instagram/award.",
+      "tags": [
+        "hono",
+        "mutation"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useInstagramPoints.ts",
+      "lineRange": [
+        125,
+        141
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:award-instagram-points:get-or-create-event",
+      "name": "Get Or Create Instagram Event",
+      "summary": "Server finds or creates the shared Instagram points event and returns sign-in points.",
+      "tags": [
+        "events",
+        "shared-contract"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/routes/instagram.ts",
+      "lineRange": [
+        30,
+        66
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:award-instagram-points:write-dual-logs",
+      "name": "Write Dual-Sided Logs",
+      "summary": "Award route writes event-side and user-side logs compatible with mobile callable shapes.",
+      "tags": [
+        "firestore-write",
+        "event-logs"
+      ],
+      "complexity": "complex",
+      "filePath": "server/routes/instagram.ts",
+      "lineRange": [
+        68,
+        160
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-shirt-pickups:fetch-inventory",
+      "name": "Fetch Shirt Inventory",
+      "summary": "Load shirt-sizes records from Firestore for searchable member rows.",
+      "tags": [
+        "firestore-read",
+        "shirts"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useTools.ts",
+      "lineRange": [
+        32,
+        73
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-shirt-pickups:toggle-ui",
+      "name": "Toggle Pickup Checkbox",
+      "summary": "Shirt tracker page checkbox toggles received status per member.",
+      "tags": [
+        "ui",
+        "shirt-tracker"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/tools/shirt-tracker/page.tsx",
+      "lineRange": [
+        24,
+        189
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-shirt-pickups:hono-write",
+      "name": "Write Via Hono Toggle",
+      "summary": "POST /api/tools/shirts/:uid/toggle merges shirtPickedUp on shirt-sizes/{uid} with Admin SDK.",
+      "tags": [
+        "hono",
+        "firestore-write"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/routes/tools.ts",
+      "lineRange": [
+        20,
+        54
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-shirt-pickups:refresh-list",
+      "name": "Refresh Shirt List",
+      "summary": "useToggleShirt invalidates shirt inventory queries after success.",
+      "tags": [
+        "react-query"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useTools.ts",
+      "lineRange": [
+        89,
+        104
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-convention-eligibility:derive-counts",
+      "name": "Derive Eligibility Counts",
+      "summary": "Aggregate verified event-log attendance into convention count buckets by event type and check thresholds.",
+      "tags": [
+        "eligibility",
+        "aggregation"
+      ],
+      "complexity": "complex",
+      "filePath": "lib/hooks/useConventionTracker.ts",
+      "lineRange": [
+        46,
+        148
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-convention-eligibility:import-roster",
+      "name": "Import Roster File",
+      "summary": "Parse CSV/XLSX roster, extract emails, and match to members for bulk tracking.",
+      "tags": [
+        "import",
+        "csv",
+        "xlsx"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/tools/convention-tracker/parseRoster.ts",
+      "lineRange": [
+        12,
+        164
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-convention-eligibility:track-members",
+      "name": "Track Or Untrack Members",
+      "summary": "POST UIDs to conventions track/untrack Hono routes using chunked batch writes.",
+      "tags": [
+        "hono",
+        "firestore-write"
+      ],
+      "complexity": "moderate",
+      "filePath": "server/routes/conventions.ts",
+      "lineRange": [
+        29,
+        105
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:track-convention-eligibility:render-table",
+      "name": "Render Tracker Table",
+      "summary": "Convention tracker page lists tracked members with eligibility cells, search, and actions.",
+      "tags": [
+        "ui",
+        "data-table"
+      ],
+      "complexity": "moderate",
+      "filePath": "app/(main)/tools/convention-tracker/page.tsx",
+      "lineRange": [
+        45,
+        269
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:download-member-resumes:check-status",
+      "name": "Check Resume Upload Status",
+      "summary": "Query how many members have uploaded resumes for the tools resume panel.",
+      "tags": [
+        "resumes",
+        "firestore-read"
+      ],
+      "complexity": "simple",
+      "filePath": "lib/hooks/useTools.ts",
+      "lineRange": [
+        132,
+        155
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:download-member-resumes:invoke-zip",
+      "name": "Invoke Zip Resumes Function",
+      "summary": "callZipResume hits the zip-resumes Cloud Function and returns a downloadable blob URL.",
+      "tags": [
+        "cloud-functions",
+        "download"
+      ],
+      "complexity": "moderate",
+      "filePath": "lib/hooks/useTools.ts",
+      "lineRange": [
+        170,
+        198
+      ]
+    },
+    {
+      "type": "step",
+      "id": "step:download-member-resumes:panel-ui",
+      "name": "Present Resume Tools Panel",
+      "summary": "Tools hub ResumePanel shows status and download action alongside other tool links.",
+      "tags": [
+        "ui",
+        "tools"
+      ],
+      "complexity": "simple",
+      "filePath": "app/(main)/tools/page.tsx",
+      "lineRange": [
+        25,
+        116
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "domain:officer-access",
+      "target": "flow:officer-sign-in",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "flow:gate-admin-routes",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "flow:view-officer-dashboard",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:officer-sign-in",
+      "target": "step:officer-sign-in:show-login",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:officer-sign-in",
+      "target": "step:officer-sign-in:authenticate",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:officer-sign-in",
+      "target": "step:officer-sign-in:check-claims",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:officer-sign-in",
+      "target": "step:officer-sign-in:redirect-dashboard",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:gate-admin-routes",
+      "target": "step:gate-admin-routes:listen-auth",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:gate-admin-routes",
+      "target": "step:gate-admin-routes:verify-claims",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:gate-admin-routes",
+      "target": "step:gate-admin-routes:render-shell",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:view-officer-dashboard",
+      "target": "step:view-officer-dashboard:load-membership-stats",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:view-officer-dashboard",
+      "target": "step:view-officer-dashboard:load-pending-events",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:view-officer-dashboard",
+      "target": "step:view-officer-dashboard:load-top-points",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:view-officer-dashboard",
+      "target": "step:view-officer-dashboard:render-overview",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:event-management",
+      "target": "flow:create-update-event",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:event-management",
+      "target": "flow:approve-attendance-logs",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:event-management",
+      "target": "flow:browse-events-calendar",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:open-modal",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:serialize-payload",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:authed-api-call",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:verify-token",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:write-firestore",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:create-update-event",
+      "target": "step:create-update-event:invalidate-queries",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:approve-attendance-logs",
+      "target": "step:approve-attendance-logs:load-pending",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:approve-attendance-logs",
+      "target": "step:approve-attendance-logs:review-ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:approve-attendance-logs",
+      "target": "step:approve-attendance-logs:single-or-bulk",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:approve-attendance-logs",
+      "target": "step:approve-attendance-logs:server-verify-write",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:approve-attendance-logs",
+      "target": "step:approve-attendance-logs:refresh-ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:browse-events-calendar",
+      "target": "step:browse-events-calendar:fetch-events",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:browse-events-calendar",
+      "target": "step:browse-events-calendar:map-calendar",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:browse-events-calendar",
+      "target": "step:browse-events-calendar:show-pending-cards",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:points-administration",
+      "target": "flow:view-edit-school-year-points",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:points-administration",
+      "target": "flow:recalculate-member-points",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:points-administration",
+      "target": "flow:export-points-workbook",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:view-edit-school-year-points",
+      "target": "step:view-edit-school-year-points:bucket-months",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:view-edit-school-year-points",
+      "target": "step:view-edit-school-year-points:aggregate-logs",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:view-edit-school-year-points",
+      "target": "step:view-edit-school-year-points:edit-grid",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:view-edit-school-year-points",
+      "target": "step:view-edit-school-year-points:post-edits",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:view-edit-school-year-points",
+      "target": "step:view-edit-school-year-points:refresh-grid",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:recalculate-member-points",
+      "target": "step:recalculate-member-points:trigger-ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:recalculate-member-points",
+      "target": "step:recalculate-member-points:call-api",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:recalculate-member-points",
+      "target": "step:recalculate-member-points:invoke-cloud-function",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:recalculate-member-points",
+      "target": "step:recalculate-member-points:refresh-data",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:export-points-workbook",
+      "target": "step:export-points-workbook:build-master",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:export-points-workbook",
+      "target": "step:export-points-workbook:build-monthly",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:export-points-workbook",
+      "target": "step:export-points-workbook:download",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:membership-administration",
+      "target": "flow:review-membership-requests",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:membership-administration",
+      "target": "flow:approve-deny-membership",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:membership-administration",
+      "target": "flow:browse-members-directory",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:review-membership-requests",
+      "target": "step:review-membership-requests:fetch-requests",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:review-membership-requests",
+      "target": "step:review-membership-requests:render-cards",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:review-membership-requests",
+      "target": "step:review-membership-requests:check-verified",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:approve-deny-membership",
+      "target": "step:approve-deny-membership:officer-action",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:approve-deny-membership",
+      "target": "step:approve-deny-membership:authed-post",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:approve-deny-membership",
+      "target": "step:approve-deny-membership:update-user-docs",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:approve-deny-membership",
+      "target": "step:approve-deny-membership:notify-member",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:browse-members-directory",
+      "target": "step:browse-members-directory:official-tab",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:browse-members-directory",
+      "target": "step:browse-members-directory:all-users-tab",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:browse-members-directory",
+      "target": "step:browse-members-directory:shared-user-types",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:committee-oversight",
+      "target": "flow:browse-committees",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:browse-committees",
+      "target": "step:browse-committees:fetch-collection",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:browse-committees",
+      "target": "step:browse-committees:resolve-leads",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:browse-committees",
+      "target": "step:browse-committees:render-cards",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:operational-tools",
+      "target": "flow:award-instagram-points",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:operational-tools",
+      "target": "flow:track-shirt-pickups",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:operational-tools",
+      "target": "flow:track-convention-eligibility",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "domain:operational-tools",
+      "target": "flow:download-member-resumes",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:award-instagram-points",
+      "target": "step:award-instagram-points:load-history",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:award-instagram-points",
+      "target": "step:award-instagram-points:select-members",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:award-instagram-points",
+      "target": "step:award-instagram-points:post-award",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:award-instagram-points",
+      "target": "step:award-instagram-points:get-or-create-event",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:award-instagram-points",
+      "target": "step:award-instagram-points:write-dual-logs",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:track-shirt-pickups",
+      "target": "step:track-shirt-pickups:fetch-inventory",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:track-shirt-pickups",
+      "target": "step:track-shirt-pickups:toggle-ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:track-shirt-pickups",
+      "target": "step:track-shirt-pickups:hono-write",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:track-shirt-pickups",
+      "target": "step:track-shirt-pickups:refresh-list",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:track-convention-eligibility",
+      "target": "step:track-convention-eligibility:derive-counts",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:track-convention-eligibility",
+      "target": "step:track-convention-eligibility:import-roster",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:track-convention-eligibility",
+      "target": "step:track-convention-eligibility:track-members",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "flow:track-convention-eligibility",
+      "target": "step:track-convention-eligibility:render-table",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "flow:download-member-resumes",
+      "target": "step:download-member-resumes:check-status",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:download-member-resumes",
+      "target": "step:download-member-resumes:invoke-zip",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:download-member-resumes",
+      "target": "step:download-member-resumes:panel-ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "domain:event-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Auth layout and claims gate the events calendar and approval UI",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "domain:points-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Dashboard and nav expose points; same Firebase session tokens authorize Hono point writes",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "domain:membership-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Dashboard surfaces pending requests; membership pages require officer claims",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:officer-access",
+      "target": "domain:operational-tools",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Tools hub is reachable only through the authenticated main shell",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:event-management",
+      "target": "domain:points-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Approved attendance logs and event start times are the source of school-year point buckets and edits",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:event-management",
+      "target": "domain:operational-tools",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Convention eligibility counts verified event attendance; Instagram awards create shared events/logs",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:operational-tools",
+      "target": "domain:points-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Instagram awards write into the same dual-sided event-log points model officers edit elsewhere",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:membership-administration",
+      "target": "domain:points-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Verified/officer badges and member directory feed points grids and rankings",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:membership-administration",
+      "target": "domain:operational-tools",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Shirt, convention, Instagram, and resume tools resolve members from the shared user directory",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:committee-oversight",
+      "target": "domain:event-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Event create/edit forms can associate events with committees from the shared committee model",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:committee-oversight",
+      "target": "domain:membership-administration",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Committee leads hydrate via the same PublicUserInfo / userInfo contracts as membership",
+      "weight": 0.6
+    }
+  ],
+  "layers": [],
+  "tours": []
+}

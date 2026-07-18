@@ -274,6 +274,13 @@ Read-only in this admin app; committee management likely happens elsewhere.
 - Combines `getMembers()` + `getShirtsToVerify()` for enriched table (name, email, membership status, shirt size)
 - Officers toggle pickup checkbox → updates `shirt-sizes/{uid}` in Firestore
 
+#### Instagram Points (`/tools/instagram-points`)
+
+- Port of the mobile app's "Instagram Points" admin screen (Wear It Wednesday): officers multi-select members who posted SHPE gear on Instagram and award each +1 point
+- Awards go through `POST /api/instagram/award` — one atomic batch dual-writing `events/{eventId}/logs/{uid}` and `users/{uid}/event-logs/{eventId}`, appending a `Timestamp` to `instagramLogs` (byte-compatible with the mobile `addInstagramPoints` callable, so both clients coexist)
+- The hidden "Instagram Points" event is looked up by name and lazily created server-side on first award
+- History table reads client-side: event logs joined to `users/{uid}` — awards count, points, last-awarded date, membership status
+
 ---
 
 ## Cloud Functions (External to Repo)

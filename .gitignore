@@ -18,3 +18,9 @@ ui-debug.log
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Understand Anything — keep graphs/config; ignore local scratch
+.ua/intermediate/
+.ua/tmp/
+.ua/diff-overlay.json
+.ua/.trash-*/

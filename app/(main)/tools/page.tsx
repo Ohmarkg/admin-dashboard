@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Award, Download, Loader2, Shirt } from "lucide-react";
+import { Award, Download, Instagram, Loader2, Shirt } from "lucide-react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/card";
 import { useResumeStatus, useZipResumes } from "@/lib/hooks/useTools";
 
-// Tools screen (DESIGN_BRIEF §4 "6. Tools"): two utility panels — resume
-// zip generator with live status (idle → generating → ready/expired) and a
-// link into the Shirt Tracker sub-page. No manual reload — `useResumeStatus`
-// pushes live updates via onSnapshot.
+// Tools screen (DESIGN_BRIEF §4 "6. Tools"): utility panels — resume zip
+// generator with live status (idle → generating → ready/expired) plus links
+// into the Shirt Tracker, Convention Tracker, and Instagram Points sub-pages.
+// No manual reload — `useResumeStatus` pushes live updates via onSnapshot.
 
 function ResumePanel() {
     const { status, data } = useResumeStatus();
@@ -164,6 +164,30 @@ function ConventionTrackerPanel() {
     );
 }
 
+function InstagramPointsPanel() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-display text-base font-semibold uppercase tracking-wide text-foreground">
+                    Instagram Points
+                </CardTitle>
+                <CardDescription>
+                    Award +1 point to members who participated in Wear It
+                    Wednesday on Instagram, and review award history.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild variant="outline">
+                    <Link href="/tools/instagram-points">
+                        <Instagram className="h-4 w-4" />
+                        Open Instagram Points
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function ToolsPage() {
     return (
         <div className="mx-auto max-w-[1240px] px-10 py-8">
@@ -172,6 +196,7 @@ export default function ToolsPage() {
                 <ResumePanel />
                 <ShirtTrackerPanel />
                 <ConventionTrackerPanel />
+                <InstagramPointsPanel />
             </div>
         </div>
     );
