@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/config/firebaseClient";
 import type { RequestWithDoc } from "@/types/membership";
 import { isMemberVerified } from "@/types/membership";
@@ -103,18 +103,39 @@ function invalidateMembershipQueries(queryClient: ReturnType<typeof useQueryClie
     queryClient.invalidateQueries({ queryKey: ["members"] });
 }
 
+export interface ApproveMembershipInput {
+    uid: string;
+    /** Optional approve-time override of the request's national expiration
+     * (parity with mobile MemberSHPEConfirm "Adjust Date"). Serialized to the
+     * wire `{seconds,nanoseconds}` shape (API.md Conventions). */
+    nationalExpiration?: Timestamp | null;
+}
+
 /**
  * `POST /api/membership/:uid/approve` — sets `users/{uid}` expirations from
- * the request and deletes `memberSHPE/{uid}` in one atomic batch server-side
- * (API.md; server/routes/membership.ts). On success, invalidates
+ * the request (with an optional `nationalExpiration` override) and deletes
+ * `memberSHPE/{uid}` in one atomic batch server-side (API.md;
+ * server/routes/membership.ts). On success, invalidates
  * `['membership','requests']`, `['membership','official']`, and `['members']`.
  */
 export function useApproveMembership() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (uid: string) => {
-            const res = await authedFetch(`/membership/${uid}/approve`, { method: "POST" });
+        mutationFn: async ({ uid, nationalExpiration }: ApproveMembershipInput) => {
+            const res = await authedFetch(`/membership/${uid}/approve`, {
+                method: "POST",
+                body: JSON.stringify(
+                    nationalExpiration
+                        ? {
+                              nationalExpiration: {
+                                  seconds: nationalExpiration.seconds,
+                                  nanoseconds: nationalExpiration.nanoseconds,
+                              },
+                          }
+                        : {}
+                ),
+            });
             return res.json();
         },
         onSuccess: () => invalidateMembershipQueries(queryClient),
@@ -138,3 +159,4 @@ export function useDenyMembership() {
         onSuccess: () => invalidateMembershipQueries(queryClient),
     });
 }
+

@@ -10,14 +10,45 @@
  */
 
 import { Hono } from "hono";
-import { FieldValue } from "firebase-admin/firestore";
+import { z } from "zod";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/server/firebaseAdmin";
+import type { AuthVariables } from "@/server/middleware/auth";
 import { sendNotificationMemberSHPE } from "@/server/lib/cloudFunctions";
 
-export const membershipRouter = new Hono();
+export const membershipRouter = new Hono<{ Variables: AuthVariables }>();
+
+// Optional approve-time override (parity with mobile MemberSHPEConfirm's
+// "Adjust National Expiration Date"). Only nationalExpiration is overridable —
+// mobile offers no chapterExpiration adjustment, so the web doesn't either
+// (API.md). Body is optional; an empty/absent body approves with the
+// request's own expirations, as before.
+const approveBodySchema = z
+    .object({
+        nationalExpiration: z
+            .object({ seconds: z.number(), nanoseconds: z.number() })
+            .optional(),
+    })
+    .optional();
 
 membershipRouter.post("/:uid/approve", async (c) => {
     const uid = c.req.param("uid");
+
+    const rawBody = await c.req.json().catch(() => undefined);
+    const parsedBody = approveBodySchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+        return c.json(
+            {
+                error: {
+                    code: "validation_error",
+                    message: "Invalid request body.",
+                    details: parsedBody.error.issues,
+                },
+            },
+            400
+        );
+    }
+    const override = parsedBody.data?.nationalExpiration;
 
     const requestRef = adminDb.doc(`memberSHPE/${uid}`);
     const requestSnap = await requestRef.get();
@@ -41,7 +72,9 @@ membershipRouter.post("/:uid/approve", async (c) => {
         userRef,
         {
             chapterExpiration: requestData.chapterExpiration,
-            nationalExpiration: requestData.nationalExpiration,
+            nationalExpiration: override
+                ? new Timestamp(override.seconds, override.nanoseconds)
+                : requestData.nationalExpiration,
         },
         { merge: true }
     );
@@ -50,7 +83,7 @@ membershipRouter.post("/:uid/approve", async (c) => {
 
     let warning: string | undefined;
     try {
-        await sendNotificationMemberSHPE({ uid, type: "approved" });
+        await sendNotificationMemberSHPE({ uid, type: "approved", idToken: c.get("idToken") });
     } catch (error) {
         console.error(`sendNotificationMemberSHPE(approved) failed for uid ${uid}:`, error);
         warning = "Membership approved, but the mobile notification failed to send.";
@@ -92,7 +125,7 @@ membershipRouter.post("/:uid/deny", async (c) => {
 
     let warning: string | undefined;
     try {
-        await sendNotificationMemberSHPE({ uid, type: "denied" });
+        await sendNotificationMemberSHPE({ uid, type: "denied", idToken: c.get("idToken") });
     } catch (error) {
         console.error(`sendNotificationMemberSHPE(denied) failed for uid ${uid}:`, error);
         warning = "Membership denied, but the mobile notification failed to send.";

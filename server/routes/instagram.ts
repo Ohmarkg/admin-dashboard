@@ -27,42 +27,55 @@ const awardBodySchema = z.object({
 
 export const instagramRouter = new Hono();
 
+/**
+ * Idempotent get-or-create for the shared `"Instagram Points"` event (issue
+ * #8). Runs in a Firestore transaction — the query read and the conditional
+ * create commit atomically, so two concurrent first-awards cannot each create
+ * an event (the emulator and production both lock the query's result range).
+ *
+ * Selection is deterministic: if duplicate docs already exist (mobile's
+ * `limit(1)` + `.add()` path can race), every web award appends to the one
+ * with the lexicographically-smallest doc id instead of whichever doc the
+ * query happened to return first — no more silently splitting awards across
+ * duplicates.
+ */
 async function getOrCreateInstagramEvent(): Promise<{ id: string; signInPoints: number }> {
-    const snap = await adminDb
-        .collection("events")
-        .where("name", "==", INSTAGRAM_EVENT_NAME)
-        .limit(1)
-        .get();
+    return adminDb.runTransaction(async (t) => {
+        const snap = await t.get(
+            adminDb.collection("events").where("name", "==", INSTAGRAM_EVENT_NAME)
+        );
 
-    if (!snap.empty) {
-        const doc = snap.docs[0];
-        return { id: doc.id, signInPoints: doc.get("signInPoints") ?? 0 };
-    }
+        if (!snap.empty) {
+            const doc = [...snap.docs].sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+            return { id: doc.id, signInPoints: doc.get("signInPoints") ?? 0 };
+        }
 
-    // Mirror the mobile app's createInstagramPointsEvent field set exactly.
-    const today = new Date();
-    const previousDay = new Date(today);
-    previousDay.setDate(today.getDate() - 1);
-    const nextYear = new Date(today);
-    nextYear.setFullYear(nextYear.getFullYear() + 1);
-    nextYear.setMonth(7);
-    nextYear.setDate(1);
+        // Mirror the mobile app's createInstagramPointsEvent field set exactly.
+        const today = new Date();
+        const previousDay = new Date(today);
+        previousDay.setDate(today.getDate() - 1);
+        const nextYear = new Date(today);
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        nextYear.setMonth(7);
+        nextYear.setDate(1);
 
-    const ref = await adminDb.collection("events").add({
-        name: INSTAGRAM_EVENT_NAME,
-        startTime: Timestamp.fromDate(previousDay),
-        endTime: Timestamp.fromDate(nextYear),
-        eventType: "Custom Event", // literal string; do NOT import client enum types into server code
-        general: false,
-        hiddenEvent: true,
-        locationName: "Instagram",
-        notificationSent: true,
-        pointsPerHour: 0,
-        signInPoints: 1,
-        signOutPoints: 0,
+        const ref = adminDb.collection("events").doc();
+        t.set(ref, {
+            name: INSTAGRAM_EVENT_NAME,
+            startTime: Timestamp.fromDate(previousDay),
+            endTime: Timestamp.fromDate(nextYear),
+            eventType: "Custom Event", // literal string; do NOT import client enum types into server code
+            general: false,
+            hiddenEvent: true,
+            locationName: "Instagram",
+            notificationSent: true,
+            pointsPerHour: 0,
+            signInPoints: 1,
+            signOutPoints: 0,
+        });
+
+        return { id: ref.id, signInPoints: 1 };
     });
-
-    return { id: ref.id, signInPoints: 1 };
 }
 
 instagramRouter.post("/award", async (c) => {

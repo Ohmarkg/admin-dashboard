@@ -2,9 +2,12 @@
 
 import * as React from "react";
 import { Timestamp } from "firebase/firestore";
+import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
 import { format } from "date-fns";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { auth, storage } from "@/config/firebaseClient";
 
 import FormDialog from "@/components/FormDialog";
 import { Button } from "@/components/ui/button";
@@ -83,6 +86,8 @@ interface EventFormState {
     pointsPerHour: string;
     general: boolean;
     hiddenEvent: boolean;
+    coverImageURI: string;
+    nationalConventionEligible: boolean;
 }
 
 function defaultForm(): EventFormState {
@@ -107,6 +112,8 @@ function defaultForm(): EventFormState {
         pointsPerHour: "0",
         general: true,
         hiddenEvent: false,
+        coverImageURI: "",
+        nationalConventionEligible: false,
     };
 }
 
@@ -132,6 +139,8 @@ function eventToForm(event: EventWithId): EventFormState {
         pointsPerHour: event.pointsPerHour != null ? String(event.pointsPerHour) : "0",
         general: event.general ?? false,
         hiddenEvent: event.hiddenEvent ?? false,
+        coverImageURI: event.coverImageURI ?? "",
+        nationalConventionEligible: event.nationalConventionEligible ?? false,
     };
 }
 
@@ -157,6 +166,34 @@ export default function EventModal({ open, onOpenChange, event, committees }: Ev
             setForm(event ? eventToForm(event) : defaultForm());
         }
     }, [open, event]);
+
+    const [isUploadingCover, setIsUploadingCover] = React.useState(false);
+    const coverInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Mirrors the mobile app's cover-image flow (SetGeneralEventDetails):
+    // upload to Storage at events/cover-images/{uid}{now}, store the download
+    // URL on the event as coverImageURI. Storage uploads are client-SDK by
+    // design — coverImageURI itself is still written via the Hono route.
+    async function handleCoverFile(file: File) {
+        if (!file.type.startsWith("image/")) {
+            toast.error("Cover image must be an image file.");
+            return;
+        }
+        setIsUploadingCover(true);
+        try {
+            const path = `events/cover-images/${auth.currentUser?.uid ?? "web"}${Date.now()}`;
+            const snapshot = await uploadBytes(storageRef(storage, path), file, {
+                contentType: file.type,
+            });
+            const url = await getDownloadURL(snapshot.ref);
+            set("coverImageURI", url);
+            toast.success("Cover image uploaded");
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : "Failed to upload cover image");
+        } finally {
+            setIsUploadingCover(false);
+        }
+    }
 
     const createEvent = useCreateEvent();
     const updateEvent = useUpdateEvent();
@@ -202,6 +239,8 @@ export default function EventModal({ open, onOpenChange, event, committees }: Ev
                 : parseFloat(form.pointsPerHour),
             general: form.general,
             hiddenEvent: form.hiddenEvent,
+            coverImageURI: form.coverImageURI || null,
+            nationalConventionEligible: form.nationalConventionEligible,
         };
     }
 
@@ -331,6 +370,62 @@ export default function EventModal({ open, onOpenChange, event, committees }: Ev
                             rows={3}
                             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                         />
+                    </FormField>
+                    <FormField label="Cover Image" id="ev-cover">
+                        <input
+                            ref={coverInputRef}
+                            id="ev-cover"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) void handleCoverFile(file);
+                                e.target.value = "";
+                            }}
+                        />
+                        <div className="flex items-center gap-3">
+                            {form.coverImageURI ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={form.coverImageURI}
+                                    alt="Event cover"
+                                    className="h-14 w-24 rounded-sm border border-[#EAEAEA] object-cover"
+                                />
+                            ) : (
+                                <div className="flex h-14 w-24 items-center justify-center rounded-sm border border-dashed border-[#D4D4D4] bg-[#FAFAF9] text-[#A7A7A7]">
+                                    <ImageIcon className="h-5 w-5" strokeWidth={1.5} />
+                                </div>
+                            )}
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={isUploadingCover}
+                                onClick={() => coverInputRef.current?.click()}
+                            >
+                                {isUploadingCover
+                                    ? "Uploading…"
+                                    : form.coverImageURI
+                                      ? "Replace image"
+                                      : "Upload image"}
+                            </Button>
+                            {form.coverImageURI ? (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    disabled={isUploadingCover}
+                                    onClick={() => set("coverImageURI", "")}
+                                >
+                                    <X className="mr-1 h-3.5 w-3.5" />
+                                    Remove
+                                </Button>
+                            ) : null}
+                        </div>
+                        <p className="font-body text-xs text-[#A7A7A7]">
+                            Shown on the event card in the mobile app.
+                        </p>
                     </FormField>
                 </FormSection>
 
@@ -503,7 +598,18 @@ export default function EventModal({ open, onOpenChange, event, committees }: Ev
                             checked={form.hiddenEvent}
                             onCheckedChange={(v) => set("hiddenEvent", Boolean(v))}
                         />
+                        <CheckboxRow
+                            id="ev-convention"
+                            label="National Convention eligible"
+                            checked={form.nationalConventionEligible}
+                            onCheckedChange={(v) => set("nationalConventionEligible", Boolean(v))}
+                        />
                     </div>
+                    <p className="font-body text-xs text-[#A7A7A7]">
+                        &ldquo;National Convention eligible&rdquo; is event metadata shown in the
+                        mobile app. The Convention Tracker tool derives eligibility from
+                        attendance counts by event type and does not use this flag.
+                    </p>
                 </FormSection>
 
                 {isEdit && event ? (

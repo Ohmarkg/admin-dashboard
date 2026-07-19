@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Timestamp } from "firebase/firestore";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
 
@@ -47,6 +48,12 @@ function RequestsTab() {
     const approveMutation = useApproveMembership();
     const denyMutation = useDenyMembership();
 
+    // Per-request national-expiration override (issue #4 — parity with mobile
+    // MemberSHPEConfirm "Adjust Date"). Keyed by uid; "" = no override.
+    const [expirationOverrides, setExpirationOverrides] = React.useState<
+        Record<string, string>
+    >({});
+
     const requests = requestsQuery.data ?? [];
 
     if (requestsQuery.isLoading) {
@@ -72,7 +79,14 @@ function RequestsTab() {
     }
 
     function handleApprove(row: MembershipRequestRow) {
-        approveMutation.mutate(row.uid, {
+        const overrideDate = expirationOverrides[row.uid];
+        // Local midnight of the picked day — same shape formatExpirationDate
+        // renders and mobile's date picker produces.
+        const nationalExpiration = overrideDate
+            ? Timestamp.fromDate(new Date(`${overrideDate}T00:00:00`))
+            : undefined;
+
+        approveMutation.mutate({ uid: row.uid, nationalExpiration }, {
             onSuccess: () =>
                 toast.success(`Approved ${row.name || "member"}'s membership`),
             onError: (error: unknown) =>
@@ -108,6 +122,10 @@ function RequestsTab() {
                     }}
                     onApprove={() => handleApprove(row)}
                     onDeny={() => handleDeny(row)}
+                    nationalExpirationOverride={expirationOverrides[row.uid] ?? ""}
+                    onNationalExpirationOverrideChange={(value) =>
+                        setExpirationOverrides((prev) => ({ ...prev, [row.uid]: value }))
+                    }
                 />
             ))}
         </div>
