@@ -42,6 +42,15 @@ export interface MemberCardProps {
   /** Rendering Approve/Deny buttons requires providing the corresponding callback. */
   onApprove?: (member: MemberCardMember) => void | Promise<void>
   onDeny?: (member: MemberCardMember) => void | Promise<void>
+  /**
+   * When provided, the national expiration becomes editable before approve
+   * (parity with mobile MemberSHPEConfirm "Adjust Date"): a date input is
+   * rendered whose value is `nationalExpirationOverride` (yyyy-MM-dd; empty =
+   * keep the request's own date). Chapter expiration is intentionally not
+   * editable — mobile offers no such adjustment.
+   */
+  onNationalExpirationOverrideChange?: (value: string) => void
+  nationalExpirationOverride?: string
   className?: string
 }
 
@@ -72,6 +81,8 @@ export function MemberCard({
   request,
   onApprove,
   onDeny,
+  onNationalExpirationOverrideChange,
+  nationalExpirationOverride,
   className,
 }: MemberCardProps) {
   const [isApproving, setIsApproving] = React.useState(false)
@@ -184,16 +195,39 @@ export function MemberCard({
             ) : null}
           </div>
 
-          {request.chapterExpiration || request.nationalExpiration ? (
+          {request.chapterExpiration || request.nationalExpiration || onNationalExpirationOverrideChange ? (
             <div className="mb-3.5 font-body text-xs text-[#707070]">
-              Chapter exp:{" "}
-              <span className="font-semibold text-[#3E3E3E]">
-                {formatExpirationDate(request.chapterExpiration) || "—"}
-              </span>{" "}
-              · National exp:{" "}
-              <span className="font-semibold text-[#3E3E3E]">
-                {formatExpirationDate(request.nationalExpiration) || "—"}
-              </span>
+              <div>
+                Chapter exp:{" "}
+                <span className="font-semibold text-[#3E3E3E]">
+                  {formatExpirationDate(request.chapterExpiration) || "—"}
+                </span>{" "}
+                · National exp:{" "}
+                <span className="font-semibold text-[#3E3E3E]">
+                  {formatExpirationDate(request.nationalExpiration) || "—"}
+                </span>
+              </div>
+              {onNationalExpirationOverrideChange ? (
+                <label className="mt-2 flex items-center gap-2">
+                  <span className="whitespace-nowrap">Adjust national exp:</span>
+                  <input
+                    type="date"
+                    value={nationalExpirationOverride ?? ""}
+                    onChange={(e) => onNationalExpirationOverrideChange(e.target.value)}
+                    className="h-7 rounded-sm border border-[#EAEAEA] bg-white px-2 font-body text-xs text-[#3E3E3E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Override national expiration date"
+                  />
+                  {nationalExpirationOverride ? (
+                    <button
+                      type="button"
+                      onClick={() => onNationalExpirationOverrideChange("")}
+                      className="text-[#A7A7A7] underline hover:text-[#3E3E3E]"
+                    >
+                      reset
+                    </button>
+                  ) : null}
+                </label>
+              ) : null}
             </div>
           ) : null}
         </>

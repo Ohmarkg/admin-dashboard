@@ -46,7 +46,7 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 
 | Method | Path | Body | Writes / CF | Notes |
 |---|---|---|---|---|
-| POST | `/:uid/approve` | none (reads request server-side) | `users/{uid}` set `chapterExpiration` + `nationalExpiration` (from `memberSHPE/{uid}`); delete `memberSHPE/{uid}`. CF: `sendNotificationMemberSHPE({uid, type:'approved'})` | User-doc update + request delete must be one atomic batch; fire the notification after commit succeeds |
+| POST | `/:uid/approve` | optional `{ nationalExpiration?: {seconds, nanoseconds} }` (reads request server-side) | `users/{uid}` set `chapterExpiration` + `nationalExpiration` (from `memberSHPE/{uid}`, with the body's `nationalExpiration` overriding the request's value when provided); delete `memberSHPE/{uid}`. CF: `sendNotificationMemberSHPE({uid, type:'approved'})` | User-doc update + request delete must be one atomic batch; fire the notification after commit succeeds. The override is parity with mobile `MemberSHPEConfirm` "Adjust Date"; `chapterExpiration` is intentionally **not** overridable (mobile offers no such adjustment) |
 | POST | `/:uid/deny` | none | `users/{uid}` clear `chapterExpiration` + `nationalExpiration`; delete `memberSHPE/{uid}`. CF: `sendNotificationMemberSHPE({uid, type:'denied'})` | Same atomicity note |
 
 ### `server/routes/points.ts` — `/api/points`
