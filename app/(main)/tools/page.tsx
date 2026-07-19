@@ -198,6 +198,14 @@ export default function ToolsPage() {
                 <ConventionTrackerPanel />
                 <InstagramPointsPanel />
             </div>
+
+            {/* Port-vs-mobile-only decisions: docs/PARITY_DECISIONS.md (issue #10). */}
+            <p className="mt-8 font-body text-xs text-[#A7A7A7]">
+                Some officer workflows live only in the mobile app: committee join
+                approvals, resume verification, Member of the Month, link &amp; feedback
+                editors, and QR / manual event sign-in. Use the mobile officer hub for
+                those.
+            </p>
         </div>
     );
 }
