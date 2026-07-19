@@ -69,6 +69,8 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 | POST | `/:id/logs/:uid/approve` | none | set `verified:true` on `events/{id}/logs/{uid}` **and** `users/{uid}/event-logs/{id}` | Dual-write batch, mirrors points pattern |
 | POST | `/:id/logs/bulk-approve` | `{ uids: string[] }` | set `verified:true` for each uid across both log paths, one batch | New feature — was missing entirely |
 
+> **Cover images:** the event create/edit UI uploads the image file to Storage at `events/cover-images/{uid}{now}` via the **client** Storage SDK (same path convention and flow as mobile's `SetGeneralEventDetails`) and sends the resulting download URL as `coverImageURI` in the route body. The Firestore write still goes through the route; only the file upload is client-side. `nationalConventionEligible` is likewise settable from create/edit — it is event metadata read by mobile; the web Convention Tracker intentionally does **not** use it (see Convention tracker note below).
+
 ### `server/routes/tools.ts` — `/api/tools`
 
 | Method | Path | Body | Writes / CF | Notes |
