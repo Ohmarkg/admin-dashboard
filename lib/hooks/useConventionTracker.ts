@@ -24,6 +24,26 @@ export interface ConventionCounts {
     generalMeeting: number;
 }
 
+/** The slice of an event the tracker needs to attribute an attendance. */
+export interface ConventionEventInfo {
+    eventType: string;
+    name: string | null;
+    startTime: Timestamp | null;
+}
+
+/** One qualifying attendance: the event behind a unit of a category count. */
+export interface ConventionAttendedEvent {
+    eventId: string;
+    name: string | null;
+    startTime: Timestamp | null;
+}
+
+export interface ConventionAttendance {
+    volunteer: ConventionAttendedEvent[];
+    workshop: ConventionAttendedEvent[];
+    generalMeeting: ConventionAttendedEvent[];
+}
+
 /**
  * Maps an event's `eventType` to the `ConventionCounts` bucket it counts
  * toward. Event types not listed here (e.g. Social Event) don't count toward
@@ -36,34 +56,71 @@ const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
 };
 
 /**
- * Tallies a member's `event-logs` into per-category convention-attendance
- * counts. A log only counts when BOTH `signInTime` AND `signOutTime` are
- * present — `signInTime` alone is not a reliable "attended" signal (a mobile
- * sign-in the member never signed out of). Points-editor backfills write both
- * times (server/routes/points.ts, issue #7), so spreadsheet-backfilled
- * attendance counts here; only genuine sign-in-without-sign-out logs are
- * excluded. The event's `eventType` must also map to one of the three tracked
- * categories via `CATEGORY_BY_EVENT_TYPE`.
+ * Buckets a member's `event-logs` into the qualifying events behind each
+ * convention-attendance category. A log only counts when BOTH `signInTime`
+ * AND `signOutTime` are present — `signInTime` alone is not a reliable
+ * "attended" signal (a mobile sign-in the member never signed out of).
+ * Points-editor backfills write both times (server/routes/points.ts, issue
+ * #7), so spreadsheet-backfilled attendance counts here; only genuine
+ * sign-in-without-sign-out logs are excluded. The event's `eventType` must
+ * also map to one of the three tracked categories via
+ * `CATEGORY_BY_EVENT_TYPE`. Within each category, events are sorted by
+ * `startTime` ascending (unknown start times last).
  */
-export function deriveConventionCounts(
+export function deriveConventionAttendance(
     logs: SHPEEventLog[],
-    eventTypeById: Map<string, string>
-): ConventionCounts {
-    const counts: ConventionCounts = { volunteer: 0, workshop: 0, generalMeeting: 0 };
+    eventById: Map<string, ConventionEventInfo>
+): ConventionAttendance {
+    const attendance: ConventionAttendance = {
+        volunteer: [],
+        workshop: [],
+        generalMeeting: [],
+    };
 
     for (const log of logs) {
         if (!log.signInTime || !log.signOutTime) {
             continue;
         }
 
-        const eventType = eventTypeById.get(log.eventId ?? "");
-        const category = eventType ? CATEGORY_BY_EVENT_TYPE[eventType] : undefined;
-        if (category) {
-            counts[category] += 1;
+        const eventId = log.eventId ?? "";
+        const event = eventById.get(eventId);
+        const category = event ? CATEGORY_BY_EVENT_TYPE[event.eventType] : undefined;
+        if (event && category) {
+            attendance[category].push({
+                eventId,
+                name: event.name,
+                startTime: event.startTime,
+            });
         }
     }
 
-    return counts;
+    const byStartTime = (a: ConventionAttendedEvent, b: ConventionAttendedEvent) => {
+        if (!a.startTime) return b.startTime ? 1 : 0;
+        if (!b.startTime) return -1;
+        return a.startTime.toMillis() - b.startTime.toMillis();
+    };
+    attendance.volunteer.sort(byStartTime);
+    attendance.workshop.sort(byStartTime);
+    attendance.generalMeeting.sort(byStartTime);
+
+    return attendance;
+}
+
+/**
+ * Per-category convention-attendance counts — always the lengths of
+ * `deriveConventionAttendance`'s buckets, so the counts shown in the table
+ * can never disagree with the event lists behind them.
+ */
+export function deriveConventionCounts(
+    logs: SHPEEventLog[],
+    eventById: Map<string, ConventionEventInfo>
+): ConventionCounts {
+    const attendance = deriveConventionAttendance(logs, eventById);
+    return {
+        volunteer: attendance.volunteer.length,
+        workshop: attendance.workshop.length,
+        generalMeeting: attendance.generalMeeting.length,
+    };
 }
 
 /** A member is convention-eligible once every category meets `REQUIRED_COUNT`. */
@@ -86,6 +143,7 @@ export interface ConventionRow {
     isMemberVerified: boolean;
     dateAdded: Timestamp;
     counts: ConventionCounts;
+    attendance: ConventionAttendance;
     eligible: boolean;
 }
 
@@ -96,8 +154,18 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
     }
 
     const eventsSnapshot = await getDocs(collection(db, "events"));
-    const eventTypeById = new Map(
-        eventsSnapshot.docs.map((d) => [d.id, (d.data() as SHPEEvent).eventType ?? ""])
+    const eventById = new Map<string, ConventionEventInfo>(
+        eventsSnapshot.docs.map((d) => {
+            const event = d.data() as SHPEEvent;
+            return [
+                d.id,
+                {
+                    eventType: event.eventType ?? "",
+                    name: event.name ?? null,
+                    startTime: event.startTime ?? null,
+                },
+            ];
+        })
     );
 
     return Promise.all(
@@ -131,7 +199,12 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
                 console.error(`Error fetching event logs for user ${uid}:`, error);
             }
 
-            const counts = deriveConventionCounts(eventLogs, eventTypeById);
+            const attendance = deriveConventionAttendance(eventLogs, eventById);
+            const counts: ConventionCounts = {
+                volunteer: attendance.volunteer.length,
+                workshop: attendance.workshop.length,
+                generalMeeting: attendance.generalMeeting.length,
+            };
 
             return {
                 uid,
@@ -143,6 +216,7 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
                 ),
                 dateAdded: (trackingData.dateAdded as Timestamp | undefined) ?? Timestamp.now(),
                 counts,
+                attendance,
                 eligible: isConventionEligible(counts),
             };
         })

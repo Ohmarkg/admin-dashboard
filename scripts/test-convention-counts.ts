@@ -15,9 +15,11 @@
 
 import { Timestamp } from "firebase/firestore";
 import {
+    deriveConventionAttendance,
     deriveConventionCounts,
     isConventionEligible,
     type ConventionCounts,
+    type ConventionEventInfo,
 } from "../lib/hooks/useConventionTracker";
 import { EventType, type SHPEEventLog } from "../app/types/events";
 
@@ -55,11 +57,19 @@ function log(overrides: Partial<SHPEEventLog>): SHPEEventLog {
     };
 }
 
-const eventTypeById = new Map<string, string>([
-    ["evt-volunteer", EventType.VOLUNTEER_EVENT],
-    ["evt-workshop", EventType.WORKSHOP],
-    ["evt-general", EventType.GENERAL_MEETING],
-    ["evt-social", EventType.SOCIAL_EVENT],
+function eventInfo(
+    eventType: string,
+    name: string,
+    startTime: Timestamp | null = now
+): ConventionEventInfo {
+    return { eventType, name, startTime };
+}
+
+const eventTypeById = new Map<string, ConventionEventInfo>([
+    ["evt-volunteer", eventInfo(EventType.VOLUNTEER_EVENT, "Park Cleanup")],
+    ["evt-workshop", eventInfo(EventType.WORKSHOP, "Resume Workshop")],
+    ["evt-general", eventInfo(EventType.GENERAL_MEETING, "GM 1")],
+    ["evt-social", eventInfo(EventType.SOCIAL_EVENT, "Tailgate")],
 ]);
 
 // 1. Missing signOutTime -> excluded.
@@ -145,6 +155,66 @@ const eventTypeById = new Map<string, string>([
         pass("counts {2,2,1} -> eligible false");
     } else {
         fail("counts {2,2,1} -> eligible false");
+    }
+}
+
+// 7. Attendance lists carry event details and match the counts (issue #14).
+{
+    const logs = [
+        log({ eventId: "evt-volunteer" }),
+        log({ eventId: "evt-workshop" }),
+        log({ eventId: "evt-workshop", signOutTime: undefined }), // excluded
+        log({ eventId: "evt-social" }), // excluded (untracked category)
+    ];
+    const attendance = deriveConventionAttendance(logs, eventTypeById);
+    const counts = deriveConventionCounts(logs, eventTypeById);
+
+    if (
+        attendance.volunteer.length === counts.volunteer &&
+        attendance.workshop.length === counts.workshop &&
+        attendance.generalMeeting.length === counts.generalMeeting
+    ) {
+        pass("attendance list lengths match derived counts");
+    } else {
+        fail(
+            "attendance list lengths match derived counts",
+            JSON.stringify({ attendance, counts })
+        );
+    }
+
+    const v = attendance.volunteer[0];
+    if (v && v.eventId === "evt-volunteer" && v.name === "Park Cleanup" && v.startTime === now) {
+        pass("attendance entry carries eventId/name/startTime");
+    } else {
+        fail("attendance entry carries eventId/name/startTime", JSON.stringify(v));
+    }
+}
+
+// 8. Attendance entries sort by startTime ascending, unknown dates last.
+{
+    const early = Timestamp.fromDate(new Date(2026, 0, 10));
+    const late = Timestamp.fromDate(new Date(2026, 4, 10));
+    const events = new Map<string, ConventionEventInfo>([
+        ["evt-late", eventInfo(EventType.WORKSHOP, "Late Workshop", late)],
+        ["evt-early", eventInfo(EventType.WORKSHOP, "Early Workshop", early)],
+        ["evt-undated", eventInfo(EventType.WORKSHOP, "Undated Workshop", null)],
+    ]);
+    const attendance = deriveConventionAttendance(
+        [
+            log({ eventId: "evt-undated" }),
+            log({ eventId: "evt-late" }),
+            log({ eventId: "evt-early" }),
+        ],
+        events
+    );
+    const names = attendance.workshop.map((e) => e.name);
+    if (
+        JSON.stringify(names) ===
+        JSON.stringify(["Early Workshop", "Late Workshop", "Undated Workshop"])
+    ) {
+        pass("attendance sorts by startTime ascending, unknown dates last");
+    } else {
+        fail("attendance sorts by startTime ascending, unknown dates last", JSON.stringify(names));
     }
 }
 
