@@ -14,7 +14,8 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { adminDb } from "@/server/firebaseAdmin";
-import { updateAllUserPoints } from "@/server/lib/cloudFunctions";
+import type { AuthVariables } from "@/server/middleware/auth";
+import { updateAllUserPoints, CloudFunctionError } from "@/server/lib/cloudFunctions";
 import {
     chunkedAtomicBatch,
     makeEventStartTimeGetter,
@@ -33,7 +34,7 @@ const editsBodySchema = z.object({
     edits: z.array(editSchema).min(1),
 });
 
-export const pointsRouter = new Hono();
+export const pointsRouter = new Hono<{ Variables: AuthVariables }>();
 
 pointsRouter.post("/edit", async (c) => {
     const parsed = editsBodySchema.safeParse(await c.req.json().catch(() => null));
@@ -148,6 +149,24 @@ pointsRouter.post("/edit", async (c) => {
 });
 
 pointsRouter.post("/recalculate", async (c) => {
-    await updateAllUserPoints();
+    try {
+        await updateAllUserPoints({ idToken: c.get("idToken") });
+    } catch (error) {
+        // Surface CF failures as a structured 502 instead of an opaque 500 —
+        // stale aggregates are an operational problem officers must see
+        // (issue #2 acceptance: no silent throw).
+        if (error instanceof CloudFunctionError) {
+            return c.json(
+                {
+                    error: {
+                        code: "cloud_function_error",
+                        message: `Recalculation failed (${error.code}): ${error.message}. Aggregate points/ranks may be stale until a recalculation succeeds.`,
+                    },
+                },
+                502
+            );
+        }
+        throw error;
+    }
     return c.json({ ok: true }, 200);
 });

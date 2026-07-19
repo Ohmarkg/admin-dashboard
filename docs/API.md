@@ -40,6 +40,8 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 Legend — **Writes**: Firestore docs mutated (all within one atomic batch per request). **CF**: Cloud Function invoked.
 
+> **Cloud Function invocation (X3, decided):** `updateAllUserPoints` and `sendNotificationMemberSHPE` are deployed **v1 callable** functions in the shared Firebase project (MobileApp repo, default region `us-central1`). Routes invoke them over the callable HTTP protocol (`POST {origin}/{name}` with `{ data }`), forwarding the **calling officer's own Firebase ID token** as the Bearer credential — equivalent to mobile's `httpsCallable`, so the functions' own claim checks authorize the same account (`server/lib/cloudFunctions.ts`; origin overridable via `CLOUD_FUNCTIONS_ORIGIN`). On the emulator these remain no-op dev stubs. Caveat: the functions accept `admin/officer/developer/secretary/representative` claims but **not `lead`** — a lead-only web user gets `permission-denied` from the CF (same as on mobile) even though the dashboard itself admits them. CF failures never roll back the already-committed Firestore batch: membership routes return `ok: true` with a `warning`; `/points/recalculate` returns a structured `502 cloud_function_error`.
+
 ### `server/routes/membership.ts` — `/api/membership`
 
 | Method | Path | Body | Writes / CF | Notes |

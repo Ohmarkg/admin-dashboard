@@ -12,9 +12,10 @@
 import { Hono } from "hono";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/server/firebaseAdmin";
+import type { AuthVariables } from "@/server/middleware/auth";
 import { sendNotificationMemberSHPE } from "@/server/lib/cloudFunctions";
 
-export const membershipRouter = new Hono();
+export const membershipRouter = new Hono<{ Variables: AuthVariables }>();
 
 membershipRouter.post("/:uid/approve", async (c) => {
     const uid = c.req.param("uid");
@@ -50,7 +51,7 @@ membershipRouter.post("/:uid/approve", async (c) => {
 
     let warning: string | undefined;
     try {
-        await sendNotificationMemberSHPE({ uid, type: "approved" });
+        await sendNotificationMemberSHPE({ uid, type: "approved", idToken: c.get("idToken") });
     } catch (error) {
         console.error(`sendNotificationMemberSHPE(approved) failed for uid ${uid}:`, error);
         warning = "Membership approved, but the mobile notification failed to send.";
@@ -92,7 +93,7 @@ membershipRouter.post("/:uid/deny", async (c) => {
 
     let warning: string | undefined;
     try {
-        await sendNotificationMemberSHPE({ uid, type: "denied" });
+        await sendNotificationMemberSHPE({ uid, type: "denied", idToken: c.get("idToken") });
     } catch (error) {
         console.error(`sendNotificationMemberSHPE(denied) failed for uid ${uid}:`, error);
         warning = "Membership denied, but the mobile notification failed to send.";

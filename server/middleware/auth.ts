@@ -12,11 +12,15 @@ const RECOGNIZED_CLAIMS = [
     "representative",
 ] as const;
 
-type Variables = {
+export type AuthVariables = {
     user: DecodedIdToken;
+    /** The raw (already-verified) Bearer ID token — forwarded verbatim to
+     * callable Cloud Functions so they authorize the same officer account
+     * (server/lib/cloudFunctions.ts). */
+    idToken: string;
 };
 
-export const authMiddleware = createMiddleware<{ Variables: Variables }>(
+export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(
     async (c, next) => {
         const header = c.req.header("Authorization");
         if (!header || !header.startsWith("Bearer ")) {
@@ -64,6 +68,7 @@ export const authMiddleware = createMiddleware<{ Variables: Variables }>(
         }
 
         c.set("user", decoded);
+        c.set("idToken", token);
         await next();
     }
 );
