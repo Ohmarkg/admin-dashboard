@@ -16,7 +16,10 @@ import { useAwardInstagramPoints } from "@/lib/hooks/useInstagramPoints";
 // have been awarded before are NOT excluded (re-awarding weekly is the
 // point) — they just show a muted award-count hint.
 
-const MAX_VISIBLE = 50;
+// Render cap only — selection is NOT capped. "Select all" selects every
+// matching member (issue #9); the hook chunks awards past the route's
+// 200-uid request limit. The cap exists purely to keep the DOM list light.
+const MAX_VISIBLE = 200;
 
 export default function AwardPointsDialog({
     open,
@@ -64,14 +67,16 @@ export default function AwardPointsDialog({
         });
     }
 
-    function toggleSelectAllVisible() {
+    // Selects/deselects ALL matching members — including rows past the
+    // render cap — so a large search can never be silently under-awarded.
+    function toggleSelectAllMatching() {
         setSelected((prev) => {
-            const allSelected = visibleMembers.every((m) => prev.has(m.uid));
+            const allSelected = filteredMembers.every((m) => prev.has(m.uid));
             const next = new Set(prev);
             if (allSelected) {
-                visibleMembers.forEach((m) => next.delete(m.uid));
+                filteredMembers.forEach((m) => next.delete(m.uid));
             } else {
-                visibleMembers.forEach((m) => next.add(m.uid));
+                filteredMembers.forEach((m) => next.add(m.uid));
             }
             return next;
         });
@@ -133,8 +138,8 @@ export default function AwardPointsDialog({
         });
     }
 
-    const allVisibleSelected =
-        visibleMembers.length > 0 && visibleMembers.every((m) => selected.has(m.uid));
+    const allMatchingSelected =
+        filteredMembers.length > 0 && filteredMembers.every((m) => selected.has(m.uid));
 
     return (
         <FormDialog
@@ -171,14 +176,19 @@ export default function AwardPointsDialog({
 
                 <div className="flex items-center gap-3 border-b border-[#EAEAEA] pb-2">
                     <Checkbox
-                        checked={allVisibleSelected}
-                        onCheckedChange={toggleSelectAllVisible}
-                        disabled={visibleMembers.length === 0}
-                        aria-label="Select all visible members"
+                        checked={allMatchingSelected}
+                        onCheckedChange={toggleSelectAllMatching}
+                        disabled={filteredMembers.length === 0}
+                        aria-label="Select all matching members"
                     />
                     <span className="font-body text-xs font-semibold uppercase tracking-wide text-[#707070]">
-                        Select all
+                        Select all{search.trim() ? " matching" : ""} ({filteredMembers.length})
                     </span>
+                    {selected.size > 0 ? (
+                        <span className="ml-auto font-body text-xs text-[#707070]">
+                            {selected.size} selected
+                        </span>
+                    ) : null}
                 </div>
 
                 <div className="max-h-[360px] overflow-y-auto">
@@ -235,7 +245,10 @@ export default function AwardPointsDialog({
 
                 {filteredMembers.length > MAX_VISIBLE ? (
                     <p className="font-body text-xs text-muted-foreground">
-                        Showing {MAX_VISIBLE} of {filteredMembers.length} — refine your search.
+                        Showing the first {MAX_VISIBLE} of {filteredMembers.length} matches.
+                        Refine your search to see specific members — or use &ldquo;Select
+                        all&rdquo; above, which selects all {filteredMembers.length} matches
+                        including those not shown.
                     </p>
                 ) : null}
             </div>

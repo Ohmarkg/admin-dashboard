@@ -116,22 +116,60 @@ export interface AwardInstagramPointsResult {
     pointsPerAward: number;
 }
 
+/** The route caps one request at 200 uids (2 writes each ≤ one 500-write
+ * atomic batch — API.md). Larger selections are chunked here. */
+const AWARD_CHUNK_SIZE = 200;
+
 /**
  * `POST /api/instagram/award` — awards Instagram points to `uids` server-side
  * (API.md; server/routes/instagram.ts), creating the hidden event on the
- * first award. On success, invalidates `['instagram-points']` and `['points']`
- * (the Monthly Points screen shows Instagram columns).
+ * first award. Selections larger than the route's 200-uid cap are split into
+ * sequential requests (each chunk is still atomic server-side) and the
+ * results merged, so bulk "select all matching" awards can't silently fail on
+ * size. On success, invalidates `['instagram-points']` and `['points']` (the
+ * Monthly Points screen shows Instagram columns).
  */
 export function useAwardInstagramPoints() {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async (uids: string[]): Promise<AwardInstagramPointsResult> => {
-            const res = await authedFetch("/instagram/award", {
-                method: "POST",
-                body: JSON.stringify({ uids }),
-            });
-            return res.json();
+            const merged: AwardInstagramPointsResult = {
+                ok: true,
+                eventId: "",
+                awarded: [],
+                unknownUids: [],
+                pointsPerAward: 0,
+            };
+
+            for (let i = 0; i < uids.length; i += AWARD_CHUNK_SIZE) {
+                const chunk = uids.slice(i, i + AWARD_CHUNK_SIZE);
+                let result: AwardInstagramPointsResult;
+                try {
+                    const res = await authedFetch("/instagram/award", {
+                        method: "POST",
+                        body: JSON.stringify({ uids: chunk }),
+                    });
+                    result = await res.json();
+                } catch (error) {
+                    // A retry of the whole selection would double-award the
+                    // chunks that already committed — say so explicitly.
+                    if (merged.awarded.length > 0) {
+                        throw new Error(
+                            `${error instanceof Error ? error.message : "Award request failed"} — ` +
+                                `${merged.awarded.length} of ${uids.length} members were already awarded before the failure. ` +
+                                `Deselect them before retrying to avoid double awards.`
+                        );
+                    }
+                    throw error;
+                }
+                merged.eventId = result.eventId;
+                merged.pointsPerAward = result.pointsPerAward;
+                merged.awarded.push(...result.awarded);
+                merged.unknownUids.push(...result.unknownUids);
+            }
+
+            return merged;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["instagram-points"] });
