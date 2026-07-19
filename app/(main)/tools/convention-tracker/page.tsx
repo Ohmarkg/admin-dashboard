@@ -166,7 +166,7 @@ export default function ConventionTrackerPage() {
             <PageHeader
                 eyebrow="Tools"
                 title="Convention Tracker"
-                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each."
+                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each. Counts are based on attendance (sign-in and sign-out, by event type); the mobile app's per-event 'National Convention eligible' flag is not used."
                 actions={
                     <Button asChild variant="outline" size="sm">
                         <Link href="/tools">

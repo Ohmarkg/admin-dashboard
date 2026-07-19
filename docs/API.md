@@ -88,6 +88,8 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 
 > Eligibility counts are **never written** — they are derived client-side at read time from `users/{uid}/event-logs` joined to `events/{eventId}.eventType` (see [DATA_MODEL.md](./DATA_MODEL.md) § convention-tracking).
 
+> **Eligibility rule vs `nationalConventionEligible` (decided, issue #6):** the tracker's eligibility is **type-based** — a log counts when it has both `signInTime` and `signOutTime` and its event's `eventType` is Volunteer Event / Workshop / General Meeting (≥ 2 attendances in each category). The per-event `nationalConventionEligible` flag (settable from mobile and from web event create/edit) is **event metadata for the mobile app and is intentionally ignored here** — it marks what an event *is*, not what a member *attended*, and no mobile eligibility computation consumes it either. This is stated in the tracker UI and in the event form's helper copy so officers don't assume the flag drives eligibility. Revisit only if the chapter adopts a flag-based eligibility policy; that would be a product change to `deriveConventionCounts`, not a bug fix.
+
 ### `server/routes/instagram.ts` — `/api/instagram`
 
 | Method | Path | Body | Writes / CF | Notes |
