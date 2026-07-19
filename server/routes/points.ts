@@ -9,6 +9,16 @@
  * backfilled from the event's `startTime` only if missing on the existing
  * log doc (checked independently per path). `points: null` is written
  * literally (log doc kept, points cleared).
+ *
+ * Sign-out consistency (issue #7): whenever an edit backfills `signInTime`,
+ * it also backfills `signOutTime` from the event's `endTime` (falling back to
+ * `startTime`). The convention tracker only counts logs with BOTH times
+ * (lib/hooks/useConventionTracker.ts), so a spreadsheet-backfilled attendance
+ * now counts there instead of silently diverging from the points totals.
+ * Logs that already have a real `signInTime` but no `signOutTime` (mobile
+ * sign-in without sign-out) are left untouched — the member genuinely never
+ * signed out, and the tracker's both-times rule is the intended judge of
+ * that case.
  */
 
 import { Hono } from "hono";
@@ -18,7 +28,7 @@ import type { AuthVariables } from "@/server/middleware/auth";
 import { updateAllUserPoints, CloudFunctionError } from "@/server/lib/cloudFunctions";
 import {
     chunkedAtomicBatch,
-    makeEventStartTimeGetter,
+    makeEventTimesGetter,
     EventNotFoundError,
     ChunkedBatchError,
     type BatchWriteOp,
@@ -52,13 +62,14 @@ pointsRouter.post("/edit", async (c) => {
     }
 
     const { edits } = parsed.data;
-    const getEventStartTime = makeEventStartTimeGetter();
+    const getEventTimes = makeEventTimesGetter();
 
     let ops: BatchWriteOp[];
     try {
         ops = await Promise.all(
             edits.map(async (edit) => {
-                const eventStartTime = await getEventStartTime(edit.eventId);
+                const { startTime: eventStartTime, endTime: eventEndTime } =
+                    await getEventTimes(edit.eventId);
 
                 const eventLogRef = adminDb.doc(
                     `events/${edit.eventId}/logs/${edit.uid}`
@@ -86,6 +97,11 @@ pointsRouter.post("/edit", async (c) => {
                 }
                 if (!existingEventLog.exists || !existingEventLog.get("signInTime")) {
                     eventLogData.signInTime = eventStartTime;
+                    // Backfilled attendance gets both times so convention
+                    // eligibility matches the spreadsheet (issue #7).
+                    if (!existingEventLog.get("signOutTime")) {
+                        eventLogData.signOutTime = eventEndTime;
+                    }
                 }
 
                 const userEventLogData: Record<string, unknown> = { ...baseData };
@@ -100,6 +116,9 @@ pointsRouter.post("/edit", async (c) => {
                     !existingUserEventLog.get("signInTime")
                 ) {
                     userEventLogData.signInTime = eventStartTime;
+                    if (!existingUserEventLog.get("signOutTime")) {
+                        userEventLogData.signOutTime = eventEndTime;
+                    }
                 }
 
                 return [

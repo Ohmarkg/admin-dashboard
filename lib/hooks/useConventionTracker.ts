@@ -38,10 +38,12 @@ const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
 /**
  * Tallies a member's `event-logs` into per-category convention-attendance
  * counts. A log only counts when BOTH `signInTime` AND `signOutTime` are
- * present — `signInTime` alone is not a reliable "attended" signal, since the
- * points editor can backfill/edit a log's points without necessarily setting
- * a sign-out (see server/routes/points.ts) — and its event's `eventType` maps
- * to one of the three tracked categories via `CATEGORY_BY_EVENT_TYPE`.
+ * present — `signInTime` alone is not a reliable "attended" signal (a mobile
+ * sign-in the member never signed out of). Points-editor backfills write both
+ * times (server/routes/points.ts, issue #7), so spreadsheet-backfilled
+ * attendance counts here; only genuine sign-in-without-sign-out logs are
+ * excluded. The event's `eventType` must also map to one of the three tracked
+ * categories via `CATEGORY_BY_EVENT_TYPE`.
  */
 export function deriveConventionCounts(
     logs: SHPEEventLog[],

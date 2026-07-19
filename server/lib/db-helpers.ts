@@ -151,20 +151,27 @@ export class EventNotFoundError extends Error {
     }
 }
 
-/**
- * Builds a per-request cache of `events/{id}.startTime` lookups. Repeated
- * calls for the same `eventId` within one request hit Firestore only once.
- * Throws `EventNotFoundError` if the event doc doesn't exist (routes map
- * this to a 404-ish response).
- *
- * Usage: `const getStartTime = makeEventStartTimeGetter(); await getStartTime(eventId);`
- */
-export function makeEventStartTimeGetter(
-    db: Firestore = adminDb
-): (eventId: string) => Promise<FirebaseFirestore.Timestamp> {
-    const cache = new Map<string, Promise<FirebaseFirestore.Timestamp>>();
+export interface EventTimes {
+    startTime: FirebaseFirestore.Timestamp;
+    /** Falls back to `startTime` when the event doc has no `endTime`. */
+    endTime: FirebaseFirestore.Timestamp;
+}
 
-    return function getEventStartTime(eventId: string): Promise<FirebaseFirestore.Timestamp> {
+/**
+ * Builds a per-request cache of `events/{id}` start/end-time lookups.
+ * Repeated calls for the same `eventId` within one request hit Firestore only
+ * once. Throws `EventNotFoundError` if the event doc doesn't exist or has no
+ * `startTime` (routes map this to a 404-ish response); a missing `endTime`
+ * falls back to `startTime` so callers always get both.
+ *
+ * Usage: `const getTimes = makeEventTimesGetter(); const { startTime, endTime } = await getTimes(eventId);`
+ */
+export function makeEventTimesGetter(
+    db: Firestore = adminDb
+): (eventId: string) => Promise<EventTimes> {
+    const cache = new Map<string, Promise<EventTimes>>();
+
+    return function getEventTimes(eventId: string): Promise<EventTimes> {
         const cached = cache.get(eventId);
         if (cached) return cached;
 
@@ -177,7 +184,11 @@ export function makeEventStartTimeGetter(
             if (!startTime) {
                 throw new EventNotFoundError(eventId);
             }
-            return startTime as FirebaseFirestore.Timestamp;
+            const endTime = snap.get("endTime") ?? startTime;
+            return {
+                startTime: startTime as FirebaseFirestore.Timestamp,
+                endTime: endTime as FirebaseFirestore.Timestamp,
+            };
         })();
 
         cache.set(eventId, promise);

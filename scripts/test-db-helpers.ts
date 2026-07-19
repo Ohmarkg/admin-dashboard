@@ -25,7 +25,7 @@ const db = getFirestore(app);
 
 import {
     chunkedAtomicBatch,
-    makeEventStartTimeGetter,
+    makeEventTimesGetter,
     ChunkedBatchError,
     EventNotFoundError,
     type BatchWriteOp,
@@ -146,18 +146,18 @@ async function testStartTimeCache(): Promise<void> {
     };
 
     try {
-        const getStartTime = makeEventStartTimeGetter(db);
-        const first = await getStartTime(eventId);
-        const second = await getStartTime(eventId);
+        const getTimes = makeEventTimesGetter(db);
+        const first = await getTimes(eventId);
+        const second = await getTimes(eventId);
 
-        if (!first || !second) {
-            fail("startTime cache returns a value", "got falsy startTime");
-        } else if (first.isEqual(second) && getCallCount === 1) {
-            pass("startTime cache: 2 gets for same eventId -> 1 Firestore read");
+        if (!first?.startTime || !second?.startTime || !first?.endTime) {
+            fail("event-times cache returns values", "got falsy startTime/endTime");
+        } else if (first.startTime.isEqual(second.startTime) && getCallCount === 1) {
+            pass("event-times cache: 2 gets for same eventId -> 1 Firestore read");
         } else {
             fail(
-                "startTime cache: 2 gets for same eventId -> 1 Firestore read",
-                `getCallCount=${getCallCount}, sameValue=${first?.isEqual?.(second)}`
+                "event-times cache: 2 gets for same eventId -> 1 Firestore read",
+                `getCallCount=${getCallCount}, sameValue=${first?.startTime?.isEqual?.(second.startTime)}`
             );
         }
     } finally {
@@ -166,9 +166,9 @@ async function testStartTimeCache(): Promise<void> {
 }
 
 async function testNotFound(): Promise<void> {
-    const getStartTime = makeEventStartTimeGetter(db);
+    const getTimes = makeEventTimesGetter(db);
     try {
-        await getStartTime("this-event-does-not-exist-v1-test");
+        await getTimes("this-event-does-not-exist-v1-test");
         fail("missing event -> EventNotFoundError", "no error was thrown");
     } catch (err) {
         if (err instanceof EventNotFoundError) {
