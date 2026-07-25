@@ -19,30 +19,54 @@ For a full architecture breakdown, data model, and feature documentation, see **
 
 ## Getting Started
 
+Local development runs entirely against the **Firebase Emulator Suite** — no real Firebase credentials are needed (or present) until go-live cutover.
+
 ### Prerequisites
 
-- Node.js 18+
-- A `@tamu.edu` Google account with an authorized Firebase custom claim
-- `NEXT_PUBLIC_GOOGLE_API_KEY` set in `.env.local` (Firebase web API key)
+- [Docker](https://docs.docker.com/get-docker/) + Docker Compose
+- [Bun](https://bun.sh) (only if running the app outside Docker)
 
-### Install and run
+### Docker (recommended)
 
-```bash
-yarn install
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) and sign in with Google.
-
-### Scripts
+One command boots the emulators, seeds fixture data, and starts the Next.js app:
 
 ```bash
-yarn dev      # Start development server
-yarn build    # Production build
-yarn start    # Start production server
-yarn lint     # Run ESLint
+docker compose up
 ```
 
+| Service | URL / port |
+|---------|------------|
+| App | [http://localhost:3001](http://localhost:3001) |
+| Emulator UI | [http://localhost:4000](http://localhost:4000) |
+| Firestore | `localhost:8080` |
+| Auth | `localhost:9099` |
+| Storage | `localhost:9199` |
+
+On first boot the `web` service runs `bun install`, waits for the emulators, runs `bun run seed`, then `bun run dev`. The repo is bind-mounted, so edits on the host hot-reload inside the container.
+
+**Emulator sign-in** (seeded officer account):
+
+- Email: `shpe-officer@tamu.edu`
+- Password: `testpassword`
+
+Use the email/password form on the login page (not Google OAuth) while on the emulators.
+
+Stop with `Ctrl+C`, or run detached with `docker compose up -d` / `docker compose down`.
+
+### Scripts (host)
+
+If you already have the emulators running and want to run the app on the host:
+
+```bash
+bun install
+bun run seed   # seed emulator fixtures (idempotent)
+bun run dev    # http://localhost:3000
+bun run build
+bun run start
+bun run lint
+```
+
+Host runs expect the emulator host env vars from [`.env.development`](.env.development) (`FIRESTORE_EMULATOR_HOST=localhost:8080`, etc.).
 ## Tech Stack
 
 - **Next.js 14** (App Router) + **React 18** + **TypeScript**
