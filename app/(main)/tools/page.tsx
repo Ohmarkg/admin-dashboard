@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Award, Download, Instagram, Loader2, Shirt } from "lucide-react";
+import { Award, Download, FileSpreadsheet, Instagram, Loader2, Shirt } from "lucide-react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
@@ -15,7 +15,24 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useEvents } from "@/lib/hooks/useEvents";
+import { useMembers } from "@/lib/hooks/usePoints";
 import { useResumeStatus, useZipResumes } from "@/lib/hooks/useTools";
+import {
+    buildUsersLookup,
+    exportMonthAttendanceWorkbook,
+    exportSchoolYearAttendanceZip,
+    getAttendanceExportMonths,
+    getDefaultAttendanceMonthKey,
+    getMonthKey,
+} from "./exportAttendance";
 
 // Tools screen (DESIGN_BRIEF §4 "6. Tools"): utility panels — resume zip
 // generator with live status (idle → generating → ready/expired) plus links
@@ -115,6 +132,173 @@ function ResumePanel() {
     );
 }
 
+function AttendanceExportPanel() {
+    const eventsQuery = useEvents();
+    const membersQuery = useMembers();
+    const schoolYearMonths = React.useMemo(() => getAttendanceExportMonths(), []);
+    const [selectedMonthKey, setSelectedMonthKey] = React.useState(getDefaultAttendanceMonthKey);
+    const [exportingYear, setExportingYear] = React.useState(false);
+    const [exportingMonth, setExportingMonth] = React.useState(false);
+
+    const isBusy = exportingYear || exportingMonth;
+    const isDataReady = Boolean(eventsQuery.data && membersQuery.data);
+    const isLoading = eventsQuery.isLoading || membersQuery.isLoading;
+    const isError = eventsQuery.isError || membersQuery.isError;
+
+    async function handleYearExport() {
+        if (isBusy || !eventsQuery.data || !membersQuery.data) return;
+        setExportingYear(true);
+        try {
+            await exportSchoolYearAttendanceZip(
+                eventsQuery.data,
+                buildUsersLookup(membersQuery.data)
+            );
+            toast.success("School-year attendance ZIP downloaded");
+        } catch (error) {
+            toast.error(
+                error instanceof Error ? error.message : "Failed to export school-year attendance"
+            );
+        } finally {
+            setExportingYear(false);
+        }
+    }
+
+    async function handleMonthExport() {
+        if (isBusy || !eventsQuery.data || !membersQuery.data) return;
+        const selectedMonth = schoolYearMonths.find(
+            (month) => getMonthKey(month) === selectedMonthKey
+        );
+        if (!selectedMonth) {
+            toast.error("Please select a valid month.");
+            return;
+        }
+
+        setExportingMonth(true);
+        try {
+            await exportMonthAttendanceWorkbook(
+                eventsQuery.data,
+                buildUsersLookup(membersQuery.data),
+                selectedMonth
+            );
+            toast.success("Monthly attendance workbook downloaded");
+        } catch (error) {
+            toast.error(
+                error instanceof Error ? error.message : "Failed to export monthly attendance"
+            );
+        } finally {
+            setExportingMonth(false);
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-display text-base font-semibold uppercase tracking-wide text-foreground">
+                    Attendance Export
+                </CardTitle>
+                <CardDescription>
+                    Export attendance for the current school year (June–May). Each monthly
+                    workbook includes per-event sheets and a unique attendees sheet. For
+                    summary tables and Fall/Spring/full-year merges, run the Python scripts in{" "}
+                    <code className="text-xs">scripts/</code> on the downloaded files.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-6">
+                {isLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading events and roster…</span>
+                    </div>
+                ) : isError ? (
+                    <p className="text-sm text-[#B91C1C]">
+                        Could not load events or roster. Refresh and try again.
+                    </p>
+                ) : (
+                    <>
+                        <div className="flex flex-col gap-3">
+                            <div>
+                                <p className="font-body text-sm font-medium text-foreground">
+                                    Full school year
+                                </p>
+                                <p className="mt-0.5 font-body text-xs text-muted-foreground">
+                                    Downloads one ZIP with an Excel file for every month.
+                                </p>
+                            </div>
+                            <Button
+                                onClick={handleYearExport}
+                                disabled={!isDataReady || isBusy}
+                                className="w-fit"
+                            >
+                                {exportingYear ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Exporting school year…
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-4 w-4" />
+                                        Export attendance ZIP
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <div>
+                                <p className="font-body text-sm font-medium text-foreground">
+                                    Single month
+                                </p>
+                                <p className="mt-0.5 font-body text-xs text-muted-foreground">
+                                    Downloads one Excel file for the selected month.
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <Select
+                                    value={selectedMonthKey}
+                                    onValueChange={setSelectedMonthKey}
+                                    disabled={isBusy}
+                                >
+                                    <SelectTrigger className="w-[200px]">
+                                        <SelectValue placeholder="Select month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {schoolYearMonths.map((month) => (
+                                            <SelectItem
+                                                key={getMonthKey(month)}
+                                                value={getMonthKey(month)}
+                                            >
+                                                {format(month, "MMMM yyyy")}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleMonthExport}
+                                    disabled={!isDataReady || isBusy}
+                                    className="w-fit"
+                                >
+                                    {exportingMonth ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Exporting month…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FileSpreadsheet className="h-4 w-4" />
+                                            Export selected month
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 function ShirtTrackerPanel() {
     return (
         <Card>
@@ -193,6 +377,7 @@ export default function ToolsPage() {
         <div className="mx-auto max-w-[1240px] px-10 py-8">
             <PageHeader eyebrow="Utilities" title="Tools" />
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <AttendanceExportPanel />
                 <ResumePanel />
                 <ShirtTrackerPanel />
                 <ConventionTrackerPanel />
