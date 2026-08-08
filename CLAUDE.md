@@ -24,7 +24,7 @@ Internal admin portal for the Texas A&M SHPE chapter — a web companion to the 
 2. **Never import `server/firebaseAdmin.ts` (or anything under `server/`) from a client component.** The service account is server-only. Public client config lives in `config/firebaseClient.ts`.
 3. **`app/api/[[...route]]/route.ts` is the only `route.ts`** — a thin Hono mount. It must set `export const runtime = 'nodejs'` (the Admin SDK cannot run on Edge). All route logic lives in `server/`, free of Next.js coupling.
 4. **Officer decisions use the verbs `approve` / `deny`** — never accept/reject or confirm/decline.
-5. **Auth is a single binary gate:** a valid Firebase ID token with *any* recognized custom claim (`admin`/`officer`/`developer`/`lead`/`representative`) grants full access. Do **not** build per-route role tiers or a role-management UI. Claims are provisioned manually in Firebase.
+5. **Auth is a single binary gate:** a valid Firebase ID token with *any* recognized custom claim (`admin`/`officer`/`developer`) grants full access. Do **not** build per-route role tiers or a role-management UI. Claims are provisioned manually in Firebase. (`lead` / `representative` are not portal login claims.)
 6. **Cross-document writes go through one atomic Firestore batch** in the owning Hono route. The dual-write (points → event log + user mirror) is the canonical example.
 7. **`app/types/` is manually mirrored from the mobile app** (`MobileApp/src/types/*`). Any schema change must be reflected in both repos and in [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
 8. **Pages never call Firebase or `fetch` directly** — they call hooks in `lib/hooks/`.

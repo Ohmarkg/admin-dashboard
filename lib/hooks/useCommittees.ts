@@ -66,5 +66,9 @@ export function useCommittees() {
     return useQuery({
         queryKey: ["committees"],
         queryFn: fetchCommittees,
+        // Directory is read-only and rarely changes — longer than the app
+        // default (60s) so leaving/returning to the page doesn't remount
+        // cards and re-hit head/lead photo URLs.
+        staleTime: 5 * 60 * 1000,
     });
 }

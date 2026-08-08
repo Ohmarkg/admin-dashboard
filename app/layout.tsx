@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className={fontVariables}>
-            <body>
+            {/* Extensions (e.g. Grammarly) inject attributes onto <body> before
+                hydration; suppress so that mismatch doesn't spam the overlay. */}
+            <body suppressHydrationWarning>
                 <Providers>{children}</Providers>
                 <Toaster />
             </body>

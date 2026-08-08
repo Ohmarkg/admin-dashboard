@@ -8,8 +8,6 @@ const RECOGNIZED_CLAIMS = [
     "admin",
     "officer",
     "developer",
-    "lead",
-    "representative",
 ] as const;
 
 export type AuthVariables = {

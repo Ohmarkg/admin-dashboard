@@ -46,9 +46,7 @@ export const checkHasRecognizedClaim = async (user: User): Promise<boolean> => {
     return Boolean(
         claims.admin ||
         claims.officer ||
-        claims.developer ||
-        claims.lead ||
-        claims.representative
+        claims.developer
     );
 };
 

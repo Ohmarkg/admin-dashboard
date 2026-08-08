@@ -122,7 +122,7 @@ Emulator UI (4000) shows every seeded collection; `bunx tsc --noEmit` passes.
 
 - **F1 ∥ — Auth middleware.**
   Files: `server/middleware/auth.ts`; wire into `server/app.ts`.
-  Contract: API.md Conventions (Bearer ID token; **any** of `admin/officer/developer/lead/representative`;
+  Contract: API.md Conventions (Bearer ID token; **any** of `admin/officer/developer`;
   401 missing/invalid, 403 valid-but-claimless; standard error shape). **Binary gate — no
   `requireRole` tiers** (CLAUDE.md rule 5).
   Depends: Phase 0.

@@ -107,7 +107,7 @@ Decision: group endpoints the way an officer thinks about the task, not by which
 server/
 ├── app.ts                 # Hono app, registers all sub-routers, applies global auth middleware
 ├── middleware/
-│   └── auth.ts            # verifies Firebase ID token + custom claims (admin/officer/developer/lead/representative)
+│   └── auth.ts            # verifies Firebase ID token + custom claims (admin/officer/developer)
 ├── routes/
 │   ├── membership.ts      # approve / deny (writes only; reads are client hooks)
 │   ├── points.ts          # dual-write edit / recalculate (+ maybe export)
@@ -134,7 +134,7 @@ Access is granted by **manually adding the account in Firebase** (setting custom
 
 **Two implications the rebuild must respect:**
 
-1. **The auth gate is binary, and stays that way — no role tiers to encode.** Access is all-or-nothing: if the account was added in Firebase (has *any* of `admin`/`officer`/`developer`/`lead`/`representative`), it gets in with full access. The login flow ([`app/helpers/auth.ts`](../app/helpers/auth.ts)) already works this way, and the Section 4 middleware should keep that shape: assert "presents a valid ID token with ≥1 recognized claim," and that's the whole check. **Do not build per-route `requireRole(...)` distinctions** — an officer-vs-developer split is explicitly *not* wanted right now. (Firestore Security Rules and the manual claim-provisioning step remain the backstop if finer control is ever needed later.)
+1. **The auth gate is binary, and stays that way — no role tiers to encode.** Access is all-or-nothing: if the account was added in Firebase (has *any* of `admin`/`officer`/`developer`), it gets in with full access. (`lead` / `representative` are not portal login claims.) The login flow ([`app/helpers/auth.ts`](../app/helpers/auth.ts)) already works this way, and the Section 4 middleware should keep that shape: assert "presents a valid ID token with ≥1 recognized claim," and that's the whole check. **Do not build per-route `requireRole(...)` distinctions** — an officer-vs-developer split is explicitly *not* wanted right now. (Firestore Security Rules and the manual claim-provisioning step remain the backstop if finer control is ever needed later.)
 2. **No per-person attribution is possible.** With a shared officer login, `edited: true` / `verified: true` flags and any future audit fields cannot identify *which* officer acted. Don't design features (activity logs, "approved by", accountability trails) that assume individual attribution — the identity model can't support it. If per-person accountability is ever required, that's a change to the access model itself, out of scope here.
 
 ### Invoking Cloud Functions from the server

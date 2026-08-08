@@ -2,7 +2,7 @@
 
 Internal admin portal for the Texas A&M SHPE chapter. Officers use this Next.js app to manage the same Firebase backend (`tamushpemobileapp`) as the chapter mobile app — events, membership verification, points, committees, and operational tools.
 
-Access is restricted to `@tamu.edu` Google accounts with Firebase custom claims (`admin`, `officer`, `developer`, `lead`, or `representative`).
+Access is restricted to `@tamu.edu` Google accounts with Firebase custom claims (`admin`, `officer`, or `developer`).
 
 ## Features
 
@@ -67,6 +67,28 @@ bun run lint
 ```
 
 Host runs expect the emulator host env vars from [`.env.development`](.env.development) (`FIRESTORE_EMULATOR_HOST=localhost:8080`, etc.).
+
+### Run against production (local)
+
+Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitignored [`.env.local`](.env.local). See [`.env.example`](.env.example) for the full template.
+
+1. Copy the **Production-local** block from `.env.example` into `.env.local` (already scaffolded with placeholders if present).
+2. Fill secrets from Firebase Console → project `tamushpemobileapp`:
+   - `NEXT_PUBLIC_GOOGLE_API_KEY` — Project settings → Your apps → Web API key
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` — Project settings → Service accounts → Generate new private key → stringify to **one line** (keep `\n` escapes inside `private_key`)
+3. Keep emulator overrides explicit in `.env.local` (required — omitting them leaves `.env.development` values in effect):
+   - `NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false`
+   - `FIRESTORE_EMULATOR_HOST=` / `FIREBASE_AUTH_EMULATOR_HOST=` / `FIREBASE_STORAGE_EMULATOR_HOST=` (empty)
+4. Stop `docker compose` (do not use Docker for this mode).
+5. On the host: `bun install && bun run dev` → [http://localhost:3000](http://localhost:3000)
+6. Sign in with Google `@tamu.edu` (the emulator email/password form does not apply). Your account needs a recognized custom claim (`admin` / `officer` / `developer`).
+
+**Warning:** every write hits real chapter data.
+
+**`next build` gotcha:** without emulator hosts set, `FIREBASE_SERVICE_ACCOUNT_KEY` must be a valid service-account JSON — Admin SDK initializes at import time for `/api/[[...route]]`.
+
+**Convention tracking:** there is no need to pre-create a `convention-tracking` collection in the console. The first successful track (`POST /api/conventions/track`) creates `convention-tracking/{uid}` via the Admin SDK. An empty roster UI is expected until officers import/track members. Production Firestore **read** rules must allow officers to read `convention-tracking/{document=**}` (same claim gate as other admin reads); without that, the tracker UI fails even though track/untrack writes succeed.
+
 ## Tech Stack
 
 - **Next.js 14** (App Router) + **React 18** + **TypeScript**

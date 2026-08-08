@@ -66,7 +66,7 @@ flowchart LR
 **Login flow** (`app/helpers/auth.ts`):
 
 1. Google OAuth popup restricted to `@tamu.edu` (`hd: 'tamu.edu'`)
-2. JWT custom claims checked: `admin`, `officer`, `developer`, `lead`, or `representative`
+2. JWT custom claims checked: `admin`, `officer`, or `developer`
 3. Missing role → sign out + access denied alert
 4. Valid role → redirect to `/dashboard`
 

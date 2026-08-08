@@ -23,7 +23,7 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 - **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`.
 - **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
-- **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`/`lead`/`representative`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
+- **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
 - **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
 - **Responses:** JSON. Success → `200` (or `201` for create) with the resource or `{ ok: true }`. 
 - **Error shape (standardize):**
