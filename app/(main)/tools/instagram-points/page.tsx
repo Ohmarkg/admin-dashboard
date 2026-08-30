@@ -159,7 +159,7 @@ export default function InstagramPointsPage() {
                     toast.warning(`${row.name} had no Instagram award left to remove.`);
                     return;
                 }
-                toast.success(`Removed 1 Instagram point from ${row.name}`);
+toast.success(`Removed 1 Instagram award from ${row.name}`);
             })
             .catch((error: unknown) => {
                 toast.error(
