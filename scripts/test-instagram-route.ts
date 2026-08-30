@@ -25,7 +25,16 @@
  *     read-modify-merged — points incremented, timestamp appended, foreign
  *     fields preserved on both copies.
  *  5. Bad bodies (`{}`, `{ uids: [] }`, `{ uids: [""] }`, 201 uids, non-JSON)
- *     -> all 400 with `error.code === "validation_error"`.
+ *     -> all 400 with `error.code === "validation_error"` (both routes).
+ *  6. Revoke pops ONE award: points and `instagramLogs` drop by exactly one on
+ *     BOTH copies, and the remaining timestamps are the earlier ones.
+ *  7. Revoking the LAST award off a bare award log DELETES both docs (so the
+ *     member leaves the tools table), while a log carrying a real `signInTime`
+ *     is emptied to `points: 0` / `instagramLogs: []` and kept.
+ *  8. Revoking a uid with no log, or with an already-empty history, reports it
+ *     in `notAwarded` and writes nothing.
+ *  9. Revoke with no "Instagram Points" event at all -> 404
+ *     `instagram_event_not_found` (a removal must never create the event).
  */
 
 process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
@@ -99,6 +108,14 @@ async function cleanupFixtures(): Promise<void> {
 
 async function postAward(uids: string[]): Promise<Response> {
     return app.request("/instagram/award", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uids }),
+    });
+}
+
+async function postRevoke(uids: string[]): Promise<Response> {
+    return app.request("/instagram/revoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uids }),
@@ -283,8 +300,131 @@ async function testCallableShapedLogCompat(eventId: string): Promise<void> {
     }
 }
 
-async function expectValidationError(label: string, body: BodyInit | null, contentType = "application/json"): Promise<void> {
-    const res = await app.request("/instagram/award", {
+/**
+ * Revoke pops the most recent award: both copies drop to `points - 1` and one
+ * fewer `instagramLogs` entry, and the entries that remain are the EARLIER
+ * ones (a pop, not a shift).
+ */
+async function testRevokePopsOneAward(eventId: string): Promise<void> {
+    const before = await adminDb.doc(`events/${eventId}/logs/${UID_A}`).get();
+    const beforeLogs = before.get("instagramLogs") as Timestamp[];
+
+    const res = await postRevoke([UID_A]);
+    if (res.status !== 200) {
+        fail("revoke -> 200", `got status ${res.status}`);
+        return;
+    }
+    const body = await res.json();
+    if (body.ok && body.revoked?.length === 1 && body.revoked[0] === UID_A && body.notAwarded?.length === 0) {
+        pass("revoke -> ok, revoked=[uid], notAwarded=[]");
+    } else {
+        fail("revoke -> ok, revoked=[uid], notAwarded=[]", JSON.stringify(body));
+    }
+
+    for (const [label, path] of [
+        ["events/{id}/logs/{uid}", `events/${eventId}/logs/${UID_A}`],
+        ["users/{uid}/event-logs/{id}", `users/${UID_A}/event-logs/${eventId}`],
+    ] as const) {
+        const snap = await adminDb.doc(path).get();
+        const log = snap.data();
+        const logs = (log?.instagramLogs ?? []) as Timestamp[];
+        const ok =
+            snap.exists &&
+            log!.points === 1 &&
+            logs.length === 1 &&
+            logs[0].isEqual(beforeLogs[0]); // the EARLIER timestamp survived
+        if (ok) {
+            pass(`revoke -> ${label} at points 1, 1 instagramLog, earliest kept`);
+        } else {
+            fail(`revoke -> ${label} at points 1, 1 instagramLog, earliest kept`, JSON.stringify(log));
+        }
+    }
+}
+
+/** Removing the final award off a bare award log deletes both copies. */
+async function testRevokeLastAwardDeletesBareLog(eventId: string): Promise<void> {
+    const res = await postRevoke([UID_A]);
+    if (res.status !== 200) {
+        fail("revoke last award -> 200", `got status ${res.status}`);
+        return;
+    }
+
+    const [logSnap, mirrorSnap] = await Promise.all([
+        adminDb.doc(`events/${eventId}/logs/${UID_A}`).get(),
+        adminDb.doc(`users/${UID_A}/event-logs/${eventId}`).get(),
+    ]);
+    if (!logSnap.exists && !mirrorSnap.exists) {
+        pass("revoke last award -> both bare log docs deleted");
+    } else {
+        fail(
+            "revoke last award -> both bare log docs deleted",
+            `log exists: ${logSnap.exists}, mirror exists: ${mirrorSnap.exists}`
+        );
+    }
+
+    // ...and a further revoke has nothing left to take.
+    const againRes = await postRevoke([UID_A]);
+    const againBody = await againRes.json();
+    if (againRes.status === 200 && againBody.revoked?.length === 0 && againBody.notAwarded?.[0] === UID_A) {
+        pass("revoke with no log left -> reported in notAwarded, nothing written");
+    } else {
+        fail("revoke with no log left -> reported in notAwarded, nothing written", JSON.stringify(againBody));
+    }
+}
+
+/**
+ * The delete is guarded: a log carrying a real `signInTime` (mobile
+ * attendance) is emptied rather than deleted, so attendance data is never
+ * collateral damage of a points removal.
+ */
+async function testRevokeKeepsLogWithAttendanceTimes(eventId: string): Promise<void> {
+    // UID_CALLABLE has 2 awards and a signInTime — take both away.
+    await postRevoke([UID_CALLABLE]);
+    const res = await postRevoke([UID_CALLABLE]);
+    if (res.status !== 200) {
+        fail("revoke attendance-bearing log -> 200", `got status ${res.status}`);
+        return;
+    }
+
+    const snap = await adminDb.doc(`events/${eventId}/logs/${UID_CALLABLE}`).get();
+    const log = snap.data();
+    const ok =
+        snap.exists &&
+        log!.points === 0 &&
+        Array.isArray(log!.instagramLogs) &&
+        log!.instagramLogs.length === 0 &&
+        log!.signInTime instanceof Timestamp;
+    if (ok) {
+        pass("revoke all awards on an attendance-bearing log -> kept, emptied, signInTime preserved");
+    } else {
+        fail("revoke all awards on an attendance-bearing log -> kept, emptied, signInTime preserved", JSON.stringify(log));
+    }
+}
+
+/** A revoke must never lazily create the event the way an award does. */
+async function testRevokeWithNoEvent(): Promise<void> {
+    const res = await postRevoke([UID_A]);
+    const body = await res.json();
+    if (res.status === 404 && body?.error?.code === "instagram_event_not_found") {
+        pass("revoke with no Instagram Points event -> 404 instagram_event_not_found");
+    } else {
+        fail("revoke with no Instagram Points event -> 404 instagram_event_not_found", `status ${res.status}, body ${JSON.stringify(body)}`);
+    }
+
+    if ((await findInstagramEventIds()).length === 0) {
+        pass("revoke with no event -> did NOT create the event");
+    } else {
+        fail("revoke with no event -> did NOT create the event");
+    }
+}
+
+async function expectValidationError(
+    label: string,
+    body: BodyInit | null,
+    contentType = "application/json",
+    path = "/instagram/award"
+): Promise<void> {
+    const res = await app.request(path, {
         method: "POST",
         headers: { "Content-Type": contentType },
         body,
@@ -310,6 +450,25 @@ async function testBadBodies(): Promise<void> {
         JSON.stringify({ uids: Array.from({ length: 201 }, (_, i) => `u${i}`) })
     );
     await expectValidationError("award non-JSON body -> 400 validation_error", "not json at all", "text/plain");
+
+    await expectValidationError(
+        "revoke bad body {} -> 400 validation_error",
+        JSON.stringify({}),
+        "application/json",
+        "/instagram/revoke"
+    );
+    await expectValidationError(
+        "revoke bad body { uids: [] } -> 400 validation_error",
+        JSON.stringify({ uids: [] }),
+        "application/json",
+        "/instagram/revoke"
+    );
+    await expectValidationError(
+        "revoke non-JSON body -> 400 validation_error",
+        "not json at all",
+        "text/plain",
+        "/instagram/revoke"
+    );
 }
 
 async function main() {
@@ -318,11 +477,21 @@ async function main() {
     try {
         await seedFixtureUsers();
 
+        // Only meaningful on a clean emulator — skipped when a seeded or
+        // leftover "Instagram Points" event already exists.
+        if (preexistingEventIds.size === 0) {
+            await testRevokeWithNoEvent();
+        }
+
         const eventId = await testFirstAwardCreatesEvent();
         if (eventId) {
             await testReAwardAccumulates(eventId);
             await testMixedValidAndUnknown(eventId);
             await testCallableShapedLogCompat(eventId);
+            // Revoke runs last: it consumes the awards the tests above built up.
+            await testRevokePopsOneAward(eventId);
+            await testRevokeLastAwardDeletesBareLog(eventId);
+            await testRevokeKeepsLogWithAttendanceTimes(eventId);
         }
         await testBadBodies();
     } finally {

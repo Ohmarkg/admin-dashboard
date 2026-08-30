@@ -4,8 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Star } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/EmptyState";
@@ -15,6 +17,7 @@ import { VerifiedBadge, NeutralBadge } from "@/components/Badges";
 import DataTable from "@/components/DataTable";
 import {
     useInstagramPoints,
+    useRevokeInstagramPoints,
     type InstagramPointsRow,
 } from "@/lib/hooks/useInstagramPoints";
 import AwardPointsDialog from "./AwardPointsDialog";
@@ -25,11 +28,21 @@ import AwardPointsDialog from "./AwardPointsDialog";
 // `/api` routes via useAwardInstagramPoints() inside AwardPointsDialog. The
 // hidden "Instagram Points" event is created lazily server-side on the first
 // award — no manual setup required.
+//
+// Each row's "Remove" action undoes ONE award (the most recent) via
+// useRevokeInstagramPoints() — the fix for an award clicked on the wrong
+// member. It is not a "reset member": a member awarded three times needs
+// three removals, which keeps weekly awards individually correctable.
 
 export default function InstagramPointsPage() {
     const instagramQuery = useInstagramPoints();
+    const revokePoints = useRevokeInstagramPoints();
     const [search, setSearch] = React.useState("");
     const [awardOpen, setAwardOpen] = React.useState(false);
+    // The row queued for removal — drives the confirm dialog. Removal takes
+    // away one award (the most recent), never the member's whole history.
+    const [pendingRemoval, setPendingRemoval] =
+        React.useState<InstagramPointsRow | null>(null);
 
     const rows = instagramQuery.data?.rows ?? [];
 
@@ -114,9 +127,47 @@ export default function InstagramPointsPage() {
                     ),
                 width: "120px",
             },
+            {
+                key: "actions",
+                header: "",
+                align: "center" as const,
+                render: (row: InstagramPointsRow) => (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingRemoval(row)}
+                        disabled={row.awardCount === 0 || revokePoints.isPending}
+                    >
+                        Remove
+                    </Button>
+                ),
+                width: "110px",
+            },
         ],
-        []
+        [revokePoints.isPending]
     );
+
+    function handleConfirmRemoval() {
+        const row = pendingRemoval;
+        if (!row) return;
+
+        return revokePoints
+            .mutateAsync([row.uid])
+            .then((result) => {
+                if (result.notAwarded.includes(row.uid)) {
+                    toast.warning(`${row.name} had no Instagram award left to remove.`);
+                    return;
+                }
+                toast.success(`Removed 1 Instagram point from ${row.name}`);
+            })
+            .catch((error: unknown) => {
+                toast.error(
+                    error instanceof Error ? error.message : "Failed to remove points"
+                );
+            })
+            .finally(() => setPendingRemoval(null));
+    }
 
     return (
         <div className="mx-auto max-w-[1240px] px-10 py-8">
@@ -135,7 +186,7 @@ export default function InstagramPointsPage() {
             />
 
             {instagramQuery.isLoading ? (
-                <TableSkeleton rows={8} columns={6} />
+                <TableSkeleton rows={8} columns={7} />
             ) : instagramQuery.isError ? (
                 <ErrorState
                     message="We couldn't load Instagram points. Please try again."
@@ -197,6 +248,25 @@ export default function InstagramPointsPage() {
                 open={awardOpen}
                 onOpenChange={setAwardOpen}
                 awardCounts={awardCounts}
+            />
+
+            <ConfirmDialog
+                open={pendingRemoval !== null}
+                onOpenChange={(next) => {
+                    if (!next) setPendingRemoval(null);
+                }}
+                title="Remove Instagram point"
+                description={
+                    pendingRemoval
+                        ? `Remove the most recent Instagram award from ${pendingRemoval.name}? ` +
+                          `This takes away 1 point, leaving ${pendingRemoval.awardCount - 1} award${
+                              pendingRemoval.awardCount - 1 === 1 ? "" : "s"
+                          }.`
+                        : undefined
+                }
+                confirmLabel="Remove point"
+                variant="destructive"
+                onConfirm={handleConfirmRemoval}
             />
         </div>
     );

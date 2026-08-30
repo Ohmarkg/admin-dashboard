@@ -16,13 +16,25 @@ import { adminDb } from "@/server/firebaseAdmin";
 // Chunked atomic batch helper
 // ---------------------------------------------------------------------------
 
-/** A single Firestore write op, expressed generically enough for `set`/`merge`. */
-export type BatchWriteOp = {
-    ref: DocumentReference;
-    data: DocumentData;
-    /** Defaults to false (overwrite). Pass true for a merge-set. */
-    merge?: boolean;
-};
+/**
+ * A single Firestore write op, expressed generically enough for
+ * `set`/`merge`/`delete`. Deletes exist so a route can remove documents in the
+ * same atomic batch as its writes (e.g. the Instagram revoke dropping a log
+ * doc that no longer carries any awards).
+ */
+export type BatchWriteOp =
+    | {
+          ref: DocumentReference;
+          data: DocumentData;
+          /** Defaults to false (overwrite). Pass true for a merge-set. */
+          merge?: boolean;
+          delete?: false;
+      }
+    | {
+          ref: DocumentReference;
+          /** Deletes the document instead of writing `data`. */
+          delete: true;
+      };
 
 /** Firestore's hard cap on writes per `WriteBatch`. */
 export const FIRESTORE_BATCH_WRITE_LIMIT = 500;
@@ -115,7 +127,11 @@ export async function chunkedAtomicBatch(
         const chunk = chunks[i];
         const batch = db.batch();
         for (const op of chunk) {
-            batch.set(op.ref, op.data, { merge: !!op.merge });
+            if (op.delete) {
+                batch.delete(op.ref);
+            } else {
+                batch.set(op.ref, op.data, { merge: !!op.merge });
+            }
         }
 
         try {

@@ -177,3 +177,41 @@ export function useAwardInstagramPoints() {
         },
     });
 }
+
+export interface RevokeInstagramPointsResult {
+    ok: true;
+    eventId: string;
+    /** uids whose most recent award was removed. */
+    revoked: string[];
+    /** uids that had no award left to remove (no log, or an empty history). */
+    notAwarded: string[];
+    pointsPerAward: number;
+}
+
+/**
+ * `POST /api/instagram/revoke` — removes the MOST RECENT Instagram award from
+ * each uid (server/routes/instagram.ts). One call removes one award per
+ * member, so a member awarded three weeks running needs three removals; this
+ * is the undo for an award clicked on the wrong person, not a "reset member".
+ *
+ * Not chunked like `useAwardInstagramPoints`: removals are made one member at
+ * a time from the table, well under the route's 200-uid cap. Invalidates the
+ * same keys as an award.
+ */
+export function useRevokeInstagramPoints() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (uids: string[]): Promise<RevokeInstagramPointsResult> => {
+            const res = await authedFetch("/instagram/revoke", {
+                method: "POST",
+                body: JSON.stringify({ uids }),
+            });
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["instagram-points"] });
+            queryClient.invalidateQueries({ queryKey: ["points"] });
+        },
+    });
+}
