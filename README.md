@@ -116,12 +116,19 @@ Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitig
 
 **Warning:** every write hits real chapter data.
 
-This mode is for **manually verifying against production in the browser only**.
-Do not run `bun run seed` or any `scripts/test-*.ts` while `.env.local` is in
-place — seeding overwrites live committees and users with fixtures. The test
-suites are guarded and will refuse to run against a non-local host; `seed` is
-guarded the same way. Neither guard is a substitute for moving `.env.local`
-aside when you are done.
+This is a **deliberate mode for verifying real behavior against real data in
+the browser**. The app itself is unguarded here by design — that is the point.
+
+Scripts are not, and cannot follow you into it. `bun run seed` and every
+`scripts/test-*.ts` go through the emulator guard, which reads `.env.local`'s
+blank emulator hosts as *unset* and redirects to `localhost:8080`. So while
+you are in production mode:
+
+- **Nothing you run from `scripts/` can touch production data** — the guard has
+  no override.
+- `bun run seed` in this mode silently seeds your **emulator**, not production,
+  and fails outright if the emulator is not running. That is a no-op for the
+  production session you are actually testing, not an error to work around.
 
 **`next build` gotcha:** without emulator hosts set, `FIREBASE_SERVICE_ACCOUNT_KEY` must be a valid service-account JSON — Admin SDK initializes at import time for `/api/[[...route]]`.
 
