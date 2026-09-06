@@ -28,6 +28,7 @@ Internal admin portal for the Texas A&M SHPE chapter — a web companion to the 
 6. **Cross-document writes go through one atomic Firestore batch** in the owning Hono route. The dual-write (points → event log + user mirror) is the canonical example.
 7. **`app/types/` is manually mirrored from the mobile app** (`MobileApp/src/types/*`). Any schema change must be reflected in both repos and in [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
 8. **Pages never call Firebase or `fetch` directly** — they call hooks in `lib/hooks/`.
+9. **Check the query-key registry before adding a read.** [docs/API.md](docs/API.md) § "Client-side reads" lists every client read and its key. If a hook already fetches the data you need, pull it through `queryClient.ensureQueryData(<owner>QueryOptions)` instead of writing a new fetch. A raw `getDocs`/`getDoc` inside another hook's `queryFn` has no query key, so TanStack Query cannot dedupe or cache it — that is how the committees page ended up scanning the whole `users/` collection three times per visit. Targeted queries (a single `where(...)` for one entity) stay their own query; only collapse reads that fetch genuinely the same data.
 
 ## Layout (target)
 

@@ -119,7 +119,7 @@ Reset/delete intentionally discard pending requests without notifications. Workf
 
 For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` using the client Firebase SDK + TanStack Query (`useQuery`), or `onSnapshot` for live data. Maps to the original `app/api/firebaseUtils.ts` helpers.
 
-| Data | Source helper (original) | Query key (suggested) |
+| Data | Source helper (original) | Query key |
 |---|---|---|
 | Event roster / calendar | `getEvents` | `['events']` |
 | Event logs (per event) | `getEventLogs(eventId)` | `['events', eventId, 'logs']` |
@@ -136,7 +136,79 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Convention tracking roster + derived counts | new (`convention-tracking` + per-user `event-logs` + `events` type join) | `['conventions']` |
 | Instagram points history | new (`events` by name "Instagram Points" + `events/{id}/logs` joined to `users/{uid}`) | `['instagram-points']` |
 
+**This table is the authoritative registry of client reads.** Before adding a
+hook that fetches from Firestore, check it for a key that already returns the
+data you need. Adding a new read for data that is already cached is the most
+common source of duplicated collection scans in this app.
+
 **Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
+
+### Reusing an existing read (do this before writing a new one)
+
+TanStack Query deduplicates on **`queryKey`**. A raw `getDocs`/`getDoc` call
+placed inside another hook's `queryFn` has no key, so the cache cannot see it,
+cannot dedupe it, and cannot serve it from an existing entry — it is a network
+read every time its parent query runs, no matter how many other hooks already
+hold the same data.
+
+So when a `queryFn` needs data that some other hook already fetches, **read it
+through the cache** rather than re-fetching it:
+
+1. Export the existing query's options from its owning hook module, using the
+   `queryOptions()` helper so the key and fetcher stay defined in exactly one
+   place:
+
+   ```ts
+   // lib/hooks/usePoints.ts — owner of the users/ roster read
+   export const membersQueryOptions = queryOptions({
+       queryKey: ["members"],
+       queryFn: fetchMembers,
+   });
+
+   export function useMembers() {
+       return useQuery(membersQueryOptions);
+   }
+   ```
+
+2. In the consuming hook, take a `QueryClient` and pull through
+   `ensureQueryData` — cached value if fresh, otherwise fetch once and store;
+   concurrent callers await the same in-flight promise:
+
+   ```ts
+   // lib/hooks/useCommittees.ts — needs the roster to hydrate uid references
+   async function loadUserMap(queryClient: QueryClient) {
+       const members = await queryClient.ensureQueryData(membersQueryOptions);
+       return new Map(members.map((m) => [m.uid, m]));
+   }
+
+   export function useCommittees() {
+       const queryClient = useQueryClient();
+       return useQuery({ queryKey: ["committees"], queryFn: () => fetchCommittees(queryClient) });
+   }
+   ```
+
+**Why this rule exists.** The committees page shipped with three hooks that each
+needed the `users/` roster — `useCommittees` and `useCommitteeRequests` to
+resolve uid-valued `head`/`leads`/`representatives` and request applicants, and
+`useMembers` for the dialog pickers. The first two each ran their own
+`getDocs(collection(db, "users"))` inside their `queryFn`, so landing on the
+page cost **three full collection scans** of a collection that grows with
+chapter membership. Routing both through `['members']` made it one.
+
+**Two consequences to accept deliberately:**
+
+- The consuming query now **depends** on the shared one — a failure in the
+  shared read surfaces as an error on the consumer, and the shared entry's
+  `staleTime` governs how stale the derived data can be.
+- Whatever invalidates the shared key now also refreshes the consumer. Make
+  sure your mutation's `invalidateQueries` covers it (committee writes
+  invalidate `['members']` for exactly this reason).
+
+**When NOT to do this.** Only collapse reads that genuinely fetch the same
+data. A *targeted* query — e.g. `useCommitteeMembers`, which runs
+`where("committees", "array-contains", id)` and returns one committee's roster
+— should stay its own query. Rewriting it to filter the full-collection cache
+trades a small precise read for a dependency on a large one.
 
 ---
 

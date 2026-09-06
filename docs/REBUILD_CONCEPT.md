@@ -193,6 +193,7 @@ lib/
 Pages never call Firebase or Hono directly — they call hooks (`usePoints()`, `useMembership()`, etc.). This is the layer that replaces the original's manual 24-hour localStorage cache + manual reload buttons:
 
 - Reads use `useQuery` calling the **client Firebase SDK directly** (not the Hono API), with per-resource query keys (e.g. `['events']`, `['members']`) — see [`docs/API.md`](./API.md) § "Client-side reads" for the full list
+- **Reuse an existing key before adding a read.** That list is the authoritative registry; consult it first. When a `queryFn` needs data another hook already fetches, share it via `queryClient.ensureQueryData(<owner>QueryOptions)` rather than issuing a second fetch — an unkeyed `getDocs` inside a `queryFn` is invisible to the cache and re-reads on every parent run. See [`docs/API.md`](./API.md) § "Reusing an existing read" for the pattern, the trade-offs it introduces, and when a targeted query should stay separate
 - Writes use `useMutation` calling **`fetch` against the Hono routes**, then `queryClient.invalidateQueries()` on success to auto-refresh instead of requiring a manual reload button
 - Real-time listeners (resume zip status) remain raw `onSnapshot`, outside TanStack Query
 
