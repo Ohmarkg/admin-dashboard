@@ -126,7 +126,27 @@ A pending membership verification submission. No dedicated stored-shape interfac
 `{ shirtSize: string, shirtUploadDate: Timestamp, shirtPickedUp: boolean }`. `uid` is the doc ID. Officers toggle `shirtPickedUp`.
 
 ## `committees/{id}` — `Committee`
-`name`, `firebaseDocName` (= doc ID), `color`, `logo` (key into `committeeLogos`), `description`, `head` (`PublicUserInfo`), `leads` (`PublicUserInfo[]`), `memberCount`, `memberApplicationLink`, `leadApplicationLink`. Read-only in this app. `head`/`leads` wiring was partially stubbed in the original; the rebuild's `useCommittees()` hook reads both shapes (embedded `PublicUserInfo` and bare-uid fallback with a `users/{uid}` lookup).
+
+The document ID is the immutable lowercase kebab-case committee slug and is exposed client-side as derived `firebaseDocName` (not stored by new writes).
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | Editable display name |
+| `color` | string | Six-digit hex color |
+| `logo` | `CommitteeLogosName` | Key into the shared logo registry |
+| `description` | string | Up to 250 characters |
+| `head` | string | Optional user UID; officer/lead/representative role required |
+| `leads` | string[] | User UIDs with the lead role |
+| `representatives` | string[] | User UIDs with the representative role |
+| `applicationLink` | string | Empty string or absolute URL |
+| `isOpen` | boolean | Mobile users join directly when true; otherwise they submit a request |
+| `memberCount` | number | Server-maintained mirror of `users[].committees`; not officer-editable |
+
+The web reader remains compatible with older embedded `PublicUserInfo` leadership values and the old `memberApplicationLink`/`leadApplicationLink` fields. All new writes use the UID-based mobile shape.
+
+## `committeeVerification/{committeeId}/requests/{uid}` — join request
+
+`{ uploadDate: string }`, where `uid` is the applicant and `committeeId` is the committee slug. Approval atomically adds the slug to `users/{uid}.committees`, updates the committee count, and deletes the request. Denial deletes only the request. Both decisions invoke `sendNotificationCommitteeRequest` after commit.
 
 ## `convention-tracking/{uid}` — National Convention roster
 

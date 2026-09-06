@@ -112,8 +112,8 @@ server/
 │   ├── membership.ts      # approve / deny (writes only; reads are client hooks)
 │   ├── points.ts          # dual-write edit / recalculate (+ maybe export)
 │   ├── events.ts          # create / update / approve (single + bulk)
-│   └── tools.ts           # shirt tracker toggle (resume-zip trigger stays client-side)
-│                          # no committees.ts — committees are read-only (client hook)
+│   ├── tools.ts           # shirt tracker toggle (resume-zip trigger stays client-side)
+│   └── committees.ts      # committee CRUD, roster, reset, request decisions
 ├── lib/
 │   └── db-helpers.ts      # shared batch-write helpers, shared query logic
 └── firebaseAdmin.ts        # Admin SDK init (guarded against re-init on cold start reuse)
@@ -228,7 +228,8 @@ server/                           # plain TypeScript, no Next.js coupling
 ├── app.ts
 ├── middleware/auth.ts
 ├── routes/
-│   ├── membership.ts             # writes only (approve/deny) — no committees router (read-only)
+│   ├── membership.ts             # writes only (approve/deny)
+│   ├── committees.ts             # CRUD, roster, reset, request decisions
 │   ├── points.ts
 │   ├── events.ts
 │   └── tools.ts

@@ -275,6 +275,8 @@ batch → query invalidation → screen. Behavior reference: `OLD-tamu-shpe-admi
 
 ### Track C — Committees (small)
 
+> Extended after the original rebuild: committees now have authenticated CRUD, roster/leadership management, join-request decisions, and reset/delete workflows. See API.md and DATA_MODEL.md for the current contract.
+
 - **C1 ∥ — `lib/hooks/useCommittees.ts`.** `['committees']`, read-only — **no router** (API.md).
   Depends: F3 (pattern follows V6). 
 - **C2 — Committees screen + CommitteeCard.**

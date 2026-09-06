@@ -21,7 +21,7 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 ## Conventions
 
-- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`.
+- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`, `/api/committees`.
 - **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
 - **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
 - **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
@@ -96,8 +96,22 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 |---|---|---|---|---|
 | POST | `/award` | `{ uids: string[] }` (1–200, deduped server-side) | for each uid: increment `points` by the event's `signInPoints` and append `Timestamp.now()` to `instagramLogs`, merge-set to BOTH `events/{eventId}/logs/{uid}` and `users/{uid}/event-logs/{eventId}`, one atomic batch | Ports the mobile `addInstagramPoints` callable (Wear It Wednesday). The hidden "Instagram Points" event is resolved by an **idempotent transactional get-or-create** (issue #8): the by-name query and the conditional create commit atomically, so concurrent first-awards can't each create an event, and if duplicate docs already exist (mobile's non-transactional path can race) the lexicographically-smallest doc id is always selected — awards never silently split across duplicates. Created with the mobile app's exact field set. Full-doc merge sets (no `arrayUnion`/`increment`) to stay byte-compatible with the callable. uids with no `users/{uid}` doc are skipped and reported. Response: `{ ok: true, eventId, awarded, unknownUids, pointsPerAward }`. The 200-uid cap keeps the dual-write ≤400 ops = one atomic batch |
 
-### `committees`
-No routes — committees are **read-only** in this app (client hook, [§ below](#client-side-reads-not-api-routes)). Add a router only if committee editing is introduced.
+### `server/routes/committees.ts` — `/api/committees`
+
+Committee documents use the mobile-compatible UID shape described in DATA_MODEL. Reads remain client-side; these routes own every write.
+
+| Method | Path | Body | Behavior |
+|---|---|---|---|
+| POST | `/` | canonical committee input (no `memberCount`) | Derive an immutable slug from `name`, validate leadership roles, create the committee, and enroll assigned leaders |
+| PUT | `/:id` | canonical committee input | Update metadata/leadership without changing the slug; newly assigned leaders are enrolled |
+| DELETE | `/:id` | none | Block while an event with missing/future `endTime` references the committee; otherwise remove memberships, pending requests, and the committee |
+| POST | `/:id/reset` | none | Remove every member, leadership assignment, and pending request while preserving committee metadata/settings |
+| POST | `/:id/members` | `{ uids: string[] }` | Idempotently add roster members and synchronize `memberCount` |
+| DELETE | `/:id/members/:uid` | none | Remove membership and any leadership positions held by that user |
+| POST | `/:id/requests/:uid/approve` | none | Add membership and delete the request atomically, then notify the applicant |
+| POST | `/:id/requests/:uid/deny` | none | Delete the request, then notify the applicant |
+
+Reset/delete intentionally discard pending requests without notifications. Workflows requiring more than Firestore's 500-write atomic limit return `409 operation_too_large` before writing.
 
 ---
 
@@ -114,6 +128,8 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Membership requests | `getMembersToVerify` | `['membership', 'requests']` |
 | Official members | filter `getMembers` by `isMemberVerified` | `['membership', 'official']` |
 | Committees | `getCommittees` | `['committees']` |
+| Committee roster | `users` filtered by committee slug | `['committees', id, 'members']` |
+| Committee join requests | `committeeVerification/{id}/requests` joined to `users` | `['committee-requests']` |
 | Shirt list | `getShirtsToVerify` (+ `getMembers`) | `['shirts']` |
 | Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
 | Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |

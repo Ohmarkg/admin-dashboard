@@ -6,6 +6,7 @@ import { membershipRouter } from "@/server/routes/membership";
 import { eventsRouter } from "@/server/routes/events";
 import { conventionsRouter } from "@/server/routes/conventions";
 import { instagramRouter } from "@/server/routes/instagram";
+import { committeesRouter } from "@/server/routes/committees";
 
 // The Hono app served from app/api/[[...route]]/route.ts (the only route.ts).
 // Routers (membership/points/events/tools/conventions/instagram) are registered here as they are built.
@@ -19,3 +20,4 @@ app.route("/membership", membershipRouter);
 app.route("/events", eventsRouter);
 app.route("/conventions", conventionsRouter);
 app.route("/instagram", instagramRouter);
+app.route("/committees", committeesRouter);

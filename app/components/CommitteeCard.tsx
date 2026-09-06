@@ -60,6 +60,7 @@ function UserAvatar({ user, size = "sm" }: { user: PublicUserInfo; size?: "sm" |
 export interface CommitteeCardProps {
   committee: Committee
   className?: string
+  actions?: React.ReactNode
 }
 
 /**
@@ -67,7 +68,7 @@ export interface CommitteeCardProps {
  * committee's own color, logo, name, description, head/leads, member count.
  * Presentational only — no mutations, no data fetching.
  */
-export function CommitteeCard({ committee, className }: CommitteeCardProps) {
+export function CommitteeCard({ committee, className, actions }: CommitteeCardProps) {
   const {
     name,
     color,
@@ -173,6 +174,7 @@ export function CommitteeCard({ committee, className }: CommitteeCardProps) {
             {memberCount} {memberCount === 1 ? "member" : "members"}
           </div>
         ) : null}
+        {actions ? <div className="flex flex-wrap gap-2 border-t border-[#EAEAEA] pt-3">{actions}</div> : null}
       </div>
     </div>
   )

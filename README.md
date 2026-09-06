@@ -12,7 +12,7 @@ Access is restricted to `@tamu.edu` Google accounts with Firebase custom claims 
 | `/events` | Event calendar and pending attendance approvals |
 | `/points` | School-year points ledger with edit, export, and recalculation |
 | `/membership` | SHPE membership verification (approve/deny requests) |
-| `/committees` | Read-only committee directory |
+| `/committees` | Committee CRUD, rosters, leadership, and join-request review |
 | `/tools` | Resume zip generation and shirt pickup tracker |
 
 For a full architecture breakdown, data model, and feature documentation, see **[docs/PURPOSE_AND_FUNCTIONALITY.md](docs/PURPOSE_AND_FUNCTIONALITY.md)**.
