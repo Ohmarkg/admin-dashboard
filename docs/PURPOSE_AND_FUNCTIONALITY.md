@@ -249,15 +249,16 @@ Uses 24-hour localStorage cache for requests and members.
 
 ---
 
-### 5. Committees (`/committees`) — Read-Only Directory
+### 5. Committees (`/committees`) — Management
 
-**Purpose:** Display chapter committees from Firestore.
+**Purpose:** Manage chapter committees and their membership workflows.
 
-- `getCommittees()` fetches committee metadata
-- `CommitteeCard` shows logo, color, description, member count
-- Committee head display has partial/stubbed logic (TODO in code)
-
-Read-only in this admin app; committee management likely happens elsewhere.
+- `useCommittees()` fetches and hydrates mobile-compatible committee metadata
+- `CommitteeCard` shows logo, color, description, leadership, and derived member count
+- Officers create/edit committees, manage searchable rosters, and assign role-eligible leadership
+- Pending join requests can be approved or denied with mobile notifications
+- Reset removes all membership, leadership, and requests without deleting the committee
+- Delete cleans membership/request references and is blocked by active events
 
 ---
 
@@ -318,7 +319,7 @@ flowchart TD
     nav --> pointsFlow[Points: edit cells save export]
     nav --> memberFlow[Membership: approve or deny requests]
     nav --> toolsFlow[Tools: zip resumes track shirts]
-    nav --> committeesFlow[Committees: browse read-only]
+    nav --> committeesFlow[Committees: CRUD rosters and requests]
 ```
 
 **Typical officer session:**
@@ -338,7 +339,7 @@ flowchart TD
 | Dashboard | Empty placeholder — no summary widgets |
 | Event create/edit | Form UI complete; submit does not write to Firestore |
 | Pending event approval | Display exists; bulk approve action incomplete |
-| Committee heads | Partially stubbed |
+| Committee management | Implemented: CRUD, rosters, leadership, requests, reset |
 | Security rules | Not in repo — assumed configured in Firebase console |
 | Server-side API | None — all data access is client-side |
 
@@ -363,7 +364,7 @@ flowchart TD
 2. **Manage membership** verification (approve/deny with notifications)
 3. **Track and edit points** across events with dual-write consistency and Excel export
 4. **Review events and attendance** via calendar and pending-approval views
-5. **Browse committees** as a read-only directory
+5. **Manage committees**, rosters, leadership, and join requests
 6. **Run batch tools** for resume collection and shirt pickup tracking
 
 The app is a **thin admin UI layer** over a shared Firebase backend, with its heaviest logic living in Cloud Functions and its data contracts shared with the mobile app.

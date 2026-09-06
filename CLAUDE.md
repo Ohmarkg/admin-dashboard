@@ -28,6 +28,7 @@ Internal admin portal for the Texas A&M SHPE chapter — a web companion to the 
 6. **Cross-document writes go through one atomic Firestore batch** in the owning Hono route. The dual-write (points → event log + user mirror) is the canonical example.
 7. **`app/types/` is manually mirrored from the mobile app** (`MobileApp/src/types/*`). Any schema change must be reflected in both repos and in [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
 8. **Pages never call Firebase or `fetch` directly** — they call hooks in `lib/hooks/`.
+9. **Check the query-key registry before adding a read.** [docs/API.md](docs/API.md) § "Client-side reads" lists every client read and its key. If a hook already fetches the data you need, pull it through `queryClient.ensureQueryData(<owner>QueryOptions)` instead of writing a new fetch. A raw `getDocs`/`getDoc` inside another hook's `queryFn` has no query key, so TanStack Query cannot dedupe or cache it — that is how the committees page ended up scanning the whole `users/` collection three times per visit. Targeted queries (a single `where(...)` for one entity) stay their own query; only collapse reads that fetch genuinely the same data.
 
 ## Layout (target)
 
@@ -43,7 +44,7 @@ Next.js 14 (App Router) · React 18 · TypeScript · Tailwind + shadcn/ui · Hon
 
 **Package manager: bun.** The rebuild uses `bun` (`bun install`, `bun run dev`, `bunx`) — not yarn or npm. (The original app used yarn; do not carry that forward.) There should be a `bun.lock`, not a `yarn.lock`, in the new tree.
 
-**Local dev/test runs on the Firebase Emulator Suite, in Docker** (`docker compose up` boots emulators + `bun run dev`). **No real credentials until the final cutover step** — no service-account key or production API key is needed or committed; both SDKs init emulator-aware (Admin SDK skips `cert()` when `FIRESTORE_EMULATOR_HOST` is set). See [docs/REBUILD_CONCEPT.md](docs/REBUILD_CONCEPT.md) §9.
+**Local dev/test runs on the Firebase Emulator Suite, in Docker** (`docker compose up` boots emulators + `bun run dev`). **All development and testing happens against the emulator — never production.** Scripts under `scripts/` that touch Firebase must open with `import "./lib/requireEmulator";` as their **first** import; it fills in local emulator hosts and hard-fails on any non-local host. (Do not "fix" a script by assigning `process.env.FIRESTORE_EMULATOR_HOST` at the top of the file: ES imports are evaluated before the file's own statements, so the assignment lands after the Admin SDK has already picked its backend. A `??=` assignment is doubly wrong — `.env.local` sets those vars to the empty string, which `??=` does not treat as unset.) **No real credentials until the final cutover step** — no service-account key or production API key is needed or committed; both SDKs init emulator-aware (Admin SDK skips `cert()` when `FIRESTORE_EMULATOR_HOST` is set). See [docs/REBUILD_CONCEPT.md](docs/REBUILD_CONCEPT.md) §9.
 
 ## Orchestration (when running on a high-tier main model)
 

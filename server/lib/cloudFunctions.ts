@@ -123,3 +123,28 @@ export async function sendNotificationMemberSHPE(args: {
     );
     return { ok: true };
 }
+
+/** Push-notifies a member that their committee join request was decided. */
+export async function sendNotificationCommitteeRequest(args: {
+    uid: string;
+    type: "approved" | "denied";
+    committeeName: string;
+    idToken: string;
+}): Promise<{ ok: true }> {
+    if (isEmulator) {
+        console.log(
+            `[cloudFunctions stub] sendNotificationCommitteeRequest invoked: ${JSON.stringify({
+                uid: args.uid,
+                type: args.type,
+                committeeName: args.committeeName,
+            })}`
+        );
+        return { ok: true };
+    }
+    await callCallable(
+        "sendNotificationCommitteeRequest",
+        { uid: args.uid, type: args.type, committeeName: args.committeeName },
+        args.idToken
+    );
+    return { ok: true };
+}

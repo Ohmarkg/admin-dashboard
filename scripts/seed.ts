@@ -20,9 +20,7 @@
  *    during manual testing
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-process.env.FIREBASE_AUTH_EMULATOR_HOST ??= "localhost:9099";
-
+import "./lib/requireEmulator";
 import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
@@ -237,7 +235,8 @@ const COMMITTEES = [
         description: "Hands-on technical projects and competitions for members.",
         headUid: "member-02",
         leadUids: ["member-04", "member-08"],
-        memberCount: 24,
+        representativeUids: ["member-06"],
+        isOpen: true,
     },
     {
         id: "professional-development",
@@ -247,7 +246,8 @@ const COMMITTEES = [
         description: "Resume reviews, mock interviews, and corporate connections.",
         headUid: "member-05",
         leadUids: ["member-01"],
-        memberCount: 31,
+        representativeUids: [],
+        isOpen: false,
     },
     {
         id: "scholastic",
@@ -257,7 +257,8 @@ const COMMITTEES = [
         description: "Study hours, tutoring, and academic resources.",
         headUid: "member-03",
         leadUids: ["member-07"],
-        memberCount: 18,
+        representativeUids: [],
+        isOpen: true,
     },
 ];
 
@@ -340,11 +341,15 @@ async function main() {
             displayName: m.name,
             name: m.name,
             photoURL: "",
-            roles: {},
+            roles: {
+                officer: COMMITTEES.some((c) => c.headUid === m.uid),
+                lead: COMMITTEES.some((c) => c.leadUids.includes(m.uid)),
+                representative: COMMITTEES.some((c) => c.representativeUids.includes(m.uid)),
+            },
             bio: `${m.major} student and active SHPE member.`,
             major: m.major,
             classYear: m.classYear,
-            committees: COMMITTEES.filter((c) => c.headUid === m.uid || c.leadUids.includes(m.uid)).map((c) => c.id),
+            committees: COMMITTEES.filter((c) => c.headUid === m.uid || c.leadUids.includes(m.uid) || c.representativeUids.includes(m.uid)).map((c) => c.id),
             pointsRank: i + 1,
             rankChange: "same",
             ...(expiration ? { chapterExpiration: expiration, nationalExpiration: expiration } : {}),
@@ -441,20 +446,25 @@ async function main() {
     }
 
     // --- committees ---
-    const publicSnapshot = async (uid: string) => (await db.doc(`users/${uid}`).get()).data() ?? { uid };
     for (const c of COMMITTEES) {
         await db.doc(`committees/${c.id}`).set({
             name: c.name,
-            firebaseDocName: c.id,
             color: c.color,
             logo: c.logo,
             description: c.description,
-            head: await publicSnapshot(c.headUid),
-            leads: await Promise.all(c.leadUids.map(publicSnapshot)),
-            memberCount: c.memberCount,
-            memberApplicationLink: "https://example.com/apply",
-            leadApplicationLink: "https://example.com/lead-apply",
-            isOpen: true,
+            head: c.headUid,
+            leads: c.leadUids,
+            representatives: c.representativeUids,
+            memberCount: 1 + c.leadUids.length + c.representativeUids.length,
+            applicationLink: "https://example.com/apply",
+            isOpen: c.isOpen,
+        });
+    }
+
+    // Pending requests for the closed Professional Development committee.
+    for (const uid of ["member-03", "member-07"]) {
+        await db.doc(`committeeVerification/professional-development/requests/${uid}`).set({
+            uploadDate: new Date().toISOString(),
         });
     }
 

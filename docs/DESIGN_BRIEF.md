@@ -126,8 +126,8 @@ A high-density, editable data grid for the SHPE school year (**June–May**).
 - **All Users tab:** full roster table with role display.
 - **Badges:** officer → **gold `#FCE300`** badge (dark text); verified member → **maroon `#500000`** badge; others → neutral. Roles surfaced: Admin, Developer, Lead, Officer, Representative, SHPE Member, Student, Guest.
 
-### 5. Committees (`/committees`) — Read-only directory
-A responsive grid of **committee cards.** Each card uses the committee's **own color** as an accent (header band or border), and shows: committee logo, name, description, **committee head** (name/avatar), **leads**, and **member count**. Read-only — no edit controls. Purely a browsable directory.
+### 5. Committees (`/committees`) — Management
+A responsive grid of **committee cards.** Each card uses the committee's **own color** as an accent and shows its logo, name, description, head, leads, and member count. Officer controls provide create/edit, searchable roster management, reset, and guarded deletion. A second tab reviews pending committee join requests with approve/deny actions.
 
 ### 6. Tools (`/tools`) — Operational utilities
 A simple two-panel utility page:

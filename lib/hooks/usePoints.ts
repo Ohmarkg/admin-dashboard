@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "@/config/firebaseClient";
 import type { PrivateUserInfo, PublicUserInfo } from "@/types/user";
@@ -91,11 +91,20 @@ async function fetchMembers(): Promise<MemberPublic[]> {
  * needs (private email fallback + event logs), so it doesn't depend on this
  * lean shape.
  */
+/**
+ * The single definition of the `['members']` cache entry. Exported so other
+ * hooks can pull the roster through `queryClient.ensureQueryData(...)` rather
+ * than issuing their own `getDocs(collection(db, "users"))` — a page that
+ * needs the roster several times still costs exactly one collection read.
+ * See `lib/hooks/useCommittees.ts`.
+ */
+export const membersQueryOptions = queryOptions({
+    queryKey: ["members"],
+    queryFn: fetchMembers,
+});
+
 export function useMembers() {
-    return useQuery({
-        queryKey: ["members"],
-        queryFn: fetchMembers,
-    });
+    return useQuery(membersQueryOptions);
 }
 
 // ---------------------------------------------------------------------------

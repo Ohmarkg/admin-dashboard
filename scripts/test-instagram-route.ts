@@ -28,8 +28,7 @@
  *     -> all 400 with `error.code === "validation_error"`.
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-
+import "./lib/requireEmulator";
 import { Hono } from "hono";
 import { Timestamp } from "firebase-admin/firestore";
 import { instagramRouter } from "../server/routes/instagram";

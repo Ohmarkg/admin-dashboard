@@ -15,8 +15,7 @@
  * Restores the original field value on `shirt-sizes/member-02` afterward.
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-
+import "./lib/requireEmulator";
 import { Hono } from "hono";
 import { toolsRouter } from "../server/routes/tools";
 import { adminDb } from "../server/firebaseAdmin";

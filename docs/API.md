@@ -21,7 +21,7 @@ There are **no `GET` data-fetch routes** — none, including Excel export (that 
 
 ## Conventions
 
-- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`.
+- **Base path:** `/api`. Routers are mounted by module: `/api/membership`, `/api/points`, `/api/events`, `/api/tools`, `/api/conventions`, `/api/instagram`, `/api/committees`.
 - **Runtime:** `export const runtime = 'nodejs'` in the mount (Admin SDK requires it).
 - **Auth:** every route passes through the auth middleware ([`server/middleware/auth.ts`](../server/middleware/auth.ts)). It verifies the Firebase **ID token** (from the `Authorization: Bearer <token>` header) and requires **any** recognized custom claim (`admin`/`officer`/`developer`). Binary gate — no per-route roles (see [REBUILD_CONCEPT.md](./REBUILD_CONCEPT.md) §4). Missing/invalid token → `401`; valid token without a recognized claim → `403`.
 - **Request bodies:** JSON, validated with **zod** at the top of each handler. Validation failure → `400` with the zod issues.
@@ -96,8 +96,24 @@ Legend — **Writes**: Firestore docs mutated (all within one atomic batch per r
 |---|---|---|---|---|
 | POST | `/award` | `{ uids: string[] }` (1–200, deduped server-side) | for each uid: increment `points` by the event's `signInPoints` and append `Timestamp.now()` to `instagramLogs`, merge-set to BOTH `events/{eventId}/logs/{uid}` and `users/{uid}/event-logs/{eventId}`, one atomic batch | Ports the mobile `addInstagramPoints` callable (Wear It Wednesday). The hidden "Instagram Points" event is resolved by an **idempotent transactional get-or-create** (issue #8): the by-name query and the conditional create commit atomically, so concurrent first-awards can't each create an event, and if duplicate docs already exist (mobile's non-transactional path can race) the lexicographically-smallest doc id is always selected — awards never silently split across duplicates. Created with the mobile app's exact field set. Full-doc merge sets (no `arrayUnion`/`increment`) to stay byte-compatible with the callable. uids with no `users/{uid}` doc are skipped and reported. Response: `{ ok: true, eventId, awarded, unknownUids, pointsPerAward }`. The 200-uid cap keeps the dual-write ≤400 ops = one atomic batch |
 
-### `committees`
-No routes — committees are **read-only** in this app (client hook, [§ below](#client-side-reads-not-api-routes)). Add a router only if committee editing is introduced.
+### `server/routes/committees.ts` — `/api/committees`
+
+Committee documents use the mobile-compatible UID shape described in DATA_MODEL. Reads remain client-side; these routes own every write.
+
+| Method | Path | Body | Behavior |
+|---|---|---|---|
+| POST | `/` | canonical committee input (no `memberCount`) | Derive an immutable slug from `name`, validate leadership roles, create the committee, and enroll assigned leaders |
+| PUT | `/:id` | canonical committee input | Update metadata/leadership without changing the slug; newly assigned leaders are enrolled |
+| DELETE | `/:id` | none | Block while an event with missing/future `endTime` references the committee; otherwise remove memberships, pending requests, and the committee |
+| POST | `/:id/reset` | none | Remove every member, leadership assignment, and pending request while preserving committee metadata/settings |
+| POST | `/:id/members` | `{ uids: string[] }` | Idempotently add roster members, clear their pending join requests, and synchronize `memberCount` |
+| DELETE | `/:id/members/:uid` | none | Remove membership and any leadership positions held by that user |
+| POST | `/:id/requests/:uid/approve` | none | Add membership and delete the request atomically, then notify the applicant |
+| POST | `/:id/requests/:uid/deny` | none | Delete the request, then notify the applicant |
+
+**Direct enrollment resolves a pending request.** Adding a member through the roster (`POST /:id/members`) or by assigning them leadership (`POST /`, `PUT /:id`) deletes that user's `committeeVerification/{id}/requests/{uid}` doc in the same batch and sends the same `approved` notification the approve route sends — an officer who adds an applicant directly has decided their request, so it must not survive in the requests tab. These routes report `requestsResolved` and, if a notification fails, the usual `warning`.
+
+Reset/delete intentionally discard pending requests without notifications. Workflows requiring more than Firestore's 500-write atomic limit return `409 operation_too_large` before writing.
 
 ---
 
@@ -105,7 +121,7 @@ No routes — committees are **read-only** in this app (client hook, [§ below](
 
 For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` using the client Firebase SDK + TanStack Query (`useQuery`), or `onSnapshot` for live data. Maps to the original `app/api/firebaseUtils.ts` helpers.
 
-| Data | Source helper (original) | Query key (suggested) |
+| Data | Source helper (original) | Query key |
 |---|---|---|
 | Event roster / calendar | `getEvents` | `['events']` |
 | Event logs (per event) | `getEventLogs(eventId)` | `['events', eventId, 'logs']` |
@@ -114,13 +130,87 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Membership requests | `getMembersToVerify` | `['membership', 'requests']` |
 | Official members | filter `getMembers` by `isMemberVerified` | `['membership', 'official']` |
 | Committees | `getCommittees` | `['committees']` |
+| Committee roster | `users` filtered by committee slug | `['committees', id, 'members']` |
+| Committee join requests | `committeeVerification/{id}/requests` joined to `users` | `['committee-requests']` |
 | Shirt list | `getShirtsToVerify` (+ `getMembers`) | `['shirts']` |
 | Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
 | Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |
 | Convention tracking roster + derived counts | new (`convention-tracking` + per-user `event-logs` + `events` type join) | `['conventions']` |
 | Instagram points history | new (`events` by name "Instagram Points" + `events/{id}/logs` joined to `users/{uid}`) | `['instagram-points']` |
 
+**This table is the authoritative registry of client reads.** Before adding a
+hook that fetches from Firestore, check it for a key that already returns the
+data you need. Adding a new read for data that is already cached is the most
+common source of duplicated collection scans in this app.
+
 **Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
+
+### Reusing an existing read (do this before writing a new one)
+
+TanStack Query deduplicates on **`queryKey`**. A raw `getDocs`/`getDoc` call
+placed inside another hook's `queryFn` has no key, so the cache cannot see it,
+cannot dedupe it, and cannot serve it from an existing entry — it is a network
+read every time its parent query runs, no matter how many other hooks already
+hold the same data.
+
+So when a `queryFn` needs data that some other hook already fetches, **read it
+through the cache** rather than re-fetching it:
+
+1. Export the existing query's options from its owning hook module, using the
+   `queryOptions()` helper so the key and fetcher stay defined in exactly one
+   place:
+
+   ```ts
+   // lib/hooks/usePoints.ts — owner of the users/ roster read
+   export const membersQueryOptions = queryOptions({
+       queryKey: ["members"],
+       queryFn: fetchMembers,
+   });
+
+   export function useMembers() {
+       return useQuery(membersQueryOptions);
+   }
+   ```
+
+2. In the consuming hook, take a `QueryClient` and pull through
+   `ensureQueryData` — cached value if fresh, otherwise fetch once and store;
+   concurrent callers await the same in-flight promise:
+
+   ```ts
+   // lib/hooks/useCommittees.ts — needs the roster to hydrate uid references
+   async function loadUserMap(queryClient: QueryClient) {
+       const members = await queryClient.ensureQueryData(membersQueryOptions);
+       return new Map(members.map((m) => [m.uid, m]));
+   }
+
+   export function useCommittees() {
+       const queryClient = useQueryClient();
+       return useQuery({ queryKey: ["committees"], queryFn: () => fetchCommittees(queryClient) });
+   }
+   ```
+
+**Why this rule exists.** The committees page shipped with three hooks that each
+needed the `users/` roster — `useCommittees` and `useCommitteeRequests` to
+resolve uid-valued `head`/`leads`/`representatives` and request applicants, and
+`useMembers` for the dialog pickers. The first two each ran their own
+`getDocs(collection(db, "users"))` inside their `queryFn`, so landing on the
+page cost **three full collection scans** of a collection that grows with
+chapter membership. Routing both through `['members']` made it one.
+
+**Two consequences to accept deliberately:**
+
+- The consuming query now **depends** on the shared one — a failure in the
+  shared read surfaces as an error on the consumer, and the shared entry's
+  `staleTime` governs how stale the derived data can be.
+- Whatever invalidates the shared key now also refreshes the consumer. Make
+  sure your mutation's `invalidateQueries` covers it (committee writes
+  invalidate `['members']` for exactly this reason).
+
+**When NOT to do this.** Only collapse reads that genuinely fetch the same
+data. A *targeted* query — e.g. `useCommitteeMembers`, which runs
+`where("committees", "array-contains", id)` and returns one committee's roster
+— should stay its own query. Rewriting it to filter the full-collection cache
+trades a small precise read for a dependency on a large one.
 
 ---
 

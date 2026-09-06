@@ -12,7 +12,7 @@ Access is restricted to `@tamu.edu` Google accounts with Firebase custom claims 
 | `/events` | Event calendar and pending attendance approvals |
 | `/points` | School-year points ledger with edit, export, and recalculation |
 | `/membership` | SHPE membership verification (approve/deny requests) |
-| `/committees` | Read-only committee directory |
+| `/committees` | Committee CRUD, rosters, leadership, and join-request review |
 | `/tools` | Resume zip generation and shirt pickup tracker |
 
 For a full architecture breakdown, data model, and feature documentation, see **[docs/PURPOSE_AND_FUNCTIONALITY.md](docs/PURPOSE_AND_FUNCTIONALITY.md)**.
@@ -68,6 +68,37 @@ bun run lint
 
 Host runs expect the emulator host env vars from [`.env.development`](.env.development) (`FIRESTORE_EMULATOR_HOST=localhost:8080`, etc.).
 
+### Tests
+
+The `scripts/test-*.ts` suites are **emulator-only**. Bring the emulators up
+(`docker compose up`), seed fixtures, then run any suite:
+
+```bash
+bun run seed                              # idempotent
+bun run scripts/test-committees-route.ts  # one suite
+```
+
+Every suite that touches Firebase opens with `import "./lib/requireEmulator";`
+as its **first** import. That guard fills in the local emulator hosts and
+**hard-fails** if the resolved host is not a local address, so a test can never
+read or write real chapter data. It must stay the first import: ES modules are
+evaluated before the importing file's own statements, so a plain
+`process.env.FIRESTORE_EMULATOR_HOST = ...` line would run too late to matter.
+
+> **If you have a `.env.local`, tests still run against the emulator** — the
+> guard treats its blank emulator hosts as unset. It is a **host** `bun run dev`
+> that `.env.local` puts on production, so keep the two modes straight and move
+> it aside (`mv .env.local .env.local.disabled`) when doing normal development.
+>
+> `docker compose up` is unaffected either way: the compose `environment:`
+> block sets real process env vars, which take precedence over every `.env`
+> file, so the container stays on the emulators even with `.env.local` present.
+
+**Never point a test script at production.** They create and delete fixture
+documents (`route-*` users, `memberSHPE/member-07`, throwaway committees and
+events) on the assumption that the database is disposable. Against real data
+they leave fabricated membership requests in the officers' queue.
+
 ### Run against production (local)
 
 Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitignored [`.env.local`](.env.local). See [`.env.example`](.env.example) for the full template.
@@ -84,6 +115,20 @@ Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitig
 6. Sign in with Google `@tamu.edu` (the emulator email/password form does not apply). Your account needs a recognized custom claim (`admin` / `officer` / `developer`).
 
 **Warning:** every write hits real chapter data.
+
+This is a **deliberate mode for verifying real behavior against real data in
+the browser**. The app itself is unguarded here by design — that is the point.
+
+Scripts are not, and cannot follow you into it. `bun run seed` and every
+`scripts/test-*.ts` go through the emulator guard, which reads `.env.local`'s
+blank emulator hosts as *unset* and redirects to `localhost:8080`. So while
+you are in production mode:
+
+- **Nothing you run from `scripts/` can touch production data** — the guard has
+  no override.
+- `bun run seed` in this mode silently seeds your **emulator**, not production,
+  and fails outright if the emulator is not running. That is a no-op for the
+  production session you are actually testing, not an error to work around.
 
 **`next build` gotcha:** without emulator hosts set, `FIREBASE_SERVICE_ACCOUNT_KEY` must be a valid service-account JSON — Admin SDK initializes at import time for `/api/[[...route]]`.
 
