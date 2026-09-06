@@ -53,8 +53,34 @@ const EMULATOR_DEFAULTS: Record<string, string> = {
     FIREBASE_STORAGE_EMULATOR_HOST: "localhost:9199",
 };
 
-/** localhost / loopback / the Docker-compose service alias. */
-const LOCAL_ADDRESS = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|::1|host\.docker\.internal|firebase-emulators):\d+$/;
+const LOOPBACK = new Set([
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+    "[::1]",
+    "host.docker.internal",
+]);
+
+/**
+ * True for an address that can only be a local emulator.
+ *
+ * Two forms are accepted: an explicit loopback host, and a **bare hostname
+ * with no dots** — which is what a container-network alias looks like
+ * (docker-compose.yml points the web service at `emulators:8080`, and the
+ * service could be renamed at any time). Google's Firestore/Auth endpoints are
+ * always dotted FQDNs, so a dotless host cannot resolve to real infrastructure.
+ */
+function isEmulatorAddress(value: string): boolean {
+    const split = value.lastIndexOf(":");
+    if (split <= 0) return false; // must be host:port
+
+    const host = value.slice(0, split);
+    const port = value.slice(split + 1);
+    if (!/^\d+$/.test(port)) return false;
+
+    return LOOPBACK.has(host) || !host.includes(".");
+}
 
 function abort(lines: string[]): never {
     console.error(
@@ -74,9 +100,12 @@ function abort(lines: string[]): never {
             "",
             "  If .env.local exists it points this machine at PRODUCTION and its",
             "  blank emulator hosts win over .env.development. Move it aside",
-            "  before running any script:",
+            "  before running any script on the host:",
             "",
             "      mv .env.local .env.local.disabled",
+            "",
+            "  Inside docker compose the emulator hosts come from the compose",
+            "  environment block (emulators:8080), which overrides .env.local.",
             "",
         ].join("\n")
     );
@@ -92,7 +121,7 @@ for (const [key, fallback] of Object.entries(EMULATOR_DEFAULTS)) {
         continue;
     }
 
-    if (!LOCAL_ADDRESS.test(current.trim())) {
+    if (!isEmulatorAddress(current.trim())) {
         abort([
             `${key} is set to "${current}", which is not a local emulator address.`,
             "That would send this script's reads and writes to real chapter data.",

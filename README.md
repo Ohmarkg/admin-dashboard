@@ -86,10 +86,13 @@ evaluated before the importing file's own statements, so a plain
 `process.env.FIRESTORE_EMULATOR_HOST = ...` line would run too late to matter.
 
 > **If you have a `.env.local`, tests still run against the emulator** — the
-> guard treats its blank emulator hosts as unset. But `.env.local` puts
-> `bun run dev` on production, so keep the two modes straight: move it aside
-> (`mv .env.local .env.local.disabled`) whenever you are doing normal
-> development.
+> guard treats its blank emulator hosts as unset. It is a **host** `bun run dev`
+> that `.env.local` puts on production, so keep the two modes straight and move
+> it aside (`mv .env.local .env.local.disabled`) when doing normal development.
+>
+> `docker compose up` is unaffected either way: the compose `environment:`
+> block sets real process env vars, which take precedence over every `.env`
+> file, so the container stays on the emulators even with `.env.local` present.
 
 **Never point a test script at production.** They create and delete fixture
 documents (`route-*` users, `memberSHPE/member-07`, throwaway committees and
