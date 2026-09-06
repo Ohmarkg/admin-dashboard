@@ -11,7 +11,7 @@ const { committeesRouter } = await import("../server/routes/committees");
 const testApp = new Hono().route("/committees", committeesRouter);
 
 const slug = "route-test-committee";
-const userIds = ["route-head", "route-lead", "route-rep", "route-member", "route-applicant", "route-denied"];
+const userIds = ["route-head", "route-lead", "route-rep", "route-member", "route-applicant", "route-denied", "route-direct", "route-promoted"];
 const eventIds = ["route-test-active-event", "route-test-past-event"];
 let failures = 0;
 
@@ -37,6 +37,7 @@ async function seedTestData() {
         "route-head": { officer: true },
         "route-lead": { lead: true },
         "route-rep": { representative: true },
+        "route-promoted": { lead: true },
     };
     await Promise.all(userIds.map((uid) => db.doc(`users/${uid}`).set({ uid, name: uid, email: `${uid}@example.com`, committees: [], roles: roles[uid] ?? {} })));
 }
@@ -77,6 +78,16 @@ async function runTests() {
     const removed = await request("DELETE", `/committees/${slug}/members/route-lead`);
     const afterRemove = await db.doc(`committees/${slug}`).get();
     check(removed.status === 200 && !afterRemove.get("leads").includes("route-lead") && afterRemove.get("memberCount") === 3, "removing a member clears leadership and recounts");
+
+    await db.doc(`committeeVerification/${slug}/requests/route-direct`).set({ uploadDate: new Date().toISOString() });
+    const directAdd = await request("POST", `/committees/${slug}/members`, { uids: ["route-direct"] });
+    const directRequest = await db.doc(`committeeVerification/${slug}/requests/route-direct`).get();
+    check(directAdd.status === 200 && directAdd.body?.added === 1 && directAdd.body?.requestsResolved === 1 && !directRequest.exists, "roster add clears the applicant's pending request", JSON.stringify(directAdd.body));
+
+    await db.doc(`committeeVerification/${slug}/requests/route-promoted`).set({ uploadDate: new Date().toISOString() });
+    const promoted = await request("PUT", `/committees/${slug}`, { leads: ["route-promoted"] });
+    const promotedRequest = await db.doc(`committeeVerification/${slug}/requests/route-promoted`).get();
+    check(promoted.status === 200 && (await db.doc("users/route-promoted").get()).get("committees").includes(slug) && !promotedRequest.exists, "leadership assignment clears the applicant's pending request", JSON.stringify(promoted.body));
 
     await db.doc(`committeeVerification/${slug}/requests/route-applicant`).set({ uploadDate: new Date().toISOString() });
     const approved = await request("POST", `/committees/${slug}/requests/route-applicant/approve`);

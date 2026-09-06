@@ -120,13 +120,48 @@ async function rosterFor(id: string): Promise<UserRow[]> {
     return snapshot.docs.map((snap) => ({ uid: snap.id, ref: snap.ref, data: snap.data() }));
 }
 
+/**
+ * The pending join-request docs among `uids`. Enrolling someone directly — a
+ * roster add or a leadership assignment — answers their request, so the request
+ * doc has to be deleted in the same batch. Otherwise it lingers in the requests
+ * tab for a user who is already on the roster, and deciding it later is a
+ * decision on a settled membership.
+ */
+async function pendingRequests(id: string, uids: string[]) {
+    const unique = [...new Set(uids)];
+    if (!unique.length) return [];
+    const snaps = await Promise.all(
+        unique.map((uid) => adminDb.doc(`committeeVerification/${id}/requests/${uid}`).get())
+    );
+    return snaps.filter((snap) => snap.exists);
+}
+
+/**
+ * The same "approved" push `decideRequest` sends, for members whose pending
+ * request a direct enrollment resolved — from their side the request was
+ * approved, just not through the requests tab. Never fatal: the batch has
+ * already committed, so a failure here comes back as a warning.
+ */
+async function notifyApproved(c: CommitteeContext, committeeName: string, uids: string[]) {
+    if (!uids.length) return undefined;
+    const idToken = c.get("idToken");
+    const results = await Promise.allSettled(
+        uids.map((uid) => sendNotificationCommitteeRequest({ uid, type: "approved", committeeName, idToken }))
+    );
+    const failed = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
+    failed.forEach((result) => console.error("sendNotificationCommitteeRequest(approved) failed:", result.reason));
+    if (!failed.length) return undefined;
+    return `Pending join ${failed.length === 1 ? "request was" : "requests were"} cleared, but ${failed.length} mobile notification${failed.length === 1 ? "" : "s"} failed to send.`;
+}
+
 async function saveCommittee(id: string, body: CommitteeBody, exists: boolean) {
     const leadership = await validateLeadership(body);
     const roster = exists ? await rosterFor(id) : [];
     const rosterUids = new Set(roster.map((user) => user.uid));
     const leadersToEnroll = [...leadership.values()].filter((user) => !rosterUids.has(user.uid));
+    const requests = exists ? await pendingRequests(id, leadersToEnroll.map((user) => user.uid)) : [];
     const memberCount = roster.length + leadersToEnroll.length;
-    if (leadersToEnroll.length + 1 > MAX_ATOMIC_WRITES) {
+    if (leadersToEnroll.length + requests.length + 1 > MAX_ATOMIC_WRITES) {
         throw new RouteError(409, "operation_too_large", "Too many leadership memberships for one atomic operation.");
     }
 
@@ -138,8 +173,9 @@ async function saveCommittee(id: string, body: CommitteeBody, exists: boolean) {
         memberCount,
     });
     leadersToEnroll.forEach((user) => batch.set(user.ref, { committees: FieldValue.arrayUnion(id) }, { merge: true }));
+    requests.forEach((request) => batch.delete(request.ref));
     await batch.commit();
-    return memberCount;
+    return { memberCount, requestsResolved: requests.map((request) => request.id) };
 }
 
 export const committeesRouter = new Hono<{ Variables: AuthVariables }>();
@@ -152,7 +188,7 @@ committeesRouter.post("/", async (c) => {
         if (!id) throw new RouteError(400, "invalid_slug", "Committee name must contain letters or numbers.");
         const ref = adminDb.doc(`committees/${id}`);
         if ((await ref.get()).exists) throw new RouteError(409, "committee_exists", `Committee already exists: ${id}.`);
-        const memberCount = await saveCommittee(id, parsed.data, false);
+        const { memberCount } = await saveCommittee(id, parsed.data, false);
         return c.json({ id, memberCount }, 201);
     } catch (error) { return errorResponse(c, error); }
 });
@@ -167,8 +203,9 @@ committeesRouter.put("/:id", async (c) => {
         const current = canonicalFromStored(id, snap.data() ?? {});
         const parsed = committeeBodySchema.safeParse({ ...current, ...(raw ?? {}) });
         if (!parsed.success) throw new RouteError(400, "validation_error", "Invalid request body.", parsed.error.issues);
-        const memberCount = await saveCommittee(id, parsed.data, true);
-        return c.json({ ok: true, memberCount });
+        const { memberCount, requestsResolved } = await saveCommittee(id, parsed.data, true);
+        const warning = await notifyApproved(c, parsed.data.name, requestsResolved);
+        return c.json({ ok: true, memberCount, ...(warning ? { warning } : {}) });
     } catch (error) { return errorResponse(c, error); }
 });
 
@@ -176,16 +213,23 @@ committeesRouter.post("/:id/members", async (c) => {
     try {
         const id = c.req.param("id");
         const committeeRef = adminDb.doc(`committees/${id}`);
-        if (!(await committeeRef.get()).exists) throw new RouteError(404, "committee_not_found", `Committee not found: ${id}.`);
+        const committeeSnap = await committeeRef.get();
+        if (!committeeSnap.exists) throw new RouteError(404, "committee_not_found", `Committee not found: ${id}.`);
         const parsed = addMembersSchema.safeParse(await c.req.json().catch(() => null));
         if (!parsed.success) throw new RouteError(400, "validation_error", "Invalid request body.", parsed.error.issues);
-        const [users, roster] = await Promise.all([loadUsers(parsed.data.uids), rosterFor(id)]);
+        const [users, roster, requests] = await Promise.all([
+            loadUsers(parsed.data.uids),
+            rosterFor(id),
+            pendingRequests(id, parsed.data.uids),
+        ]);
         const newlyAdded = [...users.values()].filter((user) => !(user.data.committees ?? []).includes(id));
         const batch = adminDb.batch();
         newlyAdded.forEach((user) => batch.set(user.ref, { committees: FieldValue.arrayUnion(id) }, { merge: true }));
+        requests.forEach((request) => batch.delete(request.ref));
         batch.set(committeeRef, { memberCount: roster.length + newlyAdded.length }, { merge: true });
         await batch.commit();
-        return c.json({ ok: true, added: newlyAdded.length });
+        const warning = await notifyApproved(c, committeeSnap.get("name") || id, requests.map((request) => request.id));
+        return c.json({ ok: true, added: newlyAdded.length, requestsResolved: requests.length, ...(warning ? { warning } : {}) });
     } catch (error) { return errorResponse(c, error); }
 });
 

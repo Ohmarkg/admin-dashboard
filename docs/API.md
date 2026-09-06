@@ -106,10 +106,12 @@ Committee documents use the mobile-compatible UID shape described in DATA_MODEL.
 | PUT | `/:id` | canonical committee input | Update metadata/leadership without changing the slug; newly assigned leaders are enrolled |
 | DELETE | `/:id` | none | Block while an event with missing/future `endTime` references the committee; otherwise remove memberships, pending requests, and the committee |
 | POST | `/:id/reset` | none | Remove every member, leadership assignment, and pending request while preserving committee metadata/settings |
-| POST | `/:id/members` | `{ uids: string[] }` | Idempotently add roster members and synchronize `memberCount` |
+| POST | `/:id/members` | `{ uids: string[] }` | Idempotently add roster members, clear their pending join requests, and synchronize `memberCount` |
 | DELETE | `/:id/members/:uid` | none | Remove membership and any leadership positions held by that user |
 | POST | `/:id/requests/:uid/approve` | none | Add membership and delete the request atomically, then notify the applicant |
 | POST | `/:id/requests/:uid/deny` | none | Delete the request, then notify the applicant |
+
+**Direct enrollment resolves a pending request.** Adding a member through the roster (`POST /:id/members`) or by assigning them leadership (`POST /`, `PUT /:id`) deletes that user's `committeeVerification/{id}/requests/{uid}` doc in the same batch and sends the same `approved` notification the approve route sends — an officer who adds an applicant directly has decided their request, so it must not survive in the requests tab. These routes report `requestsResolved` and, if a notification fails, the usual `warning`.
 
 Reset/delete intentionally discard pending requests without notifications. Workflows requiring more than Firestore's 500-write atomic limit return `409 operation_too_large` before writing.
 

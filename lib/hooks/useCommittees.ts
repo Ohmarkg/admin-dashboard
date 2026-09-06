@@ -28,6 +28,7 @@ export interface CommitteeMutationResult {
     memberCount?: number;
     warning?: string;
     added?: number;
+    requestsResolved?: number;
     removed?: boolean;
     membersRemoved?: number;
     requestsRemoved?: number;

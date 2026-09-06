@@ -44,7 +44,13 @@ export default function CommitteeRosterDialog({ open, onOpenChange, committee }:
     async function handleAdd() {
         try {
             const result = await addMembers.mutateAsync({ id: committee!.firebaseDocName, uids: [...selected] });
-            toast.success(`Added ${result.added ?? selected.size} member${(result.added ?? selected.size) === 1 ? "" : "s"}`);
+            const added = result.added ?? selected.size;
+            const resolved = result.requestsResolved ?? 0;
+            toast.success(
+                `Added ${added} member${added === 1 ? "" : "s"}` +
+                (resolved ? ` · ${resolved} pending request${resolved === 1 ? "" : "s"} cleared` : "")
+            );
+            if (result.warning) toast.warning(result.warning);
             setSelected(new Set());
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Could not add members");
