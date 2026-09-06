@@ -15,8 +15,7 @@
  * already-seeded `events/event-general-01` doc (read-only). Cleans up after.
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-
+import "./lib/requireEmulator";
 import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 

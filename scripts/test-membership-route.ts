@@ -20,9 +20,7 @@
  * to their pre-test expiration state so later phases see seeded state again.
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-process.env.FIREBASE_AUTH_EMULATOR_HOST ??= "localhost:9099";
-
+import "./lib/requireEmulator";
 import { Hono } from "hono";
 import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";

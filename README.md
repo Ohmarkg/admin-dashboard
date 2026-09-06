@@ -68,6 +68,34 @@ bun run lint
 
 Host runs expect the emulator host env vars from [`.env.development`](.env.development) (`FIRESTORE_EMULATOR_HOST=localhost:8080`, etc.).
 
+### Tests
+
+The `scripts/test-*.ts` suites are **emulator-only**. Bring the emulators up
+(`docker compose up`), seed fixtures, then run any suite:
+
+```bash
+bun run seed                              # idempotent
+bun run scripts/test-committees-route.ts  # one suite
+```
+
+Every suite that touches Firebase opens with `import "./lib/requireEmulator";`
+as its **first** import. That guard fills in the local emulator hosts and
+**hard-fails** if the resolved host is not a local address, so a test can never
+read or write real chapter data. It must stay the first import: ES modules are
+evaluated before the importing file's own statements, so a plain
+`process.env.FIRESTORE_EMULATOR_HOST = ...` line would run too late to matter.
+
+> **If you have a `.env.local`, tests still run against the emulator** — the
+> guard treats its blank emulator hosts as unset. But `.env.local` puts
+> `bun run dev` on production, so keep the two modes straight: move it aside
+> (`mv .env.local .env.local.disabled`) whenever you are doing normal
+> development.
+
+**Never point a test script at production.** They create and delete fixture
+documents (`route-*` users, `memberSHPE/member-07`, throwaway committees and
+events) on the assumption that the database is disposable. Against real data
+they leave fabricated membership requests in the officers' queue.
+
 ### Run against production (local)
 
 Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitignored [`.env.local`](.env.local). See [`.env.example`](.env.example) for the full template.
@@ -84,6 +112,13 @@ Point a **host** `bun run dev` at the real `tamushpemobileapp` project via gitig
 6. Sign in with Google `@tamu.edu` (the emulator email/password form does not apply). Your account needs a recognized custom claim (`admin` / `officer` / `developer`).
 
 **Warning:** every write hits real chapter data.
+
+This mode is for **manually verifying against production in the browser only**.
+Do not run `bun run seed` or any `scripts/test-*.ts` while `.env.local` is in
+place — seeding overwrites live committees and users with fixtures. The test
+suites are guarded and will refuse to run against a non-local host; `seed` is
+guarded the same way. Neither guard is a substitute for moving `.env.local`
+aside when you are done.
 
 **`next build` gotcha:** without emulator hosts set, `FIREBASE_SERVICE_ACCOUNT_KEY` must be a valid service-account JSON — Admin SDK initializes at import time for `/api/[[...route]]`.
 

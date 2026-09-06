@@ -26,8 +26,7 @@
  *     repeating the same call is still 200 (idempotent).
  */
 
-process.env.FIRESTORE_EMULATOR_HOST ??= "localhost:8080";
-
+import "./lib/requireEmulator";
 import { Hono } from "hono";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { Timestamp } from "firebase-admin/firestore";
