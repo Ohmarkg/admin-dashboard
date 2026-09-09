@@ -281,6 +281,7 @@ Uses 24-hour localStorage cache for requests and members.
 - Awards go through `POST /api/instagram/award` — one atomic batch dual-writing `events/{eventId}/logs/{uid}` and `users/{uid}/event-logs/{eventId}`, appending a `Timestamp` to `instagramLogs` (byte-compatible with the mobile `addInstagramPoints` callable, so both clients coexist)
 - The hidden "Instagram Points" event is looked up by name and lazily created server-side on first award
 - History table reads client-side: event logs joined to `users/{uid}` — awards count, points, last-awarded date, membership status
+- Each history row has a **Remove** action (confirm dialog) that takes back **one** award — the most recent — via `POST /api/instagram/revoke`. This is the undo for an award clicked on the wrong member, not a "reset member": a member awarded three weeks running needs three removals. Web-only capability; the mobile screen can only award
 
 ---
 
