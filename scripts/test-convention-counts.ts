@@ -4,7 +4,8 @@
  * `bun run scripts/test-convention-counts.ts` (no emulator required).
  *
  * Verifies:
- *  - a log missing signOutTime is excluded
+ *  - Volunteer Event missing signOutTime still counts (sign-in only)
+ *  - Workshop / General Meeting missing signOutTime are excluded
  *  - a log missing signInTime is excluded
  *  - a log whose event type is Social Event (not a tracked category) is excluded
  *  - a log with an unknown eventId (not in the eventTypeById map) is excluded
@@ -72,13 +73,39 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     ["evt-social", eventInfo(EventType.SOCIAL_EVENT, "Tailgate")],
 ]);
 
-// 1. Missing signOutTime -> excluded.
+// 1. Volunteer Event missing signOutTime -> still counts (sign-in only).
 {
     const counts = deriveConventionCounts(
         [log({ signOutTime: undefined })],
         eventTypeById
     );
-    assertCounts("log missing signOutTime -> excluded", counts, {
+    assertCounts("Volunteer Event missing signOutTime -> counts", counts, {
+        volunteer: 1,
+        workshop: 0,
+        generalMeeting: 0,
+    });
+}
+
+// 1b. Workshop missing signOutTime -> excluded.
+{
+    const counts = deriveConventionCounts(
+        [log({ eventId: "evt-workshop", signOutTime: undefined })],
+        eventTypeById
+    );
+    assertCounts("Workshop missing signOutTime -> excluded", counts, {
+        volunteer: 0,
+        workshop: 0,
+        generalMeeting: 0,
+    });
+}
+
+// 1c. General Meeting missing signOutTime -> excluded.
+{
+    const counts = deriveConventionCounts(
+        [log({ eventId: "evt-general", signOutTime: undefined })],
+        eventTypeById
+    );
+    assertCounts("General Meeting missing signOutTime -> excluded", counts, {
         volunteer: 0,
         workshop: 0,
         generalMeeting: 0,
@@ -163,7 +190,8 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     const logs = [
         log({ eventId: "evt-volunteer" }),
         log({ eventId: "evt-workshop" }),
-        log({ eventId: "evt-workshop", signOutTime: undefined }), // excluded
+        log({ eventId: "evt-workshop", signOutTime: undefined }), // workshop: excluded
+        log({ eventId: "evt-volunteer", signOutTime: undefined }), // volunteer: counts (sign-in only)
         log({ eventId: "evt-social" }), // excluded (untracked category)
     ];
     const attendance = deriveConventionAttendance(logs, eventTypeById);

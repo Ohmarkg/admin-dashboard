@@ -175,8 +175,8 @@ const EVENTS = [
 
 // eventId -> [uid, points, verified, noSignOut?][]
 // `noSignOut` (Convention Tracker fixture only) omits signOutTime so member-03
-// has a qualifying-event log with a sign-in but no sign-out — proving the
-// "attended" definition (signInTime AND signOutTime) correctly excludes it.
+// has a General Meeting log with a sign-in but no sign-out — proving that
+// Workshop / General Meeting still require both times (Volunteer Event does not).
 const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
     "event-general-01": [
         ["member-01", 3, true],
@@ -215,8 +215,8 @@ const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
     //  - member-01: attends all three -> fully eligible (2/2/2).
     //  - member-02: attends this general meeting only -> 2 general, 1
     //    workshop (from event-workshop-01), 0 volunteer -> partial.
-    //  - member-03: signs in but never signs out -> proves the exclusion of
-    //    incomplete logs (still only 1 fully-attended General Meeting).
+    //  - member-03: signs in but never signs out of a General Meeting ->
+    //    proves GM still requires both times (still only 1 fully-attended GM).
     "event-general-02": [
         ["member-01", 3, true],
         ["member-02", 3, true],

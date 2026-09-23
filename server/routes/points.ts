@@ -12,13 +12,14 @@
  *
  * Sign-out consistency (issue #7): whenever an edit backfills `signInTime`,
  * it also backfills `signOutTime` from the event's `endTime` (falling back to
- * `startTime`). The convention tracker only counts logs with BOTH times
- * (lib/hooks/useConventionTracker.ts), so a spreadsheet-backfilled attendance
+ * `startTime`). The convention tracker requires both times for Workshop /
+ * General Meeting (Volunteer Event counts on sign-in alone —
+ * lib/hooks/useConventionTracker.ts), so a spreadsheet-backfilled attendance
  * now counts there instead of silently diverging from the points totals.
  * Logs that already have a real `signInTime` but no `signOutTime` (mobile
  * sign-in without sign-out) are left untouched — the member genuinely never
- * signed out, and the tracker's both-times rule is the intended judge of
- * that case.
+ * signed out, and the tracker's per-category attendance gate is the intended
+ * judge of that case.
  */
 
 import { Hono } from "hono";

@@ -57,15 +57,20 @@ const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
 
 /**
  * Buckets a member's `event-logs` into the qualifying events behind each
- * convention-attendance category. A log only counts when BOTH `signInTime`
- * AND `signOutTime` are present — `signInTime` alone is not a reliable
- * "attended" signal (a mobile sign-in the member never signed out of).
+ * convention-attendance category.
+ *
+ * Attendance gate by category:
+ *  - Volunteer Event: `signInTime` alone is enough (members often don't
+ *    sign out of volunteering).
+ *  - Workshop / General Meeting: BOTH `signInTime` AND `signOutTime` must
+ *    be present — `signInTime` alone is not a reliable "attended" signal
+ *    (a mobile sign-in the member never signed out of).
+ *
  * Points-editor backfills write both times (server/routes/points.ts, issue
- * #7), so spreadsheet-backfilled attendance counts here; only genuine
- * sign-in-without-sign-out logs are excluded. The event's `eventType` must
- * also map to one of the three tracked categories via
- * `CATEGORY_BY_EVENT_TYPE`. Within each category, events are sorted by
- * `startTime` ascending (unknown start times last).
+ * #7), so spreadsheet-backfilled attendance counts here for every category.
+ * The event's `eventType` must also map to one of the three tracked
+ * categories via `CATEGORY_BY_EVENT_TYPE`. Within each category, events are
+ * sorted by `startTime` ascending (unknown start times last).
  */
 export function deriveConventionAttendance(
     logs: SHPEEventLog[],
@@ -78,20 +83,27 @@ export function deriveConventionAttendance(
     };
 
     for (const log of logs) {
-        if (!log.signInTime || !log.signOutTime) {
+        if (!log.signInTime) {
             continue;
         }
 
         const eventId = log.eventId ?? "";
         const event = eventById.get(eventId);
         const category = event ? CATEGORY_BY_EVENT_TYPE[event.eventType] : undefined;
-        if (event && category) {
-            attendance[category].push({
-                eventId,
-                name: event.name,
-                startTime: event.startTime,
-            });
+        if (!event || !category) {
+            continue;
         }
+
+        // Volunteer counts on sign-in alone; other categories need sign-out too.
+        if (category !== "volunteer" && !log.signOutTime) {
+            continue;
+        }
+
+        attendance[category].push({
+            eventId,
+            name: event.name,
+            startTime: event.startTime,
+        });
     }
 
     const byStartTime = (a: ConventionAttendedEvent, b: ConventionAttendedEvent) => {
