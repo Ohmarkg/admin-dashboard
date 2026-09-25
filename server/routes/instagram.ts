@@ -6,6 +6,10 @@
  * functions/src/events.ts): full-doc merge sets (NOT FieldValue.arrayUnion/
  * increment), dual write to `events/{eventId}/logs/{uid}` AND
  * `users/{uid}/event-logs/{eventId}`, timestamps appended to `instagramLogs`.
+ *
+ * `/revoke` is the web-only inverse (the mobile callable is award-only): it
+ * pops the most recent `instagramLogs` timestamp and subtracts one award's
+ * points, writing through the same dual-write shape.
  */
 
 import { Hono } from "hono";
@@ -25,7 +29,20 @@ const awardBodySchema = z.object({
     uids: z.array(z.string().min(1)).min(1).max(200),
 });
 
+const revokeBodySchema = awardBodySchema;
+
 export const instagramRouter = new Hono();
+
+/**
+ * Deterministic pick among duplicate `"Instagram Points"` event docs: the
+ * lexicographically-smallest doc id. Award and revoke MUST agree on this or a
+ * revoke would edit a different event's logs than the award wrote to.
+ */
+function pickCanonicalEvent(
+    docs: FirebaseFirestore.QueryDocumentSnapshot[]
+): FirebaseFirestore.QueryDocumentSnapshot {
+    return [...docs].sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+}
 
 /**
  * Idempotent get-or-create for the shared `"Instagram Points"` event (issue
@@ -46,7 +63,7 @@ async function getOrCreateInstagramEvent(): Promise<{ id: string; signInPoints: 
         );
 
         if (!snap.empty) {
-            const doc = [...snap.docs].sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+            const doc = pickCanonicalEvent(snap.docs);
             return { id: doc.id, signInPoints: doc.get("signInPoints") ?? 0 };
         }
 
@@ -76,6 +93,24 @@ async function getOrCreateInstagramEvent(): Promise<{ id: string; signInPoints: 
 
         return { id: ref.id, signInPoints: 1 };
     });
+}
+
+/**
+ * Read-only counterpart to `getOrCreateInstagramEvent`, for revoke. Returns
+ * `null` rather than creating the event: if no event exists there are no
+ * awards, and creating one as a side effect of *removing* points would be
+ * plainly wrong.
+ */
+async function findInstagramEvent(): Promise<{ id: string; signInPoints: number } | null> {
+    const snap = await adminDb
+        .collection("events")
+        .where("name", "==", INSTAGRAM_EVENT_NAME)
+        .get();
+
+    if (snap.empty) return null;
+
+    const doc = pickCanonicalEvent(snap.docs);
+    return { id: doc.id, signInPoints: doc.get("signInPoints") ?? 0 };
 }
 
 instagramRouter.post("/award", async (c) => {
@@ -166,6 +201,131 @@ instagramRouter.post("/award", async (c) => {
             eventId: event.id,
             awarded,
             unknownUids,
+            pointsPerAward: event.signInPoints,
+        },
+        200
+    );
+});
+
+/**
+ * Removes the MOST RECENT Instagram award from each uid — the undo for an
+ * award clicked on the wrong member. Deliberately not a "clear all awards"
+ * operation: each click removes one award, so repeated weekly awards stay
+ * individually correctable.
+ *
+ * Mirrors `/award`'s write shape exactly (full-doc merge sets, dual write to
+ * `events/{eventId}/logs/{uid}` AND `users/{uid}/event-logs/{eventId}`) so the
+ * mobile app's `addInstagramPoints` and this route stay compatible on the same
+ * documents.
+ */
+instagramRouter.post("/revoke", async (c) => {
+    const parsed = revokeBodySchema.safeParse(await c.req.json().catch(() => null));
+    if (!parsed.success) {
+        return c.json(
+            {
+                error: {
+                    code: "validation_error",
+                    message: "Invalid request body.",
+                    details: parsed.error.issues,
+                },
+            },
+            400
+        );
+    }
+
+    const uids = [...new Set(parsed.data.uids)];
+    const event = await findInstagramEvent();
+    if (!event) {
+        return c.json(
+            {
+                error: {
+                    code: "instagram_event_not_found",
+                    message:
+                        "No Instagram Points event exists yet — there are no awards to remove.",
+                },
+            },
+            404
+        );
+    }
+
+    // The event-log doc is the source of truth: /award writes identical data
+    // to both paths, so reading one is enough to compute the new state.
+    const logRefs = uids.map((uid) => adminDb.doc(`events/${event.id}/logs/${uid}`));
+    const logSnaps = await adminDb.getAll(...logRefs);
+
+    const notAwarded: string[] = [];
+    const revoked: string[] = [];
+    const ops: BatchWriteOp[] = [];
+
+    uids.forEach((uid, i) => {
+        const logSnap = logSnaps[i];
+        const existing = logSnap.exists ? { ...logSnap.data()! } : null;
+        const instagramLogs = (existing?.instagramLogs as unknown[] | undefined) ?? [];
+
+        if (!existing || instagramLogs.length === 0) {
+            notAwarded.push(uid);
+            return;
+        }
+
+        const remaining = instagramLogs.slice(0, -1);
+        const points = Math.max(
+            0,
+            ((existing.points as number | undefined) ?? 0) - event.signInPoints
+        );
+
+        const eventLogRef = adminDb.doc(`events/${event.id}/logs/${uid}`);
+        const userLogRef = adminDb.doc(`users/${uid}/event-logs/${event.id}`);
+
+        // Removing the last award leaves a log carrying no information, which
+        // would linger as a 0-award row on the tools table. Delete it instead
+        // so the undo is complete — but only when the doc is a bare award log:
+        // one that somehow acquired real attendance times is emptied, never
+        // deleted.
+        const isBareAwardLog = !existing.signInTime && !existing.signOutTime;
+        if (remaining.length === 0 && points === 0 && isBareAwardLog) {
+            ops.push({ ref: eventLogRef, delete: true }, { ref: userLogRef, delete: true });
+        } else {
+            const log = { ...existing, points, instagramLogs: remaining };
+            ops.push(
+                { ref: eventLogRef, data: log, merge: true },
+                { ref: userLogRef, data: log, merge: true }
+            );
+        }
+
+        revoked.push(uid);
+    });
+
+    if (ops.length > 0) {
+        try {
+            await chunkedAtomicBatch(ops);
+        } catch (error) {
+            if (error instanceof ChunkedBatchError) {
+                return c.json(
+                    {
+                        error: {
+                            code: "partial_batch_failure",
+                            message: error.message,
+                            details: {
+                                failedChunkIndex: error.failedChunkIndex,
+                                totalChunks: error.totalChunks,
+                                batchesCommitted: error.batchesCommitted,
+                                writesApplied: error.writesApplied,
+                            },
+                        },
+                    },
+                    500
+                );
+            }
+            throw error;
+        }
+    }
+
+    return c.json(
+        {
+            ok: true,
+            eventId: event.id,
+            revoked,
+            notAwarded,
             pointsPerAward: event.signInPoints,
         },
         200
