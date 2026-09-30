@@ -133,7 +133,7 @@ For reference, so nobody adds these as endpoints. These live in `lib/hooks/*` us
 | Committee roster | `users` filtered by committee slug | `['committees', id, 'members']` |
 | Committee join requests | `committeeVerification/{id}/requests` joined to `users` | `['committee-requests']` |
 | Shirt list | `getShirtsToVerify` (+ `getMembers`) | `['shirts']` |
-| Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side | `['points']` |
+| Points spreadsheet (total + monthly) | `getMembers` + logs, assembled client-side — now one `event-logs` collection-group query, see [§ Points spreadsheet read](#points-spreadsheet-read) | `['points']` |
 | Resume-zip status / data | `onSnapshot('resumes/status')`, `onSnapshot('resumes/data')` | raw listener (outside TanStack Query) |
 | Convention tracking roster + derived counts | new (`convention-tracking` + per-user `event-logs` + `events` type join) | `['conventions']` |
 | Instagram points history | new (`events` by name "Instagram Points" + `events/{id}/logs` joined to `users/{uid}`) | `['instagram-points']` |
@@ -144,6 +144,62 @@ data you need. Adding a new read for data that is already cached is the most
 common source of duplicated collection scans in this app.
 
 **Mutation → invalidation:** each write hook calls `queryClient.invalidateQueries()` on the relevant key(s) on success, replacing the original's manual reload buttons. E.g. a points edit invalidates `['points']` and `['members']`; approve/deny invalidates `['membership', ...]` and `['members']`.
+
+### Points spreadsheet read
+
+`usePointsData` (`lib/hooks/usePoints.ts`) builds the whole spreadsheet in a
+**constant number of queries**, independent of member count:
+
+1. **Roster** — `['members']` (users ordered by `points desc`), via `fetchQuery`.
+2. **Events** — `['events']`, via `fetchQuery`. Used to find the hidden
+   `"Instagram Points"` event id(s).
+3. **Logs** — one `collectionGroup("event-logs")` query,
+   `where("creationTime", ">=", <June 1 of the current school year>)`. The owning
+   uid comes from the doc path (`users/{uid}/event-logs/{eventId}`), the event id
+   from the doc id.
+4. **Instagram logs** — `events/{id}/logs` for each Instagram event, read
+   directly. An Instagram log's `creationTime` is its *first* award; later awards
+   only append to `instagramLogs`. A member first awarded last school year and
+   awarded again this year would be dropped by the `creationTime` filter in (3),
+   so Instagram logs are taken from here and their collection-group copies are
+   ignored (no double counting).
+
+This replaced a per-member fan-out (`users/{uid}/event-logs` for every member, plus
+`private/privateInfo` for every member with no public email) — about 2N requests
+for N members, all fired at once. Measured on the emulator with 1,269 members
+(localhost latency, so real networks widen the gap): 1,291 queries / 9.4 s → 4
+queries / 0.6 s, with identical output (`scripts/bench-points.ts`).
+
+**Production requirements (owned outside this repo, like every production rule).**
+The emulator runs permissive dev rules and does not enforce indexes, so neither is
+exercised locally. Without them the points page shows its error state.
+
+- **Rule:** staff must be able to read the `event-logs` *collection group* — a rule
+  on `users/{uid}/event-logs/{id}` alone does not cover collection-group queries.
+  Needs `rules_version = '2'`:
+  ```
+  match /{path=**}/event-logs/{logId} {
+    allow read: if <same officer/admin/developer claim check as other admin reads>;
+  }
+  ```
+  Scope it to staff — mobile members must not gain read access to each other's logs.
+- **Index:** a collection-group index on `event-logs.creationTime` (ascending).
+  The first production query fails with a console link that creates it.
+
+**Email.** Rows carry the member's *public* email only (`""` if absent); the
+grid does not read `private/privateInfo`. Search is by name. The Excel export calls
+`fillMissingEmails` at click time to fetch the missing ones, in batches.
+
+**Known limitation.** Logs are bucketed by `creationTime` (as before) but the
+Monthly grid's event columns are selected by event `startTime`. A log whose
+`creationTime` falls outside the school year while its event starts inside it is
+neither counted nor shown as a cell value. Normal attendance sets both together and
+points edits backfill `creationTime` from `startTime`, so this should be rare.
+
+**UI.** The page filters rows by name and renders 50 per page (`PAGE_SIZE` in
+`app/(main)/points/page.tsx`); `edits` state lives on the page so unsaved edits
+survive paging and searching. Rendering every member at once (~17k cells, or one
+live `<input>` per event cell) made the tab crash under browser find-in-page.
 
 ### Reusing an existing read (do this before writing a new one)
 
@@ -205,6 +261,17 @@ chapter membership. Routing both through `['members']` made it one.
 - Whatever invalidates the shared key now also refreshes the consumer. Make
   sure your mutation's `invalidateQueries` covers it (committee writes
   invalidate `['members']` for exactly this reason).
+
+**`ensureQueryData` vs `fetchQuery`.** `ensureQueryData` returns whatever is
+cached — *including stale or invalidated data* — and only fetches when the entry
+is empty. That is right for reference data (committees' roster lookup). It is
+**wrong when the consumer must show the result of a write**: the points query
+reads `['members']` for `users.points` totals, and after a points edit the
+`['members']` entry is invalidated but not active, so `ensureQueryData` would feed
+pre-edit totals into the refetched grid. Use
+`queryClient.fetchQuery({ ...options, staleTime })` there — it reuses fresh data
+(deduping in-flight and back-to-back reads) but refetches anything invalidated.
+Covered by `scripts/test-points-freshness.ts`.
 
 **When NOT to do this.** Only collapse reads that genuinely fetch the same
 data. A *targeted* query — e.g. `useCommitteeMembers`, which runs

@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import PageHeader from "@/components/PageHeader";
 import BrandTabs from "@/components/BrandTabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -22,6 +23,7 @@ import {
     usePointsData,
     useEditPoints,
     useRecalculatePoints,
+    fillMissingEmails,
     schoolYearMonthIndex,
     type PointsEdit,
 } from "@/lib/hooks/usePoints";
@@ -38,6 +40,11 @@ import { exportPointsWorkbook } from "./exportPoints";
 
 type PtsView = "total" | "monthly";
 
+// Rendering every member at once (~1,300 rows x 14 columns, or one live
+// <input> per event cell) made the tab crash under Cmd+F. Rows are filtered by
+// search and paged client-side; `edits` lives here so it survives page turns.
+const PAGE_SIZE = 50;
+
 export default function PointsPage() {
     const pointsQuery = usePointsData();
     const eventsQuery = useEvents();
@@ -49,6 +56,8 @@ export default function PointsPage() {
     // Raw in-progress cell values, keyed `${uid}:${eventId}`.
     const [edits, setEdits] = React.useState<Record<string, string>>({});
     const [isExporting, setIsExporting] = React.useState(false);
+    const [search, setSearch] = React.useState("");
+    const [page, setPage] = React.useState(0);
 
     const isLoading = pointsQuery.isLoading || eventsQuery.isLoading;
     const isError = pointsQuery.isError || eventsQuery.isError;
@@ -59,6 +68,19 @@ export default function PointsPage() {
     const events = eventsQuery.data ?? [];
     const months = pointsQuery.data?.months ?? [];
     const rows = pointsQuery.data?.rows ?? [];
+
+    const filteredRows = React.useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return rows;
+        return rows.filter((r) => r.displayName.toLowerCase().includes(q));
+    }, [rows, search]);
+    const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount - 1);
+    const pageStart = currentPage * PAGE_SIZE;
+    const pageRows = React.useMemo(
+        () => filteredRows.slice(pageStart, pageStart + PAGE_SIZE),
+        [filteredRows, pageStart]
+    );
 
     const selectedMonthDate = months[monthIndex];
     const monthEvents = React.useMemo(() => {
@@ -113,7 +135,9 @@ export default function PointsPage() {
         if (isExporting || !pointsQuery.data) return;
         setIsExporting(true);
         try {
-            await exportPointsWorkbook(pointsQuery.data, events);
+            // The grid loads public emails only; fill the rest just for the file.
+            const rowsWithEmail = await fillMissingEmails(pointsQuery.data.rows);
+            await exportPointsWorkbook({ ...pointsQuery.data, rows: rowsWithEmail }, events);
             toast.success("Points workbook downloaded");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to export points");
@@ -185,23 +209,38 @@ export default function PointsPage() {
                     onValueChange={(value) => setPtsView(value as PtsView)}
                 />
 
-                {ptsView === "monthly" && months.length > 0 ? (
-                    <Select
-                        value={String(monthIndex)}
-                        onValueChange={(value) => setMonthOverride(Number(value))}
-                    >
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {months.map((month, index) => (
-                                <SelectItem key={index} value={String(index)}>
-                                    {format(month, "MMMM yyyy")}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative w-[260px]">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by name…"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPage(0);
+                            }}
+                            className="pl-9"
+                        />
+                    </div>
+
+                    {ptsView === "monthly" && months.length > 0 ? (
+                        <Select
+                            value={String(monthIndex)}
+                            onValueChange={(value) => setMonthOverride(Number(value))}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months.map((month, index) => (
+                                    <SelectItem key={index} value={String(index)}>
+                                        {format(month, "MMMM yyyy")}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    ) : null}
+                </div>
             </div>
 
             {isLoading ? (
@@ -219,16 +258,60 @@ export default function PointsPage() {
                     title="No members yet"
                     message="Once members appear on the roster, their points will show up here."
                 />
-            ) : ptsView === "total" ? (
-                <TotalPointsTable rows={rows} months={months} />
+            ) : filteredRows.length === 0 ? (
+                <p className="py-8 text-center font-body text-sm text-muted-foreground">
+                    No members match &ldquo;{search}&rdquo;
+                </p>
             ) : (
-                <MonthlyPointsTable
-                    rows={rows}
-                    monthIndex={monthIndex}
-                    monthEvents={monthEvents}
-                    edits={edits}
-                    onEditCell={handleEditCell}
-                />
+                <>
+                    {ptsView === "total" ? (
+                        <TotalPointsTable rows={pageRows} months={months} />
+                    ) : (
+                        <MonthlyPointsTable
+                            rows={pageRows}
+                            monthIndex={monthIndex}
+                            monthEvents={monthEvents}
+                            edits={edits}
+                            onEditCell={handleEditCell}
+                        />
+                    )}
+                    <div className="mt-3 flex items-center justify-between font-body text-sm text-[#626262]">
+                        <span>
+                            Showing{" "}
+                            <span className="font-semibold text-[#202020]">
+                                {pageStart + 1}–{pageStart + pageRows.length}
+                            </span>{" "}
+                            of{" "}
+                            <span className="font-semibold text-[#202020]">
+                                {filteredRows.length}
+                            </span>{" "}
+                            members
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(currentPage - 1)}
+                                disabled={currentPage === 0}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Prev
+                            </Button>
+                            <span className="tabular-nums">
+                                Page {currentPage + 1} of {pageCount}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(currentPage + 1)}
+                                disabled={currentPage >= pageCount - 1}
+                            >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

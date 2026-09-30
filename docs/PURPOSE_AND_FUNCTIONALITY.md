@@ -215,7 +215,9 @@ General Meeting, Committee Meeting, Study Hours, Workshop, Volunteer, Social, In
 - **Update Points** button → `updateAllUserPoints()` Cloud Function recalculates aggregate totals
 - **Export to Excel** — client-side multi-sheet workbook (master + per-month) via ExcelJS
 - **Officer highlighting** — members with officer roles shown in red
-- **24-hour localStorage cache** for members/events with manual reload
+- **24-hour localStorage cache** for members/events with manual reload *(original app only — the rebuild uses TanStack Query and invalidates on write)*
+- **Search + pagination** *(rebuild)* — filter by member name; 50 members per page. With ~1,300 members, rendering every row at once crashed the tab under find-in-page. Unsaved edits persist across pages and searches. Load cost is a fixed handful of queries regardless of member count — see [API.md § Points spreadsheet read](./API.md#points-spreadsheet-read)
+- **Export** fetches emails the grid doesn't load (members with no public email) only when you click Export
 
 This is one of the most complete and actively used modules.
 
