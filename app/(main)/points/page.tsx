@@ -69,11 +69,15 @@ export default function PointsPage() {
     const months = pointsQuery.data?.months ?? [];
     const rows = pointsQuery.data?.rows ?? [];
 
+    // The box updates instantly; the (expensive) table re-render follows at low
+    // priority and is abandoned if the next keystroke arrives first.
+    const deferredSearch = React.useDeferredValue(search);
+    const searchPending = search !== deferredSearch;
     const filteredRows = React.useMemo(() => {
-        const q = search.trim().toLowerCase();
+        const q = deferredSearch.trim().toLowerCase();
         if (!q) return rows;
         return rows.filter((r) => r.displayName.toLowerCase().includes(q));
-    }, [rows, search]);
+    }, [rows, deferredSearch]);
     const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
     const currentPage = Math.min(page, pageCount - 1);
     const pageStart = currentPage * PAGE_SIZE;
@@ -108,9 +112,9 @@ export default function PointsPage() {
     );
     const hasEdits = dirtyKeys.length > 0;
 
-    function handleEditCell(uid: string, eventId: string, raw: string) {
+    const handleEditCell = React.useCallback((uid: string, eventId: string, raw: string) => {
         setEdits((prev) => ({ ...prev, [`${uid}:${eventId}`]: raw }));
-    }
+    }, []);
 
     function handleSave() {
         if (!hasEdits || editPoints.isPending) return;
@@ -260,10 +264,10 @@ export default function PointsPage() {
                 />
             ) : filteredRows.length === 0 ? (
                 <p className="py-8 text-center font-body text-sm text-muted-foreground">
-                    No members match &ldquo;{search}&rdquo;
+                    No members match &ldquo;{deferredSearch}&rdquo;
                 </p>
             ) : (
-                <>
+                <div className={searchPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
                     {ptsView === "total" ? (
                         <TotalPointsTable rows={pageRows} months={months} />
                     ) : (
@@ -311,7 +315,7 @@ export default function PointsPage() {
                             </Button>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

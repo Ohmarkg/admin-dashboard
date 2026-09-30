@@ -202,10 +202,38 @@ Monthly grid's event columns are selected by event `startTime`. A log whose
 neither counted nor shown as a cell value. Normal attendance sets both together and
 points edits backfill `creationTime` from `startTime`, so this should be rare.
 
+**Client SDK: Firestore Lite for the big reads.** The roster (`['members']`) and the
+points logs are read with `dbLite` (`firebase/firestore/lite`, exported from
+`app/config/firebaseClient.ts`), not `db`. The full SDK's `getDocs` routes every
+result through an in-memory sorted view, which cost ~600–1,300 ms of *main-thread
+CPU* for the ~5,800-doc logs query (and ~160–335 ms for the roster) — the page
+froze for ~0.5 s on load at normal speed and ~2 s at 4× CPU slowdown, and any
+keystroke or click during that window queued behind it. Lite does the same
+one-shot read in ~40 ms. Rules for using it:
+
+- One-shot reads only — Lite has no listeners and no local cache. Keep `db` for
+  `onSnapshot` and small reads.
+- Import `collection`/`query`/`where`/`orderBy`/`getDocs` **and `Timestamp`** from
+  `"firebase/firestore/lite"` when querying `dbLite`; Lite's `Timestamp` is a
+  different class from the full SDK's, and mixing them throws
+  `Unsupported field value: a custom Timestamp object`. Code that checks
+  `instanceof Timestamp` (e.g. `isMemberVerified`) must have a `{seconds}` fallback —
+  it does today.
+- Same project and same signed-in user, so the security rules above apply unchanged.
+
 **UI.** The page filters rows by name and renders 50 per page (`PAGE_SIZE` in
 `app/(main)/points/page.tsx`); `edits` state lives on the page so unsaved edits
 survive paging and searching. Rendering every member at once (~17k cells, or one
 live `<input>` per event cell) made the tab crash under browser find-in-page.
+Typing stays responsive because the search text is `useDeferredValue`d (the box
+updates instantly, the table follows at low priority), both grids are
+`React.memo`, `handleEditCell` is a stable `useCallback`, and `EditableCell` is
+memoized on plain props.
+
+**Measured** (1,269 members, production build, Chrome, scratch emulator): longest
+main-thread block on load 489 ms → 57 ms (1× CPU) and ~2,000 ms → 90 ms (4×);
+worst keystroke in the search box 32 ms (1×) / ~100 ms (4×) on the Monthly tab.
+Emulator latency is ~0, so real network time adds on top.
 
 ### Reusing an existing read (do this before writing a new one)
 

@@ -5,18 +5,17 @@ import {
     useQueryClient,
     type QueryClient,
 } from "@tanstack/react-query";
+import { doc, getDoc } from "firebase/firestore";
 import {
     collection,
     collectionGroup,
-    doc,
-    getDoc,
     getDocs,
     orderBy,
     query,
     Timestamp,
     where,
-} from "firebase/firestore";
-import { db } from "@/config/firebaseClient";
+} from "firebase/firestore/lite";
+import { db, dbLite } from "@/config/firebaseClient";
 import type { PrivateUserInfo, PublicUserInfo } from "@/types/user";
 import type { SHPEEventLog } from "@/types/events";
 import { authedFetch } from "@/lib/hooks/authedFetch";
@@ -95,7 +94,9 @@ export interface MemberPublic extends PublicUserInfo {
 }
 
 async function fetchMembers(): Promise<MemberPublic[]> {
-    const usersQuery = query(collection(db, "users"), orderBy("points", "desc"));
+    // Lite SDK: a ~1,300-doc one-shot read costs ~10–45 ms of CPU here vs
+    // ~160–335 ms on the full SDK (see config/firebaseClient.ts).
+    const usersQuery = query(collection(dbLite, "users"), orderBy("points", "desc"));
     const snapshot = await getDocs(usersQuery);
     return snapshot.docs.map((d) => ({ ...(d.data() as PublicUserInfo), uid: d.id }));
 }
@@ -244,7 +245,7 @@ export async function fetchPointsData(queryClient: QueryClient): Promise<PointsD
     // owning uid comes from the doc path (users/{uid}/event-logs/{eventId}).
     const schoolYearLogsPromise = getDocs(
         query(
-            collectionGroup(db, "event-logs"),
+            collectionGroup(dbLite, "event-logs"),
             where("creationTime", ">=", Timestamp.fromDate(schoolYearStart))
         )
     );
@@ -266,7 +267,7 @@ export async function fetchPointsData(queryClient: QueryClient): Promise<PointsD
     const [schoolYearLogsSnapshot, instagramLogSnapshots] = await Promise.all([
         schoolYearLogsPromise,
         Promise.all(
-            [...instagramEventIds].map((eventId) => getDocs(collection(db, `events/${eventId}/logs`)))
+            [...instagramEventIds].map((eventId) => getDocs(collection(dbLite, `events/${eventId}/logs`)))
         ),
     ]);
 

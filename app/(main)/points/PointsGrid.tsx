@@ -54,7 +54,7 @@ function monthTotal(row: PointsRow, monthIndex: number): number {
 // Total Points view
 // ---------------------------------------------------------------------------
 
-export function TotalPointsTable({
+export const TotalPointsTable = React.memo(function TotalPointsTable({
     rows,
     months,
 }: {
@@ -101,23 +101,33 @@ export function TotalPointsTable({
             maxHeight="60vh"
         />
     );
-}
+});
 
 // ---------------------------------------------------------------------------
 // Monthly Points view
 // ---------------------------------------------------------------------------
 
 export interface MonthlyEditCellProps {
+    uid: string;
+    eventId: string;
     value: string;
     dirty: boolean;
-    onChange: (raw: string) => void;
+    onEditCell: (uid: string, eventId: string, raw: string) => void;
 }
 
-function EditableCell({ value, dirty, onChange }: MonthlyEditCellProps) {
+// Memoized on plain props (no per-render closures) so a keystroke in one cell
+// re-renders that cell only — not every input in the grid.
+const EditableCell = React.memo(function EditableCell({
+    uid,
+    eventId,
+    value,
+    dirty,
+    onEditCell,
+}: MonthlyEditCellProps) {
     return (
         <input
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onEditCell(uid, eventId, e.target.value)}
             inputMode="numeric"
             className={cn(
                 "w-16 rounded-sm border-none bg-transparent px-1.5 py-2 text-right font-body text-[13px] tabular-nums text-foreground outline-none",
@@ -126,9 +136,9 @@ function EditableCell({ value, dirty, onChange }: MonthlyEditCellProps) {
             )}
         />
     );
-}
+});
 
-export function MonthlyPointsTable({
+export const MonthlyPointsTable = React.memo(function MonthlyPointsTable({
     rows,
     monthIndex,
     monthEvents,
@@ -172,9 +182,11 @@ export function MonthlyPointsTable({
                     const dirty = key in edits && parsePointsInput(edits[key]) !== base;
                     return (
                         <EditableCell
+                            uid={row.uid}
+                            eventId={event.id}
                             value={rawValue}
                             dirty={dirty}
-                            onChange={(raw) => onEditCell(row.uid, event.id, raw)}
+                            onEditCell={onEditCell}
                         />
                     );
                 },
@@ -212,4 +224,4 @@ export function MonthlyPointsTable({
             maxHeight="60vh"
         />
     );
-}
+});
