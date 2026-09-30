@@ -176,13 +176,19 @@ exercised locally. Without them the points page shows its error state.
 
 - **Rule:** staff must be able to read the `event-logs` *collection group* — a rule
   on `users/{uid}/event-logs/{id}` alone does not cover collection-group queries.
-  Needs `rules_version = '2'`:
+  Needs `rules_version = '2'`. Add it inside `match /databases/{database}/documents`,
+  next to the other top-level matches (it reuses the existing `isSuperUser` helper):
   ```
   match /{path=**}/event-logs/{logId} {
-    allow read: if <same officer/admin/developer claim check as other admin reads>;
+    allow read: if request.auth.uid != null && isSuperUser(request);
   }
   ```
-  Scope it to staff — mobile members must not gain read access to each other's logs.
+  Scope it to staff: this rule only widens access for claim-holders. **Verified in
+  the emulator (2026-09-30) against the production rules as they stood that day:**
+  without it, the collection-group query is denied for everyone, officers
+  included; with it, officers are allowed and members/anonymous stay denied. The
+  existing `users/{userId}/event-logs/{document=**}` rule does *not* authorize
+  collection-group queries.
 - **Index:** a collection-group index on `event-logs.creationTime` (ascending).
   The first production query fails with a console link that creates it.
 
