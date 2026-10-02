@@ -1,9 +1,26 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
-import { db } from "@/config/firebaseClient";
+import {
+    queryOptions,
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type QueryClient,
+} from "@tanstack/react-query";
+import { doc, getDoc } from "firebase/firestore";
+import {
+    collection,
+    collectionGroup,
+    getDocs,
+    orderBy,
+    query,
+    Timestamp,
+    where,
+} from "firebase/firestore/lite";
+import { db, dbLite } from "@/config/firebaseClient";
 import type { PrivateUserInfo, PublicUserInfo } from "@/types/user";
-import type { SHPEEvent, SHPEEventLog } from "@/types/events";
+import type { SHPEEventLog } from "@/types/events";
 import { authedFetch } from "@/lib/hooks/authedFetch";
+import { eventsQueryOptions } from "@/lib/hooks/useEvents";
+import { INSTAGRAM_EVENT_NAME } from "@/lib/hooks/useInstagramPoints";
 
 // Client-side reads (API.md § Client-side reads: "Members / roster" and
 // "Points spreadsheet"). Writes (edit/recalculate) go through the Hono
@@ -77,7 +94,9 @@ export interface MemberPublic extends PublicUserInfo {
 }
 
 async function fetchMembers(): Promise<MemberPublic[]> {
-    const usersQuery = query(collection(db, "users"), orderBy("points", "desc"));
+    // Lite SDK: a ~1,300-doc one-shot read costs ~10–45 ms of CPU here vs
+    // ~160–335 ms on the full SDK (see config/firebaseClient.ts).
+    const usersQuery = query(collection(dbLite, "users"), orderBy("points", "desc"));
     const snapshot = await getDocs(usersQuery);
     return snapshot.docs.map((d) => ({ ...(d.data() as PublicUserInfo), uid: d.id }));
 }
@@ -144,7 +163,7 @@ export interface PointsData {
     rows: PointsRow[];
 }
 
-function buildMonthlyBuckets(
+export function buildMonthlyBuckets(
     eventLogs: SHPEEventLog[],
     instagramEventIds: Set<string>,
     months: Date[],
@@ -181,59 +200,110 @@ function buildMonthlyBuckets(
     return buckets;
 }
 
-async function fetchPointsData(): Promise<PointsData> {
+/**
+ * How long the `['members']` / `['events']` entries may be reused by the points
+ * query without a refetch. Invalidation (`useEditPoints`, `useRecalculatePoints`)
+ * marks an entry stale regardless of this window, so a points refetch after a
+ * write always re-reads the roster — the window only dedupes the page's parallel
+ * `useEvents()` call and quick back-to-back visits.
+ */
+const SHARED_READ_STALE_MS = 30_000;
+
+/**
+ * Builds the points model in a constant number of Firestore queries — the
+ * roster, the events list (both through the shared query cache), ONE
+ * `event-logs` collection-group query bounded to the current school year, and
+ * one `logs` read per hidden "Instagram Points" event. The previous version
+ * issued a `users/{uid}/event-logs` query (plus a `privateInfo` read for users
+ * with no public email) for every user — ~2N requests for N members.
+ *
+ * Needs production support (owned outside this repo — API.md § "Points
+ * spreadsheet read"): a Firestore rule allowing staff to read the `event-logs`
+ * collection group, and a collection-group index on `event-logs.creationTime`.
+ *
+ * `email` is the public email only (`""` when absent); the export fills the rest
+ * on demand via `fillMissingEmails`.
+ */
+export async function fetchPointsData(queryClient: QueryClient): Promise<PointsData> {
     const now = new Date();
     const months = getCurrentSchoolYearMonths(now);
     const schoolYearLabel = getSchoolYearLabel(now);
+    const schoolYearStart = new Date(getSchoolYearStartYear(now), 5, 1);
+
+    // Only fetchQuery (not ensureQueryData) honors invalidation: ensureQueryData
+    // would serve a stale-but-cached roster, showing pre-edit totals.
+    const membersPromise = queryClient.fetchQuery({
+        ...membersQueryOptions,
+        staleTime: SHARED_READ_STALE_MS,
+    });
+    const eventsPromise = queryClient.fetchQuery({
+        ...eventsQueryOptions,
+        staleTime: SHARED_READ_STALE_MS,
+    });
+
+    // Every log created this school year, across all users, in one query. The
+    // owning uid comes from the doc path (users/{uid}/event-logs/{eventId}).
+    const schoolYearLogsPromise = getDocs(
+        query(
+            collectionGroup(dbLite, "event-logs"),
+            where("creationTime", ">=", Timestamp.fromDate(schoolYearStart))
+        )
+    );
+
+    const [members, events] = await Promise.all([membersPromise, eventsPromise]);
 
     // Events named "Instagram Points" get their points tallied via
     // instagramLogs instead of the log's own `points` field (legacy
     // behavior) — collect their ids to exclude from the event-points sum.
-    const eventsSnapshot = await getDocs(collection(db, "events"));
     const instagramEventIds = new Set(
-        eventsSnapshot.docs
-            .filter((d) => (d.data() as SHPEEvent).name === "Instagram Points")
-            .map((d) => d.id)
+        events.filter((event) => event.name === INSTAGRAM_EVENT_NAME).map((event) => event.id)
     );
 
-    const usersQuery = query(collection(db, "users"), orderBy("points", "desc"));
-    const usersSnapshot = await getDocs(usersQuery);
+    // An Instagram log's `creationTime` is its FIRST award; later awards only
+    // append to `instagramLogs`. The creationTime filter above would therefore
+    // drop a member first awarded last school year who was awarded again this
+    // year, so those logs are read from their event directly and the
+    // collection-group copies of them are ignored (no double counting).
+    const [schoolYearLogsSnapshot, instagramLogSnapshots] = await Promise.all([
+        schoolYearLogsPromise,
+        Promise.all(
+            [...instagramEventIds].map((eventId) => getDocs(collection(dbLite, `events/${eventId}/logs`)))
+        ),
+    ]);
 
-    const rows = await Promise.all(
-        usersSnapshot.docs.map(async (userDoc): Promise<PointsRow> => {
-            const uid = userDoc.id;
-            const publicInfo = userDoc.data() as PublicUserInfo;
+    const logsByUid = new Map<string, SHPEEventLog[]>();
+    const addLog = (uid: string, log: SHPEEventLog) => {
+        const list = logsByUid.get(uid);
+        if (list) list.push(log);
+        else logsByUid.set(uid, [log]);
+    };
 
-            let email = publicInfo.email?.trim();
-            if (!email) {
-                try {
-                    const privateSnap = await getDoc(doc(db, `users/${uid}/private/privateInfo`));
-                    email = (privateSnap.data() as PrivateUserInfo | undefined)?.email;
-                } catch (error) {
-                    console.error(`Error fetching private info for user ${uid}:`, error);
-                }
-            }
+    for (const logDoc of schoolYearLogsSnapshot.docs) {
+        if (instagramEventIds.has(logDoc.id)) continue;
+        const uid = logDoc.ref.parent.parent?.id;
+        if (!uid) continue;
+        addLog(uid, { ...(logDoc.data() as SHPEEventLog), eventId: logDoc.id });
+    }
+    instagramLogSnapshots.forEach((snapshot, index) => {
+        const eventId = [...instagramEventIds][index];
+        for (const logDoc of snapshot.docs) {
+            addLog(logDoc.id, { ...(logDoc.data() as SHPEEventLog), eventId });
+        }
+    });
 
-            let eventLogs: SHPEEventLog[] = [];
-            try {
-                const logsSnapshot = await getDocs(collection(db, `users/${uid}/event-logs`));
-                eventLogs = logsSnapshot.docs.map((d) => d.data() as SHPEEventLog);
-            } catch (error) {
-                console.error(`Error fetching event logs for user ${uid}:`, error);
-            }
-
-            return {
-                uid,
-                displayName: publicInfo.displayName ?? "",
-                email: email || "Email not available",
-                isOfficer: Boolean(publicInfo.roles?.officer),
-                pointsRank: publicInfo.pointsRank,
-                totalPoints: publicInfo.points ?? 0,
-                eventLogs,
-                months: buildMonthlyBuckets(eventLogs, instagramEventIds, months, now),
-            };
-        })
-    );
+    const rows = members.map((member): PointsRow => {
+        const eventLogs = logsByUid.get(member.uid) ?? [];
+        return {
+            uid: member.uid,
+            displayName: member.displayName ?? "",
+            email: member.email?.trim() ?? "",
+            isOfficer: Boolean(member.roles?.officer),
+            pointsRank: member.pointsRank,
+            totalPoints: member.points ?? 0,
+            eventLogs,
+            months: buildMonthlyBuckets(eventLogs, instagramEventIds, months, now),
+        };
+    });
 
     return { schoolYearLabel, months, rows };
 }
@@ -245,10 +315,42 @@ async function fetchPointsData(): Promise<PointsData> {
  * — but computed once here instead of on every render.
  */
 export function usePointsData() {
+    const queryClient = useQueryClient();
+
     return useQuery({
         queryKey: ["points"],
-        queryFn: fetchPointsData,
+        queryFn: () => fetchPointsData(queryClient),
     });
+}
+
+/**
+ * Returns `rows` with `email` filled from `users/{uid}/private/privateInfo` for
+ * every row whose public email is empty (mirrors the legacy fallback). Used by
+ * the Excel export only — one read per such member, in small batches — so the
+ * points screen itself never pays for it. Falls back to "Email not available".
+ */
+export async function fillMissingEmails(rows: PointsRow[], batchSize = 25): Promise<PointsRow[]> {
+    const missing = rows.filter((row) => !row.email);
+    const resolved = new Map<string, string>();
+
+    for (let i = 0; i < missing.length; i += batchSize) {
+        await Promise.all(
+            missing.slice(i, i + batchSize).map(async (row) => {
+                try {
+                    const snap = await getDoc(doc(db, `users/${row.uid}/private/privateInfo`));
+                    const email = (snap.data() as PrivateUserInfo | undefined)?.email?.trim();
+                    if (email) resolved.set(row.uid, email);
+                } catch (error) {
+                    console.error(`Error fetching private info for user ${row.uid}:`, error);
+                }
+            })
+        );
+    }
+
+    return rows.map((row) => ({
+        ...row,
+        email: row.email || resolved.get(row.uid) || "Email not available",
+    }));
 }
 
 // ---------------------------------------------------------------------------

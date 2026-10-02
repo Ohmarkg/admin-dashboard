@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/config/firebaseClient";
 import type { PublicUserInfo } from "@/types/user";
@@ -21,12 +21,19 @@ async function fetchEvents(): Promise<EventWithId[]> {
     return snapshot.docs.map((d) => ({ ...(d.data() as SHPEEvent), id: d.id }));
 }
 
+/**
+ * The single definition of the `['events']` cache entry. Exported so other
+ * hooks (see `usePointsData`) can read the events list through the query cache
+ * instead of issuing their own `getDocs(collection(db, "events"))`.
+ */
+export const eventsQueryOptions = queryOptions({
+    queryKey: ["events"],
+    queryFn: fetchEvents,
+});
+
 /** `events/` roster, unordered — mirrors the legacy `getEvents`. */
 export function useEvents() {
-    return useQuery({
-        queryKey: ["events"],
-        queryFn: fetchEvents,
-    });
+    return useQuery(eventsQueryOptions);
 }
 
 // ---------------------------------------------------------------------------

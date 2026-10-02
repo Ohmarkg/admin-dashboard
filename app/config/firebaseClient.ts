@@ -1,6 +1,10 @@
 import { initializeApp, FirebaseApp, getApp, getApps } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import {
+    getFirestore as getFirestoreLite,
+    connectFirestoreEmulator as connectFirestoreLiteEmulator,
+} from "firebase/firestore/lite";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
@@ -32,6 +36,13 @@ if (getApps().length === 0) {
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+// Firestore Lite: same project and Auth, but one-shot reads only (no listeners,
+// no local cache). The full SDK's `getDocs` routes every result through an
+// in-memory sorted view — measured at ~600–1,300 ms of main-thread CPU for the
+// ~5,800-doc points query vs ~40 ms on Lite. Use it for big one-shot reads
+// (see usePoints.ts); keep `db` for listeners and small reads. Lite has its own
+// `Timestamp`/`query`/`where` — import those from "firebase/firestore/lite" too.
+const dbLite = getFirestoreLite(app);
 const storage = getStorage(app);
 const functions = getFunctions(app);
 
@@ -42,10 +53,11 @@ if (useEmulators) {
     if (!g.__emulatorsConnected) {
         connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
         connectFirestoreEmulator(db, "localhost", 8080);
+        connectFirestoreLiteEmulator(dbLite, "localhost", 8080);
         connectStorageEmulator(storage, "localhost", 9199);
         connectFunctionsEmulator(functions, "localhost", 5001);
         g.__emulatorsConnected = true;
     }
 }
 
-export { db, auth, storage, functions };
+export { db, dbLite, auth, storage, functions };

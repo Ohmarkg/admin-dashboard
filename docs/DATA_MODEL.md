@@ -111,6 +111,8 @@ Canonical at `events/{eventId}/logs/{userId}`; mirrored at `users/{uid}/event-lo
 | `instagramLogs` | Timestamp[] | Instagram-points logging — one entry appended per Wear-It-Wednesday award. Logs live under the hidden event named `"Instagram Points"` (`hiddenEvent: true`, `signInPoints: 1`), which is looked up by name and lazily created — by the mobile app client-side, or by `POST /api/instagram/award` server-side — whichever awards first |
 | `edited` | boolean | Officer-edited flag, set alongside `verified: true` on points edits. **Declared as `edited?: boolean` in [`SHPEEventLog`](../app/types/events.ts)** (gap closed during the rebuild types port); the matching `MobileApp/src/types/Events.ts` change is carried over by hand in the mobile repo. Original write site: firebaseUtils.ts:151. |
 
+> **Collection-group reads.** The Points page queries `users/{uid}/event-logs` as the `event-logs` **collection group**, filtered on `creationTime`. So: the owning uid is taken from the doc **path**, the event id from the doc **id** (don't rely on the `uid`/`eventId` fields — the canonical `events/{id}/logs/{uid}` copy may lack `eventId`); and `creationTime` must be set on every log. For an Instagram log, `creationTime` is the **first** award only — later awards just append to `instagramLogs` — which is why Instagram logs are read from `events/{id}/logs` instead. Needs a production rule + index, see [API.md § Points spreadsheet read](./API.md#points-spreadsheet-read).
+
 ---
 
 ## `memberSHPE/{uid}` — membership request

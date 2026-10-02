@@ -94,6 +94,24 @@ evaluated before the importing file's own statements, so a plain
 > block sets real process env vars, which take precedence over every `.env`
 > file, so the container stays on the emulators even with `.env.local` present.
 
+**Scale seed and benchmark (Points page).** Three more scripts live alongside the
+suites; all are emulator-only:
+
+```bash
+bun run scripts/seed-stress.ts          # +1,260 users, ~150 events, ~9k logs, hidden Instagram event (ids prefixed stress-)
+bun run scripts/seed-stress.ts --clean  # remove them again
+
+NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true bun run scripts/bench-points.ts          # old per-user fetch vs current, + equivalence check
+NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true bun run scripts/test-points-freshness.ts # totals refresh after a write
+```
+
+`bench-points` and `test-points-freshness` use the **client** SDK, which the
+emulator guard does not cover (it only checks the Admin SDK's hosts). `.env.local`
+sets `NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false`, so without the variable on the
+command line the client SDK would read **production**. Both scripts refuse to run
+unless it is `true`. If you run the dev server against the emulator while a
+`.env.local` exists, pass the emulator variables on the command line too.
+
 **Never point a test script at production.** They create and delete fixture
 documents (`route-*` users, `memberSHPE/member-07`, throwaway committees and
 events) on the assumption that the database is disposable. Against real data
@@ -133,6 +151,8 @@ you are in production mode:
 **`next build` gotcha:** without emulator hosts set, `FIREBASE_SERVICE_ACCOUNT_KEY` must be a valid service-account JSON — Admin SDK initializes at import time for `/api/[[...route]]`.
 
 **Convention tracking:** there is no need to pre-create a `convention-tracking` collection in the console. The first successful track (`POST /api/conventions/track`) creates `convention-tracking/{uid}` via the Admin SDK. An empty roster UI is expected until officers import/track members. Production Firestore **read** rules must allow officers to read `convention-tracking/{document=**}` (same claim gate as other admin reads); without that, the tracker UI fails even though track/untrack writes succeed.
+
+**Points page:** production read rules must also allow officers to read the `event-logs` **collection group** (`match /{path=**}/event-logs/{logId}`), and a collection-group index on `event-logs.creationTime` (ascending) must exist. Without them `/points` shows its error state. Details in [docs/API.md § Points spreadsheet read](docs/API.md#points-spreadsheet-read).
 
 ## Tech Stack
 
