@@ -5,8 +5,11 @@
  *
  * Verifies:
  *  - Volunteer Event missing signOutTime still counts (sign-in only)
- *  - Workshop / General Meeting missing signOutTime are excluded
- *  - a log missing signInTime is excluded
+ *  - Workshop with only signIn or only signOut still counts, flagged incomplete
+ *    (a complete workshop is not flagged)
+ *  - General Meeting missing signOutTime is excluded
+ *  - a Volunteer / General Meeting log missing signInTime is excluded; a log
+ *    with neither time is excluded everywhere
  *  - a log whose event type is Social Event (not a tracked category) is excluded
  *  - an event not flagged nationalConventionEligible is excluded in every
  *    category; a flagged event of an untracked type (Social) is still excluded
@@ -92,17 +95,47 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     });
 }
 
-// 1b. Workshop missing signOutTime -> excluded.
+// 1b. Workshop with only one of sign-in / sign-out -> counts, flagged incomplete.
 {
-    const counts = deriveConventionCounts(
-        [log({ eventId: "evt-workshop", signOutTime: undefined })],
+    const cases: [string, Partial<SHPEEventLog>][] = [
+        ["sign-in only", { signOutTime: undefined }],
+        ["sign-out only", { signInTime: undefined }],
+    ];
+    for (const [label, overrides] of cases) {
+        const logs = [log({ eventId: "evt-workshop", ...overrides })];
+        const counts = deriveConventionCounts(logs, eventTypeById);
+        assertCounts(`Workshop ${label} -> counts`, counts, {
+            volunteer: 0,
+            workshop: 1,
+            generalMeeting: 0,
+        });
+        const entry = deriveConventionAttendance(logs, eventTypeById).workshop[0];
+        if (entry?.incomplete === true) {
+            pass(`Workshop ${label} -> flagged incomplete`);
+        } else {
+            fail(`Workshop ${label} -> flagged incomplete`, JSON.stringify(entry));
+        }
+    }
+
+    const full = deriveConventionAttendance(
+        [log({ eventId: "evt-workshop" })],
         eventTypeById
-    );
-    assertCounts("Workshop missing signOutTime -> excluded", counts, {
-        volunteer: 0,
-        workshop: 0,
-        generalMeeting: 0,
-    });
+    ).workshop[0];
+    if (full?.incomplete === false) {
+        pass("Workshop with sign-in and sign-out -> not flagged");
+    } else {
+        fail("Workshop with sign-in and sign-out -> not flagged", JSON.stringify(full));
+    }
+
+    const others = deriveConventionAttendance(
+        [log({ eventId: "evt-volunteer", signOutTime: undefined })],
+        eventTypeById
+    ).volunteer[0];
+    if (others?.incomplete === false) {
+        pass("Volunteer sign-in only -> not flagged");
+    } else {
+        fail("Volunteer sign-in only -> not flagged", JSON.stringify(others));
+    }
 }
 
 // 1c. General Meeting missing signOutTime -> excluded.
@@ -118,13 +151,17 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     });
 }
 
-// 2. Missing signInTime -> excluded.
+// 2. Missing signInTime -> excluded (Volunteer / General Meeting); no times -> excluded everywhere.
 {
     const counts = deriveConventionCounts(
-        [log({ signInTime: undefined })],
+        [
+            log({ signInTime: undefined }),
+            log({ eventId: "evt-general", signInTime: undefined }),
+            log({ eventId: "evt-workshop", signInTime: undefined, signOutTime: undefined }),
+        ],
         eventTypeById
     );
-    assertCounts("log missing signInTime -> excluded", counts, {
+    assertCounts("log missing signInTime / both times -> excluded", counts, {
         volunteer: 0,
         workshop: 0,
         generalMeeting: 0,
@@ -214,7 +251,7 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     const logs = [
         log({ eventId: "evt-volunteer" }),
         log({ eventId: "evt-workshop" }),
-        log({ eventId: "evt-workshop", signOutTime: undefined }), // workshop: excluded
+        log({ eventId: "evt-workshop", signOutTime: undefined }), // workshop: counts (sign-in or sign-out), flagged
         log({ eventId: "evt-volunteer", signOutTime: undefined }), // volunteer: counts (sign-in only)
         log({ eventId: "evt-social" }), // excluded (untracked category)
     ];

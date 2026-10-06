@@ -88,6 +88,14 @@ function CountCell({
                             >
                                 <span className="font-body text-sm font-medium text-[#202020]">
                                     {event.name || "Untitled event"}
+                                    {event.incomplete && (
+                                        <span
+                                            className="ml-0.5"
+                                            title="Only a sign-in or a sign-out was recorded"
+                                        >
+                                            *
+                                        </span>
+                                    )}
                                 </span>
                                 <span className="shrink-0 font-body text-xs text-[#707070]">
                                     {formatEventDate(event)}
@@ -95,6 +103,11 @@ function CountCell({
                             </li>
                         ))}
                     </ul>
+                )}
+                {events.some((event) => event.incomplete) && (
+                    <p className="mt-2 font-body text-xs text-[#707070]">
+                        * Missing a sign-in or sign-out
+                    </p>
                 )}
             </PopoverContent>
         </Popover>
@@ -241,7 +254,7 @@ export default function ConventionTrackerPage() {
             <PageHeader
                 eyebrow="Tools"
                 title="Convention Tracker"
-                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each. Only events marked 'National Convention eligible' count (volunteering: sign-in only; workshops and general meetings: sign-in and sign-out)."
+                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each. Only events marked 'National Convention eligible' count (volunteering: sign-in only; workshops: sign-in or sign-out; general meetings: sign-in and sign-out). * marks a workshop with only a sign-in or only a sign-out."
                 actions={
                     <Button asChild variant="outline" size="sm">
                         <Link href="/tools">

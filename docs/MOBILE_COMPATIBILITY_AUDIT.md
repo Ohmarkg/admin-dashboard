@@ -139,7 +139,7 @@ Domain flows used as the feature checklist:
 | Issue | Severity | Impact |
 |-------|----------|--------|
 | `updateAllUserPoints` throws outside emulator | **Critical** | Spreadsheet + Instagram awards leave **mobile leaderboard/ranks stale** until scheduled CF or mobile “Update All User Points” runs |
-| Points edits can backfill `signInTime` without `signOutTime` | Medium | Convention tracker requires both times for Workshop / GM (Volunteer is sign-in only) → spreadsheet totals can still diverge for incomplete GM/workshop logs |
+| Points edits can backfill `signInTime` without `signOutTime` | Medium | Convention tracker requires both times for GM (Volunteer is sign-in only; Workshop takes either time) → spreadsheet totals can still diverge for incomplete GM logs |
 
 ### 3.6 Committees
 
@@ -157,7 +157,7 @@ Domain flows used as the feature checklist:
 
 ### 3.8 Convention tracker (web-only)
 
-New capability with no mobile admin twin. Eligibility is derived from event-logs for events flagged `nationalConventionEligible` and typed Volunteer / Workshop / General Meeting (counts ≥ 2 each), matching the mobile Convention Progress screen. Compatible with mobile data as long as officers flag the right events and understand the per-category attendance gate (Volunteer: sign-in only; Workshop / GM: sign-in + sign-out).
+New capability with no mobile admin twin. Eligibility is derived from event-logs for events flagged `nationalConventionEligible` and typed Volunteer / Workshop / General Meeting (counts ≥ 2 each), matching the mobile Convention Progress screen. Compatible with mobile data as long as officers flag the right events and understand the per-category attendance gate (Volunteer: sign-in only; Workshop: sign-in or sign-out, `*`-flagged when only one; GM: sign-in + sign-out).
 
 ---
 

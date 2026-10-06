@@ -175,8 +175,9 @@ const EVENTS = [
 
 // eventId -> [uid, points, verified, noSignOut?][]
 // `noSignOut` (Convention Tracker fixture only) omits signOutTime so member-03
-// has a General Meeting log with a sign-in but no sign-out — proving that
-// Workshop / General Meeting still require both times (Volunteer Event does not).
+// has a General Meeting log with a sign-in but no sign-out (General Meeting
+// still requires both times), and member-02 has a sign-in-only Workshop log
+// (Workshop counts on either time, shown with a `*` in the tracker).
 const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
     "event-general-01": [
         ["member-01", 3, true],
@@ -213,8 +214,9 @@ const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
     // Convention Tracker eligibility fixtures (>= 2 attended events of EACH
     // Volunteer Event / Workshop / General Meeting type):
     //  - member-01: attends all three -> fully eligible (2/2/2).
-    //  - member-02: attends this general meeting only -> 2 general, 1
-    //    workshop (from event-workshop-01), 0 volunteer -> partial.
+    //  - member-02: attends this general meeting only -> 2 general, 2
+    //    workshop (event-workshop-01 + a sign-in-only LinkedIn Workshop,
+    //    flagged `*`), 0 volunteer -> partial.
     //  - member-03: signs in but never signs out of a General Meeting ->
     //    proves GM still requires both times (still only 1 fully-attended GM).
     "event-general-02": [
@@ -222,7 +224,10 @@ const LOGS: Record<string, Array<[string, number, boolean, boolean?]>> = {
         ["member-02", 3, true],
         ["member-03", 3, true, true],
     ],
-    "event-workshop-02": [["member-01", 3, true]],
+    "event-workshop-02": [
+        ["member-01", 3, true],
+        ["member-02", 3, true, true], // sign-in only -> counts, flagged `*`
+    ],
     "event-volunteer-02": [["member-01", 6, true]],
 };
 
@@ -488,7 +493,7 @@ async function main() {
     console.log("Seed complete:");
     console.log(`  officer login: ${OFFICER.email} / ${OFFICER.password} (claim: officer)`);
     console.log(`  ${MEMBERS.length} members, ${EVENTS.length} events, 3 memberSHPE requests, ${COMMITTEES.length} committees`);
-    console.log("  convention-tracking: member-01 (fully eligible), member-02 (partial) — member-03 not tracked");
+    console.log("  convention-tracking: member-01 (fully eligible), member-02 (partial; sign-in-only workshop shows `*`) — member-03 not tracked");
 }
 
 main().then(

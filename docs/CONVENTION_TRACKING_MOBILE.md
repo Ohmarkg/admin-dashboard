@@ -54,7 +54,7 @@ convention-tracking/{uid}  →  { dateAdded: Timestamp, addedBy: string }
 | UI section label | `eventType` value | Log counts when |
 |---|---|---|
 | Volunteering | `"Volunteer Event"` | `signInTime` present (sign-out **not** required) |
-| Workshops | `"Workshop"` | `signInTime` **and** `signOutTime` |
+| Workshops | `"Workshop"` | `signInTime` **or** `signOutTime` (either alone counts; if only one is present, mark the event name with `*`) |
 | General Meetings | `"General Meeting"` | `signInTime` **and** `signOutTime` |
 
 Ignore events not flagged `nationalConventionEligible` and all other event types. Sort attended events in each category by `startTime` ascending (unknown last).
@@ -62,11 +62,13 @@ Ignore events not flagged `nationalConventionEligible` and all other event types
 Pseudo (matches admin):
 
 ```ts
-if (!log.signInTime) continue;
+if (!log.signInTime && !log.signOutTime) continue;
 const category = CATEGORY_BY_EVENT_TYPE[event.eventType]; // volunteer | workshop | generalMeeting
 if (!event.nationalConventionEligible || !category) continue;
-if (category !== "volunteer" && !log.signOutTime) continue;
-// push { eventId, name, startTime }
+const hasBoth = Boolean(log.signInTime && log.signOutTime);
+if (category === "volunteer" && !log.signInTime) continue;
+if (category === "generalMeeting" && !hasBoth) continue;
+// push { eventId, name, startTime, incomplete: category === "workshop" && !hasBoth }
 ```
 
 Counts = lengths of those lists. `eligible = counts every category >= 2`.
@@ -182,7 +184,7 @@ Build `categories` from `deriveConventionAttendance` + counts. No Firestore writ
 
 - [ ] Screen only reachable / meaningful when `convention-tracking/{uid}` exists
 - [ ] Loads own `event-logs` + related `events`; derives attendance client-side
-- [ ] Volunteer = sign-in only; Workshop / GM = sign-in + sign-out
+- [ ] Volunteer = sign-in only; Workshop = sign-in or sign-out (show `*` after the name when only one exists, with a legend note); GM = sign-in + sign-out
 - [ ] Three sections, target 2 each; overall progress over 6 slots
 - [ ] Completed rows show event name + date; remaining need shown as empty slots
 - [ ] Eligible when all three categories ≥ 2 (same as officer “Eligible” badge)

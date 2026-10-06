@@ -38,6 +38,12 @@ export interface ConventionAttendedEvent {
     eventId: string;
     name: string | null;
     startTime: Timestamp | null;
+    /**
+     * True when the log has only one of `signInTime` / `signOutTime`. Only
+     * ever set for workshops (the one category that counts on either time);
+     * the tracker UI flags these with `*`.
+     */
+    incomplete: boolean;
 }
 
 export interface ConventionAttendance {
@@ -67,12 +73,15 @@ const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
  * Attendance gate by category:
  *  - Volunteer Event: `signInTime` alone is enough (members often don't
  *    sign out of volunteering).
- *  - Workshop / General Meeting: BOTH `signInTime` AND `signOutTime` must
- *    be present — `signInTime` alone is not a reliable "attended" signal
- *    (a mobile sign-in the member never signed out of).
+ *  - Workshop: `signInTime` OR `signOutTime` is enough. A workshop log with
+ *    only one of the two still counts but is returned with `incomplete: true`
+ *    so the UI can flag it with `*`.
+ *  - General Meeting: BOTH `signInTime` AND `signOutTime` must be present —
+ *    `signInTime` alone is not a reliable "attended" signal (a mobile sign-in
+ *    the member never signed out of).
  *
  * Points-editor backfills write both times (server/routes/points.ts, issue
- * #7), so spreadsheet-backfilled attendance counts here for every category.
+ * #7), so spreadsheet-backfilled attendance is complete for every category.
  * The event's `eventType` must also map to one of the three tracked
  * categories via `CATEGORY_BY_EVENT_TYPE`. Within each category, events are
  * sorted by `startTime` ascending (unknown start times last).
@@ -88,7 +97,7 @@ export function deriveConventionAttendance(
     };
 
     for (const log of logs) {
-        if (!log.signInTime) {
+        if (!log.signInTime && !log.signOutTime) {
             continue;
         }
 
@@ -99,8 +108,12 @@ export function deriveConventionAttendance(
             continue;
         }
 
-        // Volunteer counts on sign-in alone; other categories need sign-out too.
-        if (category !== "volunteer" && !log.signOutTime) {
+        const hasBoth = Boolean(log.signInTime && log.signOutTime);
+        // Volunteer needs sign-in; General Meeting needs both; Workshop takes either.
+        if (category === "volunteer" && !log.signInTime) {
+            continue;
+        }
+        if (category === "generalMeeting" && !hasBoth) {
             continue;
         }
 
@@ -108,6 +121,7 @@ export function deriveConventionAttendance(
             eventId,
             name: event.name,
             startTime: event.startTime,
+            incomplete: category === "workshop" && !hasBoth,
         });
     }
 
