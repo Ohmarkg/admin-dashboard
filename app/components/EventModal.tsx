@@ -606,9 +606,9 @@ export default function EventModal({ open, onOpenChange, event, committees }: Ev
                         />
                     </div>
                     <p className="font-body text-xs text-[#A7A7A7]">
-                        &ldquo;National Convention eligible&rdquo; is event metadata shown in the
-                        mobile app. The Convention Tracker tool derives eligibility from
-                        attendance counts by event type and does not use this flag.
+                        Only Volunteer, Workshop, and General Meeting events marked
+                        &ldquo;National Convention eligible&rdquo; count toward a member&rsquo;s
+                        progress in the Convention Tracker and the mobile app.
                     </p>
                 </FormSection>
 

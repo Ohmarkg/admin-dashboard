@@ -8,6 +8,8 @@
  *  - Workshop / General Meeting missing signOutTime are excluded
  *  - a log missing signInTime is excluded
  *  - a log whose event type is Social Event (not a tracked category) is excluded
+ *  - an event not flagged nationalConventionEligible is excluded in every
+ *    category; a flagged event of an untracked type (Social) is still excluded
  *  - a log with an unknown eventId (not in the eventTypeById map) is excluded
  *  - 2 volunteer + 2 workshop + 2 general meeting logs (all both-timestamps)
  *    -> counts {2,2,2}, eligible true
@@ -61,9 +63,10 @@ function log(overrides: Partial<SHPEEventLog>): SHPEEventLog {
 function eventInfo(
     eventType: string,
     name: string,
-    startTime: Timestamp | null = now
+    startTime: Timestamp | null = now,
+    nationalConventionEligible = true
 ): ConventionEventInfo {
-    return { eventType, name, startTime };
+    return { eventType, name, startTime, nationalConventionEligible };
 }
 
 const eventTypeById = new Map<string, ConventionEventInfo>([
@@ -71,6 +74,9 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     ["evt-workshop", eventInfo(EventType.WORKSHOP, "Resume Workshop")],
     ["evt-general", eventInfo(EventType.GENERAL_MEETING, "GM 1")],
     ["evt-social", eventInfo(EventType.SOCIAL_EVENT, "Tailgate")],
+    ["evt-unflagged", eventInfo(EventType.WORKSHOP, "Unflagged Workshop", now, false)],
+    ["evt-unflagged-vol", eventInfo(EventType.VOLUNTEER_EVENT, "Unflagged Cleanup", now, false)],
+    ["evt-flagged-social", eventInfo(EventType.SOCIAL_EVENT, "Flagged Social", now, true)],
 ]);
 
 // 1. Volunteer Event missing signOutTime -> still counts (sign-in only).
@@ -132,6 +138,24 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
         eventTypeById
     );
     assertCounts("Social Event log -> excluded", counts, {
+        volunteer: 0,
+        workshop: 0,
+        generalMeeting: 0,
+    });
+}
+
+// 3b. Events not flagged nationalConventionEligible -> excluded; a flagged
+// event of an untracked type still doesn't count.
+{
+    const counts = deriveConventionCounts(
+        [
+            log({ eventId: "evt-unflagged" }),
+            log({ eventId: "evt-unflagged-vol" }),
+            log({ eventId: "evt-flagged-social" }),
+        ],
+        eventTypeById
+    );
+    assertCounts("unflagged / untracked-type events -> excluded", counts, {
         volunteer: 0,
         workshop: 0,
         generalMeeting: 0,

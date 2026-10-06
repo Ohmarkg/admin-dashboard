@@ -29,6 +29,8 @@ export interface ConventionEventInfo {
     eventType: string;
     name: string | null;
     startTime: Timestamp | null;
+    /** `events.nationalConventionEligible === true`; only flagged events count. */
+    nationalConventionEligible: boolean;
 }
 
 /** One qualifying attendance: the event behind a unit of a category count. */
@@ -47,7 +49,7 @@ export interface ConventionAttendance {
 /**
  * Maps an event's `eventType` to the `ConventionCounts` bucket it counts
  * toward. Event types not listed here (e.g. Social Event) don't count toward
- * convention eligibility at all.
+ * convention eligibility at all, even if flagged `nationalConventionEligible`.
  */
 const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
     [EventType.VOLUNTEER_EVENT]: "volunteer",
@@ -58,6 +60,9 @@ const CATEGORY_BY_EVENT_TYPE: Record<string, keyof ConventionCounts> = {
 /**
  * Buckets a member's `event-logs` into the qualifying events behind each
  * convention-attendance category.
+ *
+ * Only events explicitly flagged `nationalConventionEligible` are counted
+ * (matches the mobile app's member-facing Convention Progress screen).
  *
  * Attendance gate by category:
  *  - Volunteer Event: `signInTime` alone is enough (members often don't
@@ -90,7 +95,7 @@ export function deriveConventionAttendance(
         const eventId = log.eventId ?? "";
         const event = eventById.get(eventId);
         const category = event ? CATEGORY_BY_EVENT_TYPE[event.eventType] : undefined;
-        if (!event || !category) {
+        if (!event?.nationalConventionEligible || !category) {
             continue;
         }
 
@@ -175,6 +180,7 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
                     eventType: event.eventType ?? "",
                     name: event.name ?? null,
                     startTime: event.startTime ?? null,
+                    nationalConventionEligible: event.nationalConventionEligible === true,
                 },
             ];
         })

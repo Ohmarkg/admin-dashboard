@@ -47,7 +47,7 @@ Domain flows used as the feature checklist:
 | Recalculate aggregates (`updateAllUserPoints`) | `POST /api/points/recalculate` | **Partial** | Emulator stub / **throws in production** (X3) |
 | Event create/update + attendance approve | `/events` + `/api/events` | **Partial** | Missing cover image, `nationalConventionEligible`, QR, manual sign-in |
 | Resume zip download (`zipResume`) | `/tools` | **Present** | Client `httpsCallable` (intentional exception) |
-| Convention tracker | `/tools/convention-tracker` | **Present** (web-only) | No mobile equivalent; eligibility ignores `nationalConventionEligible` |
+| Convention tracker | `/tools/convention-tracker` | **Present** (web-only) | No mobile admin twin; counts only events flagged `nationalConventionEligible` (same as the member-facing mobile screen) |
 | Committee join request approve | — | **Missing** | Committees page is read-only directory |
 | Resume verification (`ResumeConfirm`) | — | **Missing** | Bank still depends on mobile officers |
 | Member of the Month (`MOTMEditor`) | — | **Missing** | |
@@ -157,7 +157,7 @@ Domain flows used as the feature checklist:
 
 ### 3.8 Convention tracker (web-only)
 
-New capability with no mobile admin twin. Eligibility is derived from event-logs by type (Volunteer / Workshop / General Meeting, counts ≥ 2 each) and **ignores** `nationalConventionEligible` (documented v1 decision). Compatible with mobile data as long as officers understand the type-based rule and the per-category attendance gate (Volunteer: sign-in only; Workshop / GM: sign-in + sign-out).
+New capability with no mobile admin twin. Eligibility is derived from event-logs for events flagged `nationalConventionEligible` and typed Volunteer / Workshop / General Meeting (counts ≥ 2 each), matching the mobile Convention Progress screen. Compatible with mobile data as long as officers flag the right events and understand the per-category attendance gate (Volunteer: sign-in only; Workshop / GM: sign-in + sign-out).
 
 ---
 
@@ -183,7 +183,7 @@ Architecture note from domain/tour graphs: admin-dashboard deliberately routes *
 1. **X3 Cloud Function wiring** — `updateAllUserPoints` and `sendNotificationMemberSHPE` throw in production. Breaks leaderboard freshness and membership push UX when officers work only in the web portal.
 2. **Incomplete event write surface** — Missing `coverImageURI` and `nationalConventionEligible` causes web-created events to diverge from mobile member experience.
 3. **Missing verification / content workflows** — Committee confirm, resume confirm, MOTM, links, feedback remain mobile-only; web cannot replace the officer hub for those chapter ops.
-4. **Convention tracker vs points editor** — Sign-out requirement and type-based eligibility can disagree with spreadsheet-only attendance artifacts.
+4. **Convention tracker vs points editor** — Sign-out requirement can disagree with spreadsheet-only attendance artifacts.
 5. **Instagram award edge cases** — Duplicate named events and 50-row visibility can silently under-award.
 
 ---
@@ -207,7 +207,7 @@ Architecture note from domain/tour graphs: admin-dashboard deliberately routes *
 3. Extend event create/edit with **`coverImageURI`** and **`nationalConventionEligible`**.
 4. Port or explicitly defer: **CommitteeConfirm**, **ResumeConfirm**, **MOTM**, **LinkEditor**, **FeedbackEditor** (document “mobile-only” if deferred).
 5. Harden Instagram: unique constraint / idempotent get-or-create; raise or paginate beyond `MAX_VISIBLE = 50`.
-6. Align convention eligibility messaging with mobile event flag (or document that the flag is display-only forever).
+6. ~~Align convention eligibility with the mobile event flag~~ — done: the tracker now counts only flagged events.
 
 ---
 
