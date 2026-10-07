@@ -337,13 +337,17 @@ def unique_attendee_dedupe_key(row: AttendeeRow) -> tuple[str, str, str]:
 
 
 def dedupe_unique_rows(rows: list[AttendeeRow]) -> list[AttendeeRow]:
-    seen: set[tuple[str, str, str]] = set()
+    seen: dict[tuple[str, str, str], int] = {}
     out: list[AttendeeRow] = []
     for r in rows:
         k = unique_attendee_dedupe_key(r)
         if k in seen:
+            # Legacy months have no Gender column (read as "NA"); keep a later known gender.
+            i = seen[k]
+            if out[i][3] == "NA" and r[3] != "NA":
+                out[i] = (*out[i][:3], r[3])
             continue
-        seen.add(k)
+        seen[k] = len(out)
         out.append(r)
     return out
 
