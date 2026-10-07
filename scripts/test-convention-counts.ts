@@ -24,6 +24,7 @@ import {
     deriveConventionAttendance,
     deriveConventionCounts,
     isConventionEligible,
+    resolveConventionEligibility,
     type ConventionCounts,
     type ConventionEventInfo,
 } from "../lib/hooks/useConventionTracker";
@@ -244,6 +245,37 @@ const eventTypeById = new Map<string, ConventionEventInfo>([
     } else {
         fail("counts {2,2,1} -> eligible false");
     }
+}
+
+// 6b. Officer overrides affect only final status, never the source counts.
+{
+    const incompleteCounts: ConventionCounts = {
+        volunteer: 1,
+        workshop: 0,
+        generalMeeting: 1,
+    };
+    const completeCounts: ConventionCounts = {
+        volunteer: 2,
+        workshop: 3,
+        generalMeeting: 2,
+    };
+
+    if (
+        resolveConventionEligibility(incompleteCounts, true) === true &&
+        resolveConventionEligibility(completeCounts, false) === false &&
+        resolveConventionEligibility(incompleteCounts, null) === false &&
+        resolveConventionEligibility(completeCounts, null) === true
+    ) {
+        pass("eligibility override wins; null uses calculated eligibility");
+    } else {
+        fail("eligibility override wins; null uses calculated eligibility");
+    }
+
+    assertCounts("eligibility override leaves counts unchanged", incompleteCounts, {
+        volunteer: 1,
+        workshop: 0,
+        generalMeeting: 1,
+    });
 }
 
 // 7. Attendance lists carry event details and match the counts (issue #14).

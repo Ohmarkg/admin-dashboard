@@ -163,6 +163,14 @@ export function isConventionEligible(counts: ConventionCounts): boolean {
     );
 }
 
+/** Apply an officer decision without modifying any attendance-derived count. */
+export function resolveConventionEligibility(
+    counts: ConventionCounts,
+    eligibilityOverride: boolean | null
+): boolean {
+    return eligibilityOverride ?? isConventionEligible(counts);
+}
+
 // ---------------------------------------------------------------------------
 // useConventionTracking — convention-tracking roster joined with users
 // ---------------------------------------------------------------------------
@@ -175,6 +183,10 @@ export interface ConventionRow {
     dateAdded: Timestamp;
     counts: ConventionCounts;
     attendance: ConventionAttendance;
+    calculatedEligible: boolean;
+    eligibilityOverride: boolean | null;
+    eligibilityOverrideAt: Timestamp | null;
+    eligibilityOverrideBy: string | null;
     eligible: boolean;
 }
 
@@ -237,6 +249,11 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
                 workshop: attendance.workshop.length,
                 generalMeeting: attendance.generalMeeting.length,
             };
+            const eligibilityOverride =
+                typeof trackingData.eligibilityOverride === "boolean"
+                    ? trackingData.eligibilityOverride
+                    : null;
+            const calculatedEligible = isConventionEligible(counts);
 
             return {
                 uid,
@@ -249,7 +266,17 @@ async function fetchConventionData(): Promise<ConventionRow[]> {
                 dateAdded: (trackingData.dateAdded as Timestamp | undefined) ?? Timestamp.now(),
                 counts,
                 attendance,
-                eligible: isConventionEligible(counts),
+                calculatedEligible,
+                eligibilityOverride,
+                eligibilityOverrideAt:
+                    trackingData.eligibilityOverrideAt instanceof Timestamp
+                        ? trackingData.eligibilityOverrideAt
+                        : null,
+                eligibilityOverrideBy:
+                    typeof trackingData.eligibilityOverrideBy === "string"
+                        ? trackingData.eligibilityOverrideBy
+                        : null,
+                eligible: resolveConventionEligibility(counts, eligibilityOverride),
             };
         })
     );
@@ -313,6 +340,36 @@ export function useUntrackMember() {
         mutationFn: async (uid: string) => {
             const res = await authedFetch(`/conventions/${uid}/untrack`, { method: "POST" });
             return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["conventions"] });
+        },
+    });
+}
+
+export interface SetEligibilityOverrideInput {
+    uid: string;
+    /** `null` removes the override and restores the attendance-derived status. */
+    eligible: boolean | null;
+}
+
+/**
+ * Sets or clears the final eligibility override. Attendance counts remain
+ * derived from event logs and are never written by this mutation.
+ */
+export function useSetEligibilityOverride() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ uid, eligible }: SetEligibilityOverrideInput) => {
+            const res = await authedFetch(`/conventions/${uid}/eligibility-override`, {
+                method: "POST",
+                body: JSON.stringify({ eligible }),
+            });
+            return res.json() as Promise<{
+                ok: true;
+                eligibilityOverride: boolean | null;
+            }>;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["conventions"] });

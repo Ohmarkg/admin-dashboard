@@ -25,13 +25,19 @@ It is **read-only**. No track/untrack, no points edits, no writing eligibility.
 Officers add members via admin Tools → Convention Tracker, which creates:
 
 ```
-convention-tracking/{uid}  →  { dateAdded: Timestamp, addedBy: string }
+convention-tracking/{uid}  →  {
+  dateAdded: Timestamp,
+  addedBy: string,
+  eligibilityOverride?: boolean,
+  eligibilityOverrideAt?: Timestamp,
+  eligibilityOverrideBy?: string,
+}
 ```
 
 - If `getDoc(convention-tracking/{authUid})` **exists** → show this screen (or a nav entry to it).
 - If **missing** → hide the feature / show “You’re not on the convention roster.”
 
-> Historically this collection was admin-web-only. Member read of **own** doc is a new consumer — update Firestore rules so `request.auth.uid == uid` can read `convention-tracking/{uid}`; members must not write it. Officers continue to write via admin Hono (`POST /api/conventions/track`, `POST /api/conventions/:uid/untrack`).
+> Historically this collection was admin-web-only. Member read of **own** doc is a new consumer — update Firestore rules so `request.auth.uid == uid` can read `convention-tracking/{uid}`; members must not write it. Officers continue to write via admin Hono (`POST /api/conventions/track`, `POST /api/conventions/:uid/untrack`, `POST /api/conventions/:uid/eligibility-override`).
 
 ---
 
@@ -39,7 +45,7 @@ convention-tracking/{uid}  →  { dateAdded: Timestamp, addedBy: string }
 
 | Path | Use |
 |---|---|
-| `convention-tracking/{uid}` | Selection gate + optional `dateAdded` |
+| `convention-tracking/{uid}` | Selection gate + optional `dateAdded` and `eligibilityOverride` |
 | `users/{uid}/event-logs/{eventId}` | Attendance logs (`signInTime`, `signOutTime`, `eventId`) |
 | `events/{eventId}` | `eventType`, `name`, `startTime`, `nationalConventionEligible` for each log |
 
@@ -71,7 +77,9 @@ if (category === "generalMeeting" && !hasBoth) continue;
 // push { eventId, name, startTime, incomplete: category === "workshop" && !hasBoth }
 ```
 
-Counts = lengths of those lists. `eligible = counts every category >= 2`.
+Counts = lengths of those lists. `calculatedEligible = counts every category >= 2`.
+The final status is `eligible = tracking.eligibilityOverride ?? calculatedEligible`.
+The override never changes any count, category progress, or attendance list.
 
 ---
 
@@ -149,6 +157,8 @@ type MemberConventionProgress = {
   categories: CategoryProgress[];
   met: number;       // 0..6
   total: 6;
+  calculatedEligible: boolean;
+  eligibilityOverride: boolean | null;
   eligible: boolean;
 };
 ```

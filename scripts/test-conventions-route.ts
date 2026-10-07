@@ -24,6 +24,8 @@
  *     with `error.code === "validation_error"`.
  *  5. POST /:uid/untrack for a tracked uid -> 200 `{ ok: true }`, doc gone;
  *     repeating the same call is still 200 (idempotent).
+ *  6. POST /:uid/eligibility-override sets an audited boolean override without
+ *     changing roster metadata; `{ eligible: null }` removes the override.
  */
 
 import "./lib/requireEmulator";
@@ -266,6 +268,94 @@ async function testUntrack(): Promise<void> {
     }
 }
 
+async function testEligibilityOverride(): Promise<void> {
+    const ref = adminDb.doc(`convention-tracking/${UID_C}`);
+    const before = await ref.get();
+    const originalDateAdded = before.get("dateAdded") as Timestamp;
+
+    const res = await app.request(`/conventions/${UID_C}/eligibility-override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eligible: true }),
+    });
+    const body = await res.json();
+    const afterSet = await ref.get();
+    if (
+        res.status === 200 &&
+        body.eligibilityOverride === true &&
+        afterSet.get("eligibilityOverride") === true &&
+        afterSet.get("eligibilityOverrideAt") instanceof Timestamp &&
+        afterSet.get("eligibilityOverrideBy") === "test-officer" &&
+        originalDateAdded.isEqual(afterSet.get("dateAdded") as Timestamp)
+    ) {
+        pass("set eligibility override -> audited override stored; roster metadata unchanged");
+    } else {
+        fail(
+            "set eligibility override -> audited override stored; roster metadata unchanged",
+            `status=${res.status}, body=${JSON.stringify(body)}, doc=${JSON.stringify(afterSet.data())}`
+        );
+    }
+
+    const falseRes = await app.request(`/conventions/${UID_C}/eligibility-override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eligible: false }),
+    });
+    const afterFalse = await ref.get();
+    if (
+        falseRes.status === 200 &&
+        afterFalse.get("eligibilityOverride") === false &&
+        afterFalse.get("eligibilityOverrideAt") instanceof Timestamp &&
+        afterFalse.get("eligibilityOverrideBy") === "test-officer"
+    ) {
+        pass("set not-eligible override -> false stored with audit fields");
+    } else {
+        fail("set not-eligible override -> false stored with audit fields");
+    }
+
+    const clearRes = await app.request(`/conventions/${UID_C}/eligibility-override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eligible: null }),
+    });
+    const afterClear = await ref.get();
+    if (
+        clearRes.status === 200 &&
+        afterClear.get("eligibilityOverride") === undefined &&
+        afterClear.get("eligibilityOverrideAt") === undefined &&
+        afterClear.get("eligibilityOverrideBy") === undefined
+    ) {
+        pass("clear eligibility override -> override and audit fields removed");
+    } else {
+        fail("clear eligibility override -> override and audit fields removed");
+    }
+
+    const invalidRes = await app.request(`/conventions/${UID_C}/eligibility-override`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eligible: "yes" }),
+    });
+    if (invalidRes.status === 400) {
+        pass("invalid eligibility override -> 400 validation_error");
+    } else {
+        fail("invalid eligibility override -> 400 validation_error", `got ${invalidRes.status}`);
+    }
+
+    const missingRes = await app.request(
+        `/conventions/${UNKNOWN_UID}/eligibility-override`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eligible: true }),
+        }
+    );
+    if (missingRes.status === 404) {
+        pass("eligibility override for untracked member -> 404");
+    } else {
+        fail("eligibility override for untracked member -> 404", `got ${missingRes.status}`);
+    }
+}
+
 async function main() {
     console.log("Running conventions-route self-tests against the emulator...\n");
 
@@ -276,6 +366,7 @@ async function main() {
         await testRetrackAlreadyTracked();
         await testMixedValidAndUnknown();
         await testBadBodies();
+        await testEligibilityOverride();
         await testUntrack();
     } finally {
         await cleanupFixtures();

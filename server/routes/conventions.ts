@@ -2,17 +2,17 @@
  * Convention-tracking routes — /api/conventions
  *
  * Maintains the `convention-tracking/{uid}` roster of members tracked for
- * National Convention eligibility. This route only tracks/untracks membership
- * on the roster — per-category attendance counts and eligibility are derived
- * client-side from `users/{uid}/event-logs` joined to event types
- * (lib/hooks/useConventionTracker.ts; DATA_MODEL.md § convention-tracking);
- * nothing is stored beyond the per-uid tracking doc.
+ * National Convention eligibility. Per-category attendance counts are always
+ * derived client-side from `users/{uid}/event-logs` joined to event types
+ * (lib/hooks/useConventionTracker.ts; DATA_MODEL.md § convention-tracking).
+ * Officers may store an eligibility override on the tracking doc, but that
+ * override never changes the derived counts.
  */
 
 import { Hono } from "hono";
 import { z } from "zod";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/server/firebaseAdmin";
 import {
     chunkedAtomicBatch,
@@ -22,6 +22,10 @@ import {
 
 const trackBodySchema = z.object({
     uids: z.array(z.string().min(1)).min(1).max(500),
+});
+
+const eligibilityOverrideBodySchema = z.object({
+    eligible: z.boolean().nullable(),
 });
 
 export const conventionsRouter = new Hono<{ Variables: { user: DecodedIdToken } }>();
@@ -104,4 +108,55 @@ conventionsRouter.post("/:uid/untrack", async (c) => {
     // is harmless and idempotent, so we don't require the doc to exist first.
     await adminDb.doc(`convention-tracking/${uid}`).delete();
     return c.json({ ok: true }, 200);
+});
+
+conventionsRouter.post("/:uid/eligibility-override", async (c) => {
+    const parsed = eligibilityOverrideBodySchema.safeParse(
+        await c.req.json().catch(() => null)
+    );
+    if (!parsed.success) {
+        return c.json(
+            {
+                error: {
+                    code: "validation_error",
+                    message: "Invalid request body.",
+                    details: parsed.error.issues,
+                },
+            },
+            400
+        );
+    }
+
+    const uid = c.req.param("uid");
+    const trackingRef = adminDb.doc(`convention-tracking/${uid}`);
+    const trackingSnap = await trackingRef.get();
+    if (!trackingSnap.exists) {
+        return c.json(
+            {
+                error: {
+                    code: "tracking_not_found",
+                    message: `Member ${uid} is not being tracked for convention eligibility.`,
+                },
+            },
+            404
+        );
+    }
+
+    const { eligible } = parsed.data;
+    if (eligible === null) {
+        await trackingRef.update({
+            eligibilityOverride: FieldValue.delete(),
+            eligibilityOverrideAt: FieldValue.delete(),
+            eligibilityOverrideBy: FieldValue.delete(),
+        });
+    } else {
+        const user = c.get("user");
+        await trackingRef.update({
+            eligibilityOverride: eligible,
+            eligibilityOverrideAt: Timestamp.now(),
+            eligibilityOverrideBy: user.uid,
+        });
+    }
+
+    return c.json({ ok: true, eligibilityOverride: eligible }, 200);
 });

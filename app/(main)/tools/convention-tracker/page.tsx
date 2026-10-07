@@ -4,9 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import {
     ArrowLeft,
+    Check,
+    ChevronDown,
     Download,
     Loader2,
+    RotateCcw,
     Search,
+    ShieldCheck,
+    ShieldX,
     Trash2,
     Upload,
     UserPlus,
@@ -28,7 +33,16 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     useConventionTracking,
+    useSetEligibilityOverride,
     useUntrackMember,
     REQUIRED_COUNT,
     type ConventionAttendedEvent,
@@ -122,9 +136,84 @@ function CountCell({
     );
 }
 
+function EligibilityStatusCell({
+    row,
+    pending,
+    onChange,
+}: {
+    row: ConventionRow;
+    pending: boolean;
+    onChange: (eligible: boolean | null) => void;
+}) {
+    const isOverridden = row.eligibilityOverride !== null;
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    type="button"
+                    disabled={pending}
+                    aria-label={`Change eligibility status for ${row.name}`}
+                    className="inline-flex min-w-[112px] items-center justify-center gap-1 rounded-sm px-1 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#202020] disabled:opacity-60"
+                >
+                    <span className="flex flex-col items-center gap-0.5">
+                        {row.eligible ? (
+                            <VerifiedBadge>Eligible</VerifiedBadge>
+                        ) : (
+                            <NeutralBadge>Not yet</NeutralBadge>
+                        )}
+                        {isOverridden && (
+                            <span className="font-body text-[10px] font-semibold text-[#707070]">
+                                Officer override
+                            </span>
+                        )}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-[#707070]" />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-56">
+                <DropdownMenuLabel>Set eligibility status</DropdownMenuLabel>
+                <DropdownMenuItem
+                    onSelect={() => onChange(true)}
+                    disabled={row.eligibilityOverride === true}
+                >
+                    <ShieldCheck />
+                    Mark eligible
+                    {row.eligibilityOverride === true && <Check className="ml-auto" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onSelect={() => onChange(false)}
+                    disabled={row.eligibilityOverride === false}
+                >
+                    <ShieldX />
+                    Mark not eligible
+                    {row.eligibilityOverride === false && <Check className="ml-auto" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    onSelect={() => onChange(null)}
+                    disabled={!isOverridden}
+                >
+                    <RotateCcw />
+                    Use calculated status
+                    {!isOverridden && <Check className="ml-auto" />}
+                </DropdownMenuItem>
+                <p className="px-2 py-1.5 font-body text-xs leading-4 text-[#707070]">
+                    Calculated: {row.calculatedEligible ? "Eligible" : "Not yet eligible"}.
+                    Counts will not change.
+                </p>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 export default function ConventionTrackerPage() {
     const conventionQuery = useConventionTracking();
     const untrackMember = useUntrackMember();
+    const {
+        mutate: mutateEligibilityOverride,
+        isPending: isEligibilityOverridePending,
+    } = useSetEligibilityOverride();
     const [search, setSearch] = React.useState("");
     const [addOpen, setAddOpen] = React.useState(false);
     const [importOpen, setImportOpen] = React.useState(false);
@@ -169,6 +258,33 @@ export default function ConventionTrackerPage() {
             });
         });
     }
+
+    const handleEligibilityOverride = React.useCallback(
+        (row: ConventionRow, eligible: boolean | null) => {
+            mutateEligibilityOverride(
+                { uid: row.uid, eligible },
+                {
+                    onSuccess: () => {
+                        toast.success(
+                            eligible === null
+                                ? `Restored calculated eligibility for ${row.name}`
+                                : `${row.name} marked ${
+                                      eligible ? "eligible" : "not eligible"
+                                  }`
+                        );
+                    },
+                    onError: (error: unknown) => {
+                        toast.error(
+                            error instanceof Error
+                                ? error.message
+                                : "Failed to update eligibility status"
+                        );
+                    },
+                }
+            );
+        },
+        [mutateEligibilityOverride]
+    );
 
     async function handleExport() {
         if (isExporting || rows.length === 0) return;
@@ -251,13 +367,14 @@ export default function ConventionTrackerPage() {
                 key: "eligible",
                 header: "Status",
                 align: "center" as const,
-                render: (row: ConventionRow) =>
-                    row.eligible ? (
-                        <VerifiedBadge>Eligible</VerifiedBadge>
-                    ) : (
-                        <NeutralBadge>Not yet</NeutralBadge>
-                    ),
-                width: "120px",
+                render: (row: ConventionRow) => (
+                    <EligibilityStatusCell
+                        row={row}
+                        pending={isEligibilityOverridePending}
+                        onChange={(eligible) => handleEligibilityOverride(row, eligible)}
+                    />
+                ),
+                width: "150px",
             },
             {
                 key: "remove",
@@ -276,7 +393,7 @@ export default function ConventionTrackerPage() {
                 width: "80px",
             },
         ],
-        []
+        [handleEligibilityOverride, isEligibilityOverridePending]
     );
 
     return (
@@ -284,7 +401,7 @@ export default function ConventionTrackerPage() {
             <PageHeader
                 eyebrow="Tools"
                 title="Convention Tracker"
-                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each. Only events marked 'National Convention eligible' count (volunteering: sign-in only; workshops: sign-in or sign-out; general meetings: sign-in and sign-out). * marks a workshop with only a sign-in or only a sign-out."
+                description="Track selected members' National Convention eligibility — volunteering, workshops, and general meetings attended out of 2 each. Only events marked 'National Convention eligible' count (volunteering: sign-in only; workshops: sign-in or sign-out; general meetings: sign-in and sign-out). Officers can override the final status without changing any counts. * marks a workshop with only a sign-in or only a sign-out."
                 actions={
                     <Button asChild variant="outline" size="sm">
                         <Link href="/tools">

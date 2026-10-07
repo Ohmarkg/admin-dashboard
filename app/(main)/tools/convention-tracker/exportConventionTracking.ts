@@ -68,10 +68,11 @@ function buildSummarySheet(workbook: ExcelJS.Workbook, rows: ConventionRow[]) {
             width: 23,
         },
         { header: "Eligibility", key: "eligibility", width: 16 },
+        { header: "Eligibility Source", key: "eligibilitySource", width: 30 },
         { header: "Date Added", key: "dateAdded", width: 16 },
     ];
     sheet.views = [{ state: "frozen", ySplit: 1, xSplit: 2 }];
-    sheet.autoFilter = { from: "A1", to: "I1" };
+    sheet.autoFilter = { from: "A1", to: "J1" };
     styleHeaderRow(sheet);
 
     rows.forEach((row) => {
@@ -84,6 +85,12 @@ function buildSummarySheet(workbook: ExcelJS.Workbook, rows: ConventionRow[]) {
             generalMeeting: row.counts.generalMeeting,
             requirementsMet: requirementsMet(row),
             eligibility: row.eligible ? "Eligible" : "Not yet eligible",
+            eligibilitySource:
+                row.eligibilityOverride === null
+                    ? "Calculated from attendance"
+                    : `Officer override (calculated: ${
+                          row.calculatedEligible ? "eligible" : "not yet eligible"
+                      })`,
             dateAdded: row.dateAdded.toDate(),
         });
 
