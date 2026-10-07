@@ -2,7 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Trash2, Upload, UserPlus } from "lucide-react";
+import {
+    ArrowLeft,
+    Download,
+    Loader2,
+    Search,
+    Trash2,
+    Upload,
+    UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
@@ -120,6 +128,7 @@ export default function ConventionTrackerPage() {
     const [search, setSearch] = React.useState("");
     const [addOpen, setAddOpen] = React.useState(false);
     const [importOpen, setImportOpen] = React.useState(false);
+    const [isExporting, setIsExporting] = React.useState(false);
     const [removeTarget, setRemoveTarget] = React.useState<ConventionRow | null>(null);
 
     const rows = conventionQuery.data ?? [];
@@ -159,6 +168,27 @@ export default function ConventionTrackerPage() {
                 },
             });
         });
+    }
+
+    async function handleExport() {
+        if (isExporting || rows.length === 0) return;
+        setIsExporting(true);
+        try {
+            // ExcelJS is large; keep it out of the tracker page's initial bundle.
+            const { exportConventionTrackingWorkbook } = await import(
+                "./exportConventionTracking"
+            );
+            await exportConventionTrackingWorkbook(rows);
+            toast.success("Convention tracker workbook downloaded");
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to export convention tracker"
+            );
+        } finally {
+            setIsExporting(false);
+        }
     }
 
     const columns = React.useMemo(
@@ -302,6 +332,19 @@ export default function ConventionTrackerPage() {
                                 </span>{" "}
                                 eligible
                             </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleExport}
+                                disabled={isExporting}
+                            >
+                                {isExporting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Download className="h-4 w-4" />
+                                )}
+                                {isExporting ? "Exporting…" : "Export Excel"}
+                            </Button>
                             <Button size="sm" onClick={() => setAddOpen(true)}>
                                 <UserPlus className="h-4 w-4" />
                                 Add members
