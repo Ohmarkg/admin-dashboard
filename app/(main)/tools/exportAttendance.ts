@@ -1,4 +1,4 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { format } from "date-fns";
 import ExcelJS from "exceljs";
 import JSZip from "jszip";
@@ -12,7 +12,7 @@ import {
     type MemberPublic,
 } from "@/lib/hooks/usePoints";
 import type { SHPEEventLog } from "@/types/events";
-import type { PublicUserInfo } from "@/types/user";
+import type { PrivateUserInfo, PublicUserInfo } from "@/types/user";
 
 // Client-side attendance Excel/ZIP export (API.md § "Excel export — decided:
 // client-side, no route"). Ports the legacy dashboard export from
@@ -27,7 +27,44 @@ type AttendeeRow = {
     name: string;
     major: string;
     classYear: string;
+    gender: string;
 };
+
+/** uid → gender from `users/{uid}/private/privateInfo`; shared across a whole export run. */
+type GenderCache = Map<string, string>;
+
+const ATTENDEE_COLUMNS = [
+    { header: "Name", key: "name", width: 30 },
+    { header: "Major", key: "major", width: 30 },
+    { header: "Class Year", key: "classYear", width: 15 },
+    { header: "Gender", key: "gender", width: 15 },
+];
+
+/** Case-insensitive label so "female"/"Female" match; blank or "na" → NA. Mirrors the Python scripts. */
+function normalizeGender(value: string | undefined): string {
+    const trimmed = (value ?? "").trim().replace(/\s+/g, " ");
+    if (!trimmed || trimmed.toLowerCase() === "na") return NA_VALUE;
+    return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+/** Reads private gender for any uid not yet cached, in small batches. Missing → NA. */
+async function loadGenders(uids: string[], cache: GenderCache, batchSize = 25): Promise<void> {
+    const missing = uids.filter((uid) => !cache.has(uid));
+    for (let i = 0; i < missing.length; i += batchSize) {
+        await Promise.all(
+            missing.slice(i, i + batchSize).map(async (uid) => {
+                try {
+                    const snap = await getDoc(doc(db, `users/${uid}/private/privateInfo`));
+                    const gender = (snap.data() as PrivateUserInfo | undefined)?.gender;
+                    cache.set(uid, normalizeGender(gender));
+                } catch (error) {
+                    console.error(`Error fetching private info for user ${uid}:`, error);
+                    cache.set(uid, NA_VALUE);
+                }
+            })
+        );
+    }
+}
 
 type EventLogForExport = SHPEEventLog & { uid: string };
 
@@ -88,7 +125,8 @@ async function fetchEventLogsForExport(eventId: string): Promise<EventLogForExpo
 
 async function buildMonthWorkbook(
     monthEvents: EventWithId[],
-    usersLookup: Map<string, PublicUserInfo>
+    usersLookup: Map<string, PublicUserInfo>,
+    genderCache: GenderCache
 ): Promise<ExcelJS.Workbook> {
     const workbook = new ExcelJS.Workbook();
     const uniqueAttendees = new Map<string, AttendeeRow>();
@@ -108,11 +146,12 @@ async function buildMonthWorkbook(
         const sheetName = getUniqueWorksheetName(workbook, `${eventName} ${eventDateLabel}`);
         const eventSheet = workbook.addWorksheet(sheetName);
 
-        eventSheet.columns = [
-            { header: "Name", key: "name", width: 30 },
-            { header: "Major", key: "major", width: 30 },
-            { header: "Class Year", key: "classYear", width: 15 },
-        ];
+        eventSheet.columns = ATTENDEE_COLUMNS;
+
+        await loadGenders(
+            eventLogs.map((log) => log.uid).filter(Boolean),
+            genderCache
+        );
 
         eventLogs.forEach((log, index) => {
             const publicUser = log.uid ? usersLookup.get(log.uid) : undefined;
@@ -120,6 +159,7 @@ async function buildMonthWorkbook(
                 name: publicUser?.displayName || NA_VALUE,
                 major: publicUser?.major || NA_VALUE,
                 classYear: publicUser?.classYear || NA_VALUE,
+                gender: (log.uid && genderCache.get(log.uid)) || NA_VALUE,
             };
 
             eventSheet.addRow(row);
@@ -134,11 +174,7 @@ async function buildMonthWorkbook(
     }
 
     const uniqueSheet = workbook.addWorksheet(getUniqueWorksheetName(workbook, "Unique Attendees"));
-    uniqueSheet.columns = [
-        { header: "Name", key: "name", width: 30 },
-        { header: "Major", key: "major", width: 30 },
-        { header: "Class Year", key: "classYear", width: 15 },
-    ];
+    uniqueSheet.columns = ATTENDEE_COLUMNS;
 
     Array.from(uniqueAttendees.values())
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -177,10 +213,11 @@ export async function exportSchoolYearAttendanceZip(
     const months = getCurrentSchoolYearMonths(now);
     const eventsByMonth = groupEventsByMonth(events, months);
     const zip = new JSZip();
+    const genderCache: GenderCache = new Map();
 
     for (const month of months) {
         const monthEvents = eventsByMonth.get(getMonthKey(month)) || [];
-        const workbook = await buildMonthWorkbook(monthEvents, usersLookup);
+        const workbook = await buildMonthWorkbook(monthEvents, usersLookup, genderCache);
         const workbookBuffer = await workbook.xlsx.writeBuffer();
         zip.file(`attendance_${format(month, "yyyy_MM")}.xlsx`, workbookBuffer);
     }
@@ -197,7 +234,7 @@ export async function exportMonthAttendanceWorkbook(
 ): Promise<void> {
     const monthKeys = new Set([getMonthKey(selectedMonth)]);
     const monthEvents = events.filter((event) => isIncludedEvent(event, monthKeys));
-    const workbook = await buildMonthWorkbook(monthEvents, usersLookup);
+    const workbook = await buildMonthWorkbook(monthEvents, usersLookup, new Map());
     const workbookBuffer = await workbook.xlsx.writeBuffer();
     saveAs(new Blob([workbookBuffer]), `attendance_${format(selectedMonth, "yyyy_MM")}.xlsx`);
 }

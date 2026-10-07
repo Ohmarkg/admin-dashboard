@@ -16,6 +16,9 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 INSTAGRAM_EVENT_SUBSTR = "instagram points"
 
+# (name, major, class year, gender)
+AttendeeRow = tuple[str, str, str, str]
+
 
 def is_unique_attendees_sheet(title: str) -> bool:
     t = title.strip().lower()
@@ -44,14 +47,31 @@ def find_attendee_header_row(ws: Worksheet, scan_limit: int = 500) -> int | None
     return None
 
 
-def read_attendee_rows(ws: Worksheet, header_row: int) -> list[tuple[str, str, str]]:
-    rows: list[tuple[str, str, str]] = []
+def sheet_has_gender(ws: Worksheet, header_row: int) -> bool:
+    """True if the 4th header cell is 'Gender' (exports made before gender was added lack it)."""
+    v = ws.cell(header_row, 4).value
+    return v is not None and str(v).strip().lower() == "gender"
+
+
+def normalize_gender(value: object) -> str:
+    """Case-insensitive label so "female"/"FEMALE"/"Female" tally together; blank or "na" -> "NA"."""
+    s = " ".join(str(value).split()) if value is not None else ""
+    if not s or s.lower() == "na":
+        return "NA"
+    return s[0].upper() + s[1:].lower()
+
+
+def read_attendee_rows(ws: Worksheet, header_row: int) -> list[AttendeeRow]:
+    """Rows are (name, major, class year, gender); gender is "NA" when blank or the column is absent."""
+    has_gender = sheet_has_gender(ws, header_row)
+    rows: list[AttendeeRow] = []
     for r in range(header_row + 1, (ws.max_row or header_row) + 1):
         name = ws.cell(r, 1).value
         major = ws.cell(r, 2).value
         cy = ws.cell(r, 3).value
         if name is None and major is None and cy is None:
             continue
+        gender = ws.cell(r, 4).value if has_gender else None
         ns = str(name).strip() if name is not None else ""
         ms = str(major).strip() if major is not None else ""
         cs = str(cy).strip() if cy is not None else ""
@@ -59,17 +79,24 @@ def read_attendee_rows(ws: Worksheet, header_row: int) -> list[tuple[str, str, s
             ms = "NA"
         if not cs:
             cs = "NA"
-        rows.append((ns, ms, cs))
+        rows.append((ns, ms, cs, normalize_gender(gender)))
     return rows
 
 
-def tally_major_class(rows: Iterable[tuple[str, str, str]]) -> tuple[Counter[str], Counter[str]]:
+def tally_major_class(rows: Iterable[AttendeeRow]) -> tuple[Counter[str], Counter[str]]:
     majors: Counter[str] = Counter()
     years: Counter[str] = Counter()
-    for _, m, y in rows:
+    for _, m, y, _g in rows:
         majors[m] += 1
         years[y] += 1
     return majors, years
+
+
+def tally_gender(rows: Iterable[AttendeeRow]) -> Counter[str]:
+    genders: Counter[str] = Counter()
+    for _, _, _, g in rows:
+        genders[g] += 1
+    return genders
 
 
 def sorted_counter_items(c: Counter[str]) -> list[tuple[str, int]]:
@@ -89,7 +116,12 @@ def distribution_table_rows(title: str, counts: Counter[str], total: int) -> lis
     return out
 
 
-def event_sheet_summary_rows(sign_ins: int, majors: Counter[str], years: Counter[str]) -> list[list]:
+def event_sheet_summary_rows(
+    sign_ins: int,
+    majors: Counter[str],
+    years: Counter[str],
+    genders: Counter[str] | None = None,
+) -> list[list]:
     lines: list[list] = [
         ["Sign-in count", sign_ins],
         [],
@@ -97,6 +129,9 @@ def event_sheet_summary_rows(sign_ins: int, majors: Counter[str], years: Counter
     lines.extend(distribution_table_rows("Major distribution", majors, sign_ins))
     lines.append([])
     lines.extend(distribution_table_rows("Class year distribution", years, sign_ins))
+    if genders is not None:
+        lines.append([])
+        lines.extend(distribution_table_rows("Gender distribution", genders, sign_ins))
     return lines
 
 
@@ -108,6 +143,8 @@ def unique_sheet_summary_rows(
     unique_years: Counter[str],
     unique_people: int,
     *,
+    weighted_genders: Counter[str] | None = None,
+    unique_genders: Counter[str] | None = None,
     scope_line1: str = "By sign-ins (all events this month)",
     scope_line2: str = "By unique attendees (this month)",
 ) -> list[list]:
@@ -121,6 +158,11 @@ def unique_sheet_summary_rows(
     lines.extend(
         distribution_table_rows("Class year distribution (by sign-in)", weighted_years, total_sign_ins)
     )
+    if weighted_genders is not None:
+        lines.append([])
+        lines.extend(
+            distribution_table_rows("Gender distribution (by sign-in)", weighted_genders, total_sign_ins)
+        )
     lines.append([])
     lines.append([scope_line2])
     lines.append(["Unique people", unique_people])
@@ -128,6 +170,9 @@ def unique_sheet_summary_rows(
     lines.extend(distribution_table_rows("Major distribution (unique)", unique_majors, unique_people))
     lines.append([])
     lines.extend(distribution_table_rows("Class year distribution (unique)", unique_years, unique_people))
+    if unique_genders is not None:
+        lines.append([])
+        lines.extend(distribution_table_rows("Gender distribution (unique)", unique_genders, unique_people))
     lines.append([])
     return lines
 
@@ -189,8 +234,11 @@ def apply_summaries_to_workbook(
 
     event_sheets: list[Worksheet] = [ws for ws in wb.worksheets if ws.title != unique_name]
 
-    sheet_rows: dict[str, list[tuple[str, str, str]]] = {}
-    weighted: list[tuple[str, str, str]] = []
+    sheet_rows: dict[str, list[AttendeeRow]] = {}
+    weighted: list[AttendeeRow] = []
+    # Gender tables only appear when some sheet actually has a Gender column,
+    # so summarizing a pre-gender export doesn't add a meaningless all-"NA" table.
+    include_gender = False
 
     for ws in event_sheets:
         hr = find_attendee_header_row(ws)
@@ -200,6 +248,7 @@ def apply_summaries_to_workbook(
                 file=sys.stderr,
             )
             continue
+        include_gender = include_gender or sheet_has_gender(ws, hr)
         data = read_attendee_rows(ws, hr)
         sheet_rows[ws.title] = data
         weighted.extend(data)
@@ -209,6 +258,7 @@ def apply_summaries_to_workbook(
     if u_hr is None:
         return False, "unique sheet has no header row"
 
+    include_gender = include_gender or sheet_has_gender(uws, u_hr)
     unique_data = read_attendee_rows(uws, u_hr)
 
     if not force and workbook_looks_summarized(wb):
@@ -220,7 +270,16 @@ def apply_summaries_to_workbook(
     unique_people = len(unique_data)
 
     u_summary = unique_sheet_summary_rows(
-        wm, wy, total_sign_ins, um, uy, unique_people, scope_line1=scope_line1, scope_line2=scope_line2
+        wm,
+        wy,
+        total_sign_ins,
+        um,
+        uy,
+        unique_people,
+        weighted_genders=tally_gender(weighted) if include_gender else None,
+        unique_genders=tally_gender(unique_data) if include_gender else None,
+        scope_line1=scope_line1,
+        scope_line2=scope_line2,
     )
     insert_block_at_top(uws, u_summary)
 
@@ -229,7 +288,8 @@ def apply_summaries_to_workbook(
             continue
         data = sheet_rows[ws.title]
         maj, yr = tally_major_class(data)
-        insert_block_at_top(ws, event_sheet_summary_rows(len(data), maj, yr))
+        gen = tally_gender(data) if include_gender else None
+        insert_block_at_top(ws, event_sheet_summary_rows(len(data), maj, yr, gen))
 
     return True, None
 
@@ -267,18 +327,18 @@ def norm_key_part(s: str) -> str:
     return " ".join(str(s).strip().split()).lower()
 
 
-def unique_attendee_dedupe_key(row: tuple[str, str, str]) -> tuple[str, str, str]:
+def unique_attendee_dedupe_key(row: AttendeeRow) -> tuple[str, str, str]:
     """
     Same person if name + class year + major all match (case/whitespace normalized).
     Name first, then class year, then major per your rules.
     """
-    name, major, cy = row
+    name, major, cy = row[:3]
     return (norm_key_part(name), norm_key_part(cy), norm_key_part(major))
 
 
-def dedupe_unique_rows(rows: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
+def dedupe_unique_rows(rows: list[AttendeeRow]) -> list[AttendeeRow]:
     seen: set[tuple[str, str, str]] = set()
-    out: list[tuple[str, str, str]] = []
+    out: list[AttendeeRow] = []
     for r in rows:
         k = unique_attendee_dedupe_key(r)
         if k in seen:
@@ -333,7 +393,7 @@ def preview_summaries_stats(wb: WorkbookType) -> tuple[bool, str | None, int, in
         return False, "no 'Unique Attendees' sheet", 0, 0, 0
 
     event_sheets: list[Worksheet] = [ws for ws in wb.worksheets if ws.title != unique_name]
-    weighted: list[tuple[str, str, str]] = []
+    weighted: list[AttendeeRow] = []
     count_headers = 0
     for ws in event_sheets:
         hr = find_attendee_header_row(ws)

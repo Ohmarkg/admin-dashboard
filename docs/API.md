@@ -197,6 +197,9 @@ exercised locally. Without them the points page shows its error state.
 grid does not read `private/privateInfo`. Search is by name. The Excel export calls
 `fillMissingEmails` at click time to fetch the missing ones, in batches.
 
+The attendance export (Tools) likewise reads `private/privateInfo.gender` per unique
+attendee at click time (no query key); missing or unreadable → `NA`.
+
 **Known limitation.** Logs are bucketed by `creationTime` (as before) but the
 Monthly grid's event columns are selected by event `startTime`. A log whose
 `creationTime` falls outside the school year while its event starts inside it is

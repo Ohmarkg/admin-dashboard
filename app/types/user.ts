@@ -75,6 +75,7 @@ export interface PrivateUserInfo {
     expirationDate?: Timestamp;
     resumeURL?: string;
     email?: string;
+    gender?: string;
 };
 
 

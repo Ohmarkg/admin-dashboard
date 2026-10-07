@@ -39,14 +39,14 @@ const OFFICER = {
 };
 
 const MEMBERS = [
-    { uid: "member-01", name: "Alejandra Ramirez", major: "Mechanical Engineering", classYear: "2027" },
-    { uid: "member-02", name: "Diego Martinez", major: "Computer Science", classYear: "2026" },
-    { uid: "member-03", name: "Sofia Hernandez", major: "Civil Engineering", classYear: "2028" },
+    { uid: "member-01", name: "Alejandra Ramirez", major: "Mechanical Engineering", classYear: "2027", gender: "Female" },
+    { uid: "member-02", name: "Diego Martinez", major: "Computer Science", classYear: "2026", gender: "Male" },
+    { uid: "member-03", name: "Sofia Hernandez", major: "Civil Engineering", classYear: "2028", gender: "Female" },
     { uid: "member-04", name: "Carlos Gutierrez", major: "Electrical Engineering", classYear: "2027" },
-    { uid: "member-05", name: "Valeria Torres", major: "Industrial & Systems Engineering", classYear: "2026" },
-    { uid: "member-06", name: "Miguel Flores", major: "Aerospace Engineering", classYear: "2029" },
+    { uid: "member-05", name: "Valeria Torres", major: "Industrial & Systems Engineering", classYear: "2026", gender: "Female" },
+    { uid: "member-06", name: "Miguel Flores", major: "Aerospace Engineering", classYear: "2029", gender: "Male" },
     { uid: "member-07", name: "Lucia Morales", major: "Chemical Engineering", classYear: "2027" },
-    { uid: "member-08", name: "Andres Castillo", major: "Computer Engineering", classYear: "2028" },
+    { uid: "member-08", name: "Andres Castillo", major: "Computer Engineering", classYear: "2028", gender: "Male" },
 ];
 
 const SHIRT_SIZES = ["S", "M", "L", "XL", "M", "L", "S", "XXL"];
@@ -372,6 +372,8 @@ async function main() {
             expoPushTokens: [`ExponentPushToken[seed-${m.uid}]`],
             resumeURL: `http://localhost:9199/v0/b/tamushpemobileapp.appspot.com/o/user-docs%2F${m.uid}%2Fresume.pdf?alt=media`,
             email,
+            // member-04 and member-07 have no gender, to exercise the export's "NA" path.
+            ...(m.gender ? { gender: m.gender } : {}),
         });
     }
 
