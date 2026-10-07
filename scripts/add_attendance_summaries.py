@@ -4,9 +4,10 @@ Insert summary tables into attendance export workbooks (ExcelJS output).
 
 For each .xlsx in a directory (one workbook = one month):
   • Every sheet EXCEPT the unique-attendees tab gets:
-      - Sign-in count (row count under Name/Major/Class Year)
+      - Sign-in count (row count under Name/Major/Class Year[/Gender])
       - Major distribution (count + %)
       - Class year distribution (count + %)
+      - Gender distribution (count + %) — only when the export has a Gender column
     Summaries are inserted above the existing header + data (nothing removed).
 
   • The unique-attendees tab gets two blocks above the table:

@@ -76,6 +76,7 @@ Sensitive; scoped to the owning user in the mobile app. **The admin app reads th
 | `expirationDate` | Timestamp |
 | `resumeURL` | string |
 | `email` | string |
+| `gender` | string (optional; read by the attendance export) |
 
 ## `users/{uid}/private/moderationData` — `UserModerationData`
 `{ canUseKnockOnWall?: boolean }`. Present in the type; not currently used by the admin app.

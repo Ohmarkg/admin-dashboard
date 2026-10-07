@@ -39,6 +39,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
 from openpyxl import Workbook, load_workbook
 
 from attendance_excel_lib import (
+    AttendeeRow,
     apply_summaries_to_workbook,
     collect_unique_sheet_name,
     copy_sheet_as_values,
@@ -50,6 +51,7 @@ from attendance_excel_lib import (
     parse_monthly_attendance_filename,
     read_attendee_rows,
     school_year_start_int,
+    sheet_has_gender,
 )
 
 SCOPE_SIGNINS = "By sign-ins (all events combined for this period)"
@@ -103,7 +105,8 @@ def build_merged_workbook(
     wb = Workbook()
     wb.remove(wb.active)
     used_titles: set[str] = set()
-    unique_accum: list[tuple[str, str, str]] = []
+    unique_accum: list[AttendeeRow] = []
+    any_gender = False
 
     for path, _, _ in selected:
         src = load_workbook(path, read_only=False, data_only=True)
@@ -119,6 +122,7 @@ def build_merged_workbook(
                 if ws.title == un:
                     hr = find_attendee_header_row(ws)
                     if hr is not None:
+                        any_gender = any_gender or sheet_has_gender(ws, hr)
                         unique_accum.extend(read_attendee_rows(ws, hr))
                     continue
 
@@ -135,9 +139,12 @@ def build_merged_workbook(
 
     u_title = fresh_sheet_title("Unique Attendees", used_titles)
     uws = wb.create_sheet(u_title)
-    uws.append(["Name", "Major", "Class Year"])
+    # Only emit the Gender column if at least one month had it; otherwise keep the
+    # old 3-column layout so pre-gender exports don't gain an all-"NA" column.
+    width = 4 if any_gender else 3
+    uws.append(["Name", "Major", "Class Year", "Gender"][:width])
     for row in deduped:
-        uws.append(list(row))
+        uws.append(list(row[:width]))
 
     return wb
 
